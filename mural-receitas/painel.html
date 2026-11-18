@@ -62,27 +62,25 @@ details.mx-more[open]>summary{margin-bottom:var(--cds-gap-sm)}
   <header class="mx-head" id="topo">
     <h1>Mural de receitas</h1>
     <p class="mx-lede" data-draw="lede">—</p>
+    <p class="mx-lede" style="font-size:var(--cds-font-size-caption)">Agenda do vSaúde lida em <span data-draw="atualizado" data-source="atualizacao" data-field="atualizadoEm" data-row="0">—</span>.</p>
   </header>
 
   <div class="mx-tiles" id="resumo">
     <div class="mx-tile is-bad"><span class="t">Renovar agora</span><span class="n" data-draw="t-agora" data-source="resumo" data-field="agora" data-row="0">—</span><span class="s">vencem em até 7 dias ou já venceram</span></div>
     <div class="mx-tile is-warn"><span class="t">Próximos 21 dias</span><span class="n" data-draw="t-breve" data-source="resumo" data-field="breve" data-row="0">—</span><span class="s">entram no mural em breve</span></div>
-    <div class="mx-tile is-ok"><span class="t">Cobertos até o retorno</span><span class="n" data-draw="t-cob" data-source="resumo" data-field="cobertos" data-row="0">—</span><span class="s">receita dura até a próxima consulta</span></div>
-    <div class="mx-tile"><span class="t">Sem retorno agendado</span><span class="n" data-draw="t-sem" data-source="resumo" data-field="semRetorno" data-row="0">—</span><span class="s">entre os que precisam de renovação</span></div>
+    <div class="mx-tile is-ok"><span class="t">Cobertos até a próxima consulta</span><span class="n" data-draw="t-cob" data-source="resumo" data-field="cobertos" data-row="0">—</span><span class="s">receita dura até a próxima consulta</span></div>
+    <div class="mx-tile"><span class="t">Sem próxima consulta</span><span class="n" data-draw="t-sem" data-source="resumo" data-field="semProxima" data-row="0">—</span><span class="s">entre os que precisam de renovação</span></div>
   </div>
 
   <section class="mx-sec" id="agora">
     <h2>Renovar agora</h2>
-    <p class="mx-note">Pacientes cuja receita vence em até 7 dias (ou já venceu) e cuja próxima consulta cai depois do vencimento. O nome abre o prontuário quando o link estiver cadastrado. Ao emitir a renovação, marque no botão: o paciente sai do mural e volta só se a nova receita também não alcançar o retorno.</p>
+    <p class="mx-note">Pacientes cuja receita vence em até 7 dias (ou já venceu) e cuja próxima consulta cai depois do vencimento. O nome abre o prontuário no vSaúde. Ao emitir a renovação, marque no botão: o paciente sai do mural e volta só se a nova receita também não alcançar a próxima consulta.</p>
     <div class="mx-cards" data-draw="cards-agora" data-source="mural"></div>
   </section>
 
   <div class="mx-edit" id="editor" hidden>
     <h3 id="ed-titulo">Ajustar: <span data-draw="ed-nome">—</span></h3>
-    <p class="mx-note" style="margin:0;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)">Por padrão, considero que toda consulta gerou receita de 60 dias a partir da data da consulta. Ajuste aqui quando foi diferente.</p>
-    <label for="ed-link">Link do prontuário
-      <input class="mx-input" id="ed-link" type="url" placeholder="https://…">
-    </label>
+    <p class="mx-note" style="margin:0;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)">Quando a receita ainda não foi lida do prontuário, considero 60 dias a partir da consulta. Ajuste aqui quando foi diferente.</p>
     <div class="row">
       <label for="ed-rxdata">Receita emitida em
         <input class="mx-input" id="ed-rxdata" type="date" min="2025-01-01" max="2030-12-31">
@@ -118,14 +116,14 @@ details.mx-more[open]>summary{margin-bottom:var(--cds-gap-sm)}
 
   <section class="mx-sec" id="breve">
     <h2>Entram no mural nos próximos 21 dias</h2>
-    <p class="mx-note">Ainda não é hora de renovar. Dá para adiantar se o paciente pedir, ou cadastrar o link do prontuário agora.</p>
+    <p class="mx-note">Ainda não é hora de renovar. Dá para adiantar se o paciente pedir.</p>
     <div class="mx-cards" data-draw="cards-breve" data-source="mural"></div>
   </section>
 
   <section class="mx-sec" id="antigas">
     <details class="mx-more">
       <summary>Receita vencida há mais de 30 dias <span data-draw="n-antigas" data-source="resumo" data-field="antigas" data-row="0">—</span></summary>
-      <p class="mx-note" style="margin:0 0 var(--cds-gap-sm);color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)">Pela agenda, a receita destes pacientes já acabou faz tempo e não há retorno antes disso. Em geral: renovação feita sem registro aqui, paciente que abandonou ou que não usa controlado. Confirme e arquive.</p>
+      <p class="mx-note" style="margin:0 0 var(--cds-gap-sm);color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)">Pela agenda, a receita destes pacientes acabou faz tempo e não houve consulta depois. Em geral: renovação feita sem registro aqui, paciente que abandonou ou que não usa controlado. Para quem está há muito tempo sem consulta, o caminho é a consulta de acompanhamento, não a renovação.</p>
       <div class="mx-cards" data-draw="cards-antigas" data-source="mural"></div>
     </details>
   </section>
@@ -139,7 +137,8 @@ details.mx-more[open]>summary{margin-bottom:var(--cds-gap-sm)}
         <option value="renovar">Renovar agora</option>
         <option value="breve">Próximos 21 dias</option>
         <option value="monitorar">Monitorando</option>
-        <option value="coberto">Coberto até o retorno</option>
+        <option value="coberto">Coberto até a próxima consulta</option>
+        <option value="semreceita">Sem receita controlada</option>
         <option value="antiga">Vencida há mais de 30 dias</option>
         <option value="arquivado">Arquivados</option>
       </select>
@@ -164,60 +163,26 @@ details.mx-more[open]>summary{margin-bottom:var(--cds-gap-sm)}
     <details class="mx-more">
       <summary>Como o mural calcula</summary>
       <ul class="mx-rules">
-        <li>A agenda do Google é lida ao vivo a cada abertura: eventos “Consulta: Nome” dos últimos 4,5 meses e dos próximos 4,5 meses.</li>
-        <li>Última consulta é a mais recente até hoje; próxima consulta é a primeira depois de hoje.</li>
-        <li>Receita padrão: 60 dias a partir da última consulta (teto da SNCR). Pode ser ajustada por paciente em “Ajustar”.</li>
+        <li>A agenda vem do vSaúde (API), lida pela rotina automática 5 vezes ao dia: consultas atendidas nos últimos 150 dias e agendadas nos próximos meses.</li>
+        <li>Última consulta é a mais recente com status atendido; próxima consulta é a primeira marcada depois de hoje.</li>
+        <li>Quando a receita da última consulta já foi lida do prontuário, vale a data calculada pela quantidade e posologia de cada controlado (a que acabar primeiro). Sem leitura, a estimativa é 60 dias a partir da consulta (teto da SNCR).</li>
         <li>Cada renovação marcada soma os dias a partir do vencimento anterior (ou de hoje, se já tinha vencido) e vale só até a próxima consulta acontecer.</li>
         <li>Se a próxima consulta cai até o vencimento, o paciente está coberto. Se não, entra no mural 7 dias antes do vencimento.</li>
-        <li>Sugestão: +1 mês quando o retorno cai até 31 dias depois do vencimento; +2 meses quando cai mais longe ou não há retorno agendado.</li>
-        <li>“Sem controlado” e “Não é paciente” arquivam o nome até você reativar. Nova consulta não desarquiva automaticamente quem não é paciente.</li>
-      </ul>
+        <li>Sugestão: +1 mês quando a próxima consulta cai até 31 dias depois do vencimento; +2 meses quando cai mais longe ou não há consulta marcada.</li>
+        <li>Receita vencida há mais de 30 dias sem consulta: sugerir consulta de acompanhamento antes de renovar.</li>
+        <li>“Sem controlado” e “Não é paciente” arquivam o nome até você reativar.</li>
+      
+</ul>
     </details>
   </section>
 </div>
 
 <script>
-(function () {
-  const pad = (n) => String(n).padStart(2, '0');
-  const iso = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-  const t = new Date();
-  const ini = new Date(t.getFullYear(), t.getMonth(), t.getDate() - 135);
-  const fim = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 140);
-  dash.setParams({inicio: iso(ini) + 'T00:00:00', fim: iso(fim) + 'T00:00:00'});
-})();
-
-dash.loader('agenda', {
-  description: 'Lê todas as páginas da resposta da agenda e mantém só os eventos "Consulta: Nome".',
-  fn: async ({answer, call, args}) => {
-    let page = answer;
-    const all = [];
-    let n = 0;
-    while (true) {
-      if (typeof page === 'string') { try { page = JSON.parse(page); } catch (e) { throw new Error(page.slice(0, 300)); } }
-      if (page && page.error) throw new Error(page.error.message || String(page.error));
-      all.push(...((page && page.events) || []));
-      n += 1;
-      if (!page || !page.nextPageToken || n >= 30) break;
-      page = await call('list_events', Object.assign({}, args, {pageToken: page.nextPageToken}));
-    }
-    const rows = [];
-    for (const e of all) {
-      const s = (e.summary || '').trim();
-      const m = s.match(/^consulta\s*:\s*(.+)$/i);
-      if (!m || e.status === 'cancelled') continue;
-      const st = (e.start && (e.start.dateTime || e.start.date)) || '';
-      if (!st) continue;
-      rows.push({evento: e.id, paciente: m[1].replace(/\s+/g, ' ').trim(), data: st.slice(0, 10), hora: st.length > 10 ? st.slice(11, 16) : '', link: e.htmlLink || ''});
-    }
-    return {columns: ['evento', 'paciente', 'data', 'hora', 'link'], rows, truncated: !!(page && page.nextPageToken)};
-  }
-});
-
 dash.calc('mural', {
   title: 'Situação da receita por paciente',
-  description: 'Junta a agenda com as anotações do mural e calcula até quando vai a receita de cada paciente.',
-  inputs: ['agenda', 'fichas'],
-  fn: (agenda, fichas) => {
+  description: 'Junta a agenda do vSaúde, as receitas lidas do prontuário e as anotações do mural, e calcula até quando vai a receita de cada paciente.',
+  inputs: ['vsaude', 'receitas', 'fichas'],
+  fn: (vsaude, receitas, fichas) => {
     const DUR = 60, AVISO = 7, BREVE = 21;
     const pad = (n) => String(n).padStart(2, '0');
     const now = new Date();
@@ -226,47 +191,47 @@ dash.calc('mural', {
     const toS = (ms) => new Date(ms).toISOString().slice(0, 10);
     const add = (s, d) => toS(toD(s) + d * 864e5);
     const diff = (a, b) => Math.round((toD(a) - toD(b)) / 864e5);
-    const chave = (nome) => nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 120);
-    const fx = {};
-    for (const f of fichas || []) fx[f.id] = f;
-    const pac = {};
-    for (const r of agenda || []) {
-      const k = chave(r.paciente);
-      if (!k) continue;
-      const p = pac[k] || (pac[k] = {chave: k, paciente: r.paciente, ult: null, ultLink: '', prox: null, proxHora: ''});
-      if (r.data <= hoje) { if (!p.ult || r.data > p.ult) { p.ult = r.data; p.ultLink = r.link; p.paciente = r.paciente; } }
-      else if (!p.prox || r.data < p.prox) { p.prox = r.data; p.proxHora = r.hora; }
-    }
+    const parse = (v) => { if (typeof v !== 'string') return v; try { return JSON.parse(v); } catch (e) { return null; } };
+    const doc = (vsaude || [])[0] || {};
+    const linhas = parse(doc.linhas) || [];
+    const fx = {}; for (const f of fichas || []) fx[f.id] = f;
+    const rx = {}; for (const r of receitas || []) rx[r.id] = r;
     const out = [];
-    for (const k in pac) {
-      const p = pac[k];
-      if (!p.ult) continue;
-      const f = fx[k] || {};
-      let ren = f.renovacoes;
-      if (typeof ren === 'string') { try { ren = JSON.parse(ren); } catch (e) { ren = []; } }
-      ren = (Array.isArray(ren) ? ren : []).filter((x) => x && x.ref === p.ult).sort((a, b) => (a.em < b.em ? -1 : 1));
-      const usaAjuste = f.rxRef === p.ult && f.rxData;
-      const rxIni = usaAjuste ? f.rxData : p.ult;
-      const rxDias = usaAjuste && +f.rxDias ? +f.rxDias : DUR;
-      let ate = add(rxIni, rxDias);
+    for (const p of linhas) {
+      if (!p || !p.pid || !p.ultima) continue;
+      const f = fx[p.pid] || {};
+      const r = rx[p.pid];
+      const lida = !!(r && typeof r.consulta === 'string' && r.consulta >= p.ultima && /^\d{4}-\d\d-\d\d$/.test(r.ate || ''));
+      const itens = lida ? (parse(r.itens) || []) : [];
+      let ren = parse(f.renovacoes);
+      ren = (Array.isArray(ren) ? ren : []).filter((x) => x && x.ref === p.ultima).sort((a, b) => (a.em < b.em ? -1 : 1));
+      const usaAjuste = f.rxRef === p.ultima && f.rxData;
+      let ate, fonte;
+      if (usaAjuste) { ate = add(f.rxData, +f.rxDias || DUR); fonte = 'ajustada no mural'; }
+      else if (lida) { ate = r.ate; fonte = 'lida no prontuário'; }
+      else { ate = add(p.ultima, DUR); fonte = 'estimada (60 dias)'; }
       for (const x of ren) ate = add(ate > x.em ? ate : x.em, +x.dias || 30);
       const dias = diff(ate, hoje);
-      const coberto = p.prox && p.prox <= ate;
+      const coberto = p.proxima && p.proxima <= ate;
+      const semCtrl = lida && itens.length === 0;
       let sit;
-      if (f.arquivo && (f.arquivo === 'nao-paciente' || f.arquivoRef === p.ult)) sit = 'arquivado';
+      if (f.arquivo && (f.arquivo === 'nao-paciente' || f.arquivoRef === p.ultima)) sit = 'arquivado';
+      else if (semCtrl) sit = 'semreceita';
       else if (coberto) sit = 'coberto';
       else if (dias < -30) sit = 'antiga';
       else if (dias <= AVISO) sit = 'renovar';
       else if (dias <= BREVE) sit = 'breve';
       else sit = 'monitorar';
-      const lacuna = p.prox ? diff(p.prox, ate) : null;
+      const lacuna = p.proxima ? diff(p.proxima, ate) : null;
       const meses = lacuna === null || lacuna > 31 ? 2 : 1;
-      const textos = {renovar: 'Renovar agora', breve: 'Em breve', monitorar: 'Monitorando', coberto: 'Coberto até o retorno', antiga: 'Vencida há mais de 30 dias', arquivado: f.arquivo === 'nao-paciente' ? 'Arquivado: não é paciente' : f.arquivo === 'fora' ? 'Arquivado: acompanhado em outro lugar' : 'Arquivado: sem controlado'};
+      const textos = {renovar: 'Renovar agora', breve: 'Em breve', monitorar: 'Monitorando', coberto: 'Coberto até a próxima consulta', antiga: 'Vencida há mais de 30 dias', semreceita: 'Sem receita controlada', arquivado: f.arquivo === 'nao-paciente' ? 'Arquivado: não é paciente' : f.arquivo === 'fora' ? 'Arquivado: acompanhado em outro lugar' : 'Arquivado: sem controlado'};
       out.push({
-        chave: k, paciente: p.paciente, ultima: p.ult, proxima: p.prox || '', proximaHora: p.proxHora || '',
-        receitaAte: ate, alertaEm: add(ate, -AVISO), diasRestantes: dias, situacao: sit, situacaoTexto: textos[sit],
+        chave: p.pid, paciente: p.nome, ultima: p.ultima, ultimaUnidade: p.ultimaUnidade || '', proxima: p.proxima || '', proximaHora: p.proximaHora || '', proximaUnidade: p.proximaUnidade || '',
+        receitaAte: ate, receitaFonte: fonte, alertaEm: add(ate, -AVISO), diasRestantes: dias, situacao: sit, situacaoTexto: textos[sit],
         sugestaoMeses: meses, lacunaDias: lacuna === null ? '' : lacuna, renovacoes: ren.length,
-        prontuario: typeof f.link === 'string' ? f.link : '', agendaLink: p.ultLink || '', obs: typeof f.obs === 'string' ? f.obs : '',
+        medicamentos: itens.map((i) => [i.medicamento, i.quantidade, i.dias ? i.dias + ' dias' : ''].filter(Boolean).join(' · ')).join(' | '),
+        revisar: lida && typeof r.revisar === 'string' ? r.revisar : '',
+        prontuario: 'https://app.vsaude.com.br/patient/' + p.pid, obs: typeof f.obs === 'string' ? f.obs : '',
         rxAjustado: usaAjuste ? 'sim' : ''
       });
     }
@@ -275,13 +240,20 @@ dash.calc('mural', {
   }
 });
 
+dash.calc('atualizacao', {
+  title: 'Última leitura do vSaúde',
+  description: 'Quando a rotina leu a agenda do vSaúde pela última vez.',
+  inputs: ['vsaude'],
+  fn: (vsaude) => [{atualizadoEm: ((vsaude || [])[0] || {}).atualizadoEm || ''}]
+});
+
 dash.calc('resumo', {
   title: 'Totais do mural',
   description: 'Quantos pacientes estão em cada situação.',
   inputs: ['mural'],
   fn: (mural) => {
     const c = (s) => mural.filter((r) => r.situacao === s).length;
-    return [{agora: c('renovar'), breve: c('breve'), cobertos: c('coberto'), semRetorno: mural.filter((r) => (r.situacao === 'renovar' || r.situacao === 'breve') && !r.proxima).length, antigas: c('antiga'), monitorados: mural.filter((r) => r.situacao !== 'arquivado').length}];
+    return [{agora: c('renovar'), breve: c('breve'), cobertos: c('coberto'), semProxima: mural.filter((r) => (r.situacao === 'renovar' || r.situacao === 'breve') && !r.proxima).length, antigas: c('antiga'), monitorados: mural.filter((r) => r.situacao !== 'arquivado' && r.situacao !== 'semreceita').length}];
   }
 });
 </script>
@@ -332,7 +304,6 @@ window.MX = window.MX || {};
     const ed = document.getElementById('editor'); if (!ed) return;
     ed.hidden = false;
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
-    set('ed-link', MX.safeUrl(f.link) || '');
     set('ed-rxdata', f.rxRef === r.ultima && f.rxData ? f.rxData : r.ultima);
     set('ed-rxdias', String(f.rxRef === r.ultima && +f.rxDias ? +f.rxDias : 60));
     set('ed-obs', typeof f.obs === 'string' ? f.obs : '');
@@ -343,18 +314,16 @@ window.MX = window.MX || {};
     const dz = document.getElementById('ed-desfazer'); if (dz) dz.hidden = !(r.renovacoes > 0);
     dash.draw('ed-nome');
     ed.scrollIntoView({behavior: 'smooth', block: 'center'});
-    const l = document.getElementById('ed-link'); if (l) l.focus({preventScroll: true});
   };
 
   const fb = (ok) => { const e = document.getElementById('ed-erro'), o = document.getElementById('ed-ok'); if (e) e.hidden = ok; if (o) o.hidden = !ok; };
   document.querySelectorAll('#ed-salvar').forEach((b) => b.addEventListener('click', async () => {
     const k = MX.editando; const r = MX.row(k); if (!k || !r) return;
     const v = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
-    const link = v('ed-link');
     const dEl = document.getElementById('ed-rxdata');
     const data = dEl && dEl.value && dEl.validity.valid ? dEl.value : r.ultima;
     const dias = +v('ed-rxdias') || 60;
-    const patch = {link: MX.safeUrl(link) || '', obs: v('ed-obs')};
+    const patch = {obs: v('ed-obs')};
     if (data !== r.ultima || dias !== 60) { patch.rxRef = r.ultima; patch.rxData = data; patch.rxDias = dias; }
     else { patch.rxRef = ''; patch.rxData = ''; patch.rxDias = ''; }
     fb(await MX.save(k, patch));
@@ -407,15 +376,19 @@ window.MX = window.MX || {};
     const c = el('article', 'mx-card ' + (modo === 'agora' ? (r.diasRestantes <= 2 ? 'sev-bad' : 'sev-warn') : modo === 'antiga' ? 'sev-soft' : 'sev-warn'));
     const nm = el('div', 'mx-name');
     const url = MX.safeUrl(r.prontuario);
-    if (url) { const a = el('a', null, r.paciente); a.href = url; a.target = '_blank'; a.rel = 'noopener'; nm.appendChild(a); }
+    if (url) { const a = el('a', null, r.paciente); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.title = 'Abrir prontuário no vSaúde'; nm.appendChild(a); }
     else nm.textContent = r.paciente;
     c.appendChild(nm);
-    if (modo !== 'antiga') c.appendChild(el('span', 'mx-action', (modo === 'agora' ? 'Renovar receita +' : 'Vai precisar de +') + (r.sugestaoMeses === 1 ? '1 mês' : '2 meses')));
+    if (modo !== 'antiga') c.appendChild(el('span', 'mx-action', (modo === 'agora' ? 'Renovar receita +' : 'Vai precisar de +') + (r.sugestaoMeses === 1 ? '1 mês' : '2 meses') + (r.proxima ? '' : ' · agendar consulta')));
+    else c.appendChild(el('span', 'mx-action', 'Sugerir consulta de acompanhamento antes de renovar'));
     const dl = el('dl', 'mx-facts');
     const fact = (k, v) => { dl.appendChild(el('dt', null, k)); dl.appendChild(el('dd', null, v)); };
-    fact('Receita', MX.fmtLong(r.receitaAte) + ' · ' + venceTxt(r));
-    fact('Última consulta', MX.fmtLong(r.ultima));
-    fact('Próxima consulta', r.proxima ? MX.fmtLong(r.proxima) + (r.proximaHora ? ' ' + r.proximaHora : '') + ' · ' + r.lacunaDias + ' dias após o vencimento' : 'sem retorno agendado');
+    fact('Receita até', MX.fmtLong(r.receitaAte) + ' · ' + venceTxt(r));
+    fact('Origem', r.receitaFonte);
+    if (r.medicamentos) fact('Prescrição', r.medicamentos);
+    if (r.revisar) fact('Conferir', r.revisar);
+    fact('Última consulta', MX.fmtLong(r.ultima) + (r.ultimaUnidade ? ' · ' + r.ultimaUnidade : ''));
+    fact('Próxima consulta', r.proxima ? MX.fmtLong(r.proxima) + (r.proximaHora ? ' ' + r.proximaHora : '') + (r.proximaUnidade ? ' · ' + r.proximaUnidade : '') + ' · ' + r.lacunaDias + ' dias após o vencimento' : 'nenhuma agendada');
     if (r.renovacoes > 0) fact('Renovações', r.renovacoes + ' desde a última consulta');
     if (r.rxAjustado) fact('Receita', 'data/duração ajustadas');
     if (r.obs) fact('Obs.', r.obs);
@@ -428,7 +401,7 @@ window.MX = window.MX || {};
       btn(r.sugestaoMeses === 1 ? '+2 meses' : '+1 mês', r.sugestaoMeses === 1 ? 'ren2' : 'ren1');
       btn('Sem controlado', 'semctrl');
     }
-    btn(url ? 'Ajustar' : 'Ajustar · link', 'editar');
+    btn('Ajustar', 'editar');
     btn('Não é paciente', 'naopac');
     c.appendChild(bt);
     return c;
@@ -451,9 +424,10 @@ window.MX = window.MX || {};
     n.classList.toggle('dash-skeleton', !s.data && dash.data('mural').status === 'loading');
     n.textContent = s.data && s.data[0] ? String(s.data[0][field]) : '—';
   });
-  tile('t-agora', 'agora'); tile('t-breve', 'breve'); tile('t-cob', 'cobertos'); tile('t-sem', 'semRetorno');
+  tile('t-agora', 'agora'); tile('t-breve', 'breve'); tile('t-cob', 'cobertos'); tile('t-sem', 'semProxima');
   dash.draw('n-antigas', (n) => { const s = dash.data('resumo'); n.textContent = s.data && s.data[0] ? '(' + s.data[0].antigas + ')' : ''; });
 
+  dash.draw('atualizado', (n) => { const a = dash.data('atualizacao'); const v = a.data && a.data[0] && a.data[0].atualizadoEm; n.textContent = v ? new Date(v).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}) : '—'; });
   dash.draw('ed-nome', (n) => { n.textContent = MX.edNome || '—'; });
 
   dash.draw('lede', (n) => {
@@ -463,13 +437,13 @@ window.MX = window.MX || {};
     const ag = m.data.filter((r) => r.situacao === 'renovar');
     const venc = ag.filter((r) => r.diasRestantes < 0).length;
     const br = m.data.filter((r) => r.situacao === 'breve').length;
-    const mon = m.data.filter((r) => r.situacao !== 'arquivado').length;
+    const mon = m.data.filter((r) => r.situacao !== 'arquivado' && r.situacao !== 'semreceita').length;
     const b = (t) => { const x = document.createElement('b'); x.textContent = t; return x; };
     const parts = [];
     if (ag.length) { parts.push('Hoje, ', b(ag.length + (ag.length === 1 ? ' paciente precisa' : ' pacientes precisam')), ' de renovação de receita'); if (venc) parts.push(' (', b(String(venc)), venc === 1 ? ' já vencida)' : ' já vencidas)'); parts.push('. '); }
     else parts.push('Nenhuma receita precisa de renovação nesta semana. ');
     parts.push(String(br), br === 1 ? ' entra no mural nas próximas três semanas. ' : ' entram no mural nas próximas três semanas. ');
-    parts.push('Acompanhando ' + mon + ' pacientes pela agenda.');
+    parts.push('Acompanhando ' + mon + ' pacientes atendidos nos últimos 150 dias.');
     n.replaceChildren(...parts.map((p) => (typeof p === 'string' ? document.createTextNode(p) : p)));
   });
 
@@ -485,7 +459,7 @@ window.MX = window.MX || {};
       const url = MX.safeUrl(r.prontuario);
       if (url) { const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.paciente; td(a); } else td(r.paciente);
       td(el('span', 'mx-pill ' + (pill[r.situacao] || ''), r.situacaoTexto));
-      td(MX.fmt(r.ultima)); td(MX.fmt(r.receitaAte)); td(r.proxima ? MX.fmt(r.proxima) : 'sem retorno'); td(String(r.renovacoes));
+      td(MX.fmt(r.ultima)); td(MX.fmt(r.receitaAte)); td(r.proxima ? MX.fmt(r.proxima) : 'nenhuma'); td(String(r.renovacoes));
       const b = el('button', 'mx-btn', 'Ajustar'); b.type = 'button'; b.setAttribute('data-act', 'editar'); b.setAttribute('data-k', r.chave); td(b);
       return tr;
     }));
@@ -502,7 +476,7 @@ window.MX = window.MX || {};
     const W0 = seg(hoje); const N = 12;
     const weeks = d3.range(N).map((i) => ({ini: new Date(W0.getTime() + i * 7 * 864e5), nomes: [], n: 0}));
     for (const r of m.data) {
-      if (r.situacao === 'arquivado' || r.situacao === 'coberto' || r.situacao === 'antiga') continue;
+      if (r.situacao === 'arquivado' || r.situacao === 'coberto' || r.situacao === 'antiga' || r.situacao === 'semreceita') continue;
       const d = toD(r.receitaAte);
       let i = Math.floor((seg(d) - W0) / (7 * 864e5)); if (i < 0) i = 0;
       if (i < N) { weeks[i].n++; weeks[i].nomes.push(r.paciente); }
