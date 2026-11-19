@@ -127,7 +127,7 @@ const MEDS=[
   {n:"Metformina XR",f:"/dia",d:["500 mg","1000 mg","1500 mg","2000 mg"]},
 ];
 const RISCO=/suic|me matar|morrer|n[aã]o aguento|desmai|sangue|n[aã]o consigo beber|urin/i;
-const S={dir:[],dirAt:null,db:null,uid:null,pac:{},sel:null,busca:"",syncAt:null,syncErr:null,busy:false,demo:false};
+const S={sug:{},dir:[],dirAt:null,db:null,uid:null,pac:{},sel:null,busca:"",syncAt:null,syncErr:null,busy:false,demo:false};
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -179,6 +179,7 @@ async function boot(){
     col.onSnapshot(snap=>{clearTimeout(timer);const o={};snap.docs.forEach(d=>o[d.id]={id:d.id,...d.data()});S.pac=o;render()},
       err=>{clearTimeout(timer);$("lista").innerHTML=`<div class="empty">Não foi possível abrir os dados (${esc(err&&err.code||"erro")}).</div>`});
     db.doc(`data/users/${S.uid}/peso/diretorio/vsaude`).onSnapshot(d=>{const x=d.exists?d.data():null;if(!x)return;try{S.dir=JSON.parse(x.lista||"[]")}catch(e){S.dir=[]}S.dirAt=x.atualizadoEm||null;renderFicha()},()=>{});
+    db.collection(`data/users/${S.uid}/peso/sugestoes`).onSnapshot(sn=>{const o={};sn.docs.forEach(d=>o[d.id]=d.data());S.sug=o;render()},()=>{});
     setTimeout(()=>sync(false),1500);setInterval(()=>sync(false),120000);
   }catch(e){clearTimeout(timer);S.demo=true;render()}
 }
@@ -258,6 +259,7 @@ function renderFicha(){
   $("ficha").innerHTML=`
   <div class="head"><div><h2>${esc(p.nome)}</h2>${p.vsId?`<div class="muted"><a href="https://app.vsaude.com.br/patient/${encodeURIComponent(p.vsId)}" target="_blank" rel="noopener">Abrir prontuário no vSaúde</a>${proxVs(p)}</div>`:""}<div class="muted">${[p.med&&esc(p.med),p.inicio&&"início "+dBR(p.inicio),p.altura&&p.altura+" cm",p.meta&&"meta −"+p.meta+"%"].filter(Boolean).join(" · ")||"Complete o cadastro em Editar (altura, medicação, meta)."}</div></div>
     <div class="acts"><button class="pri" id="bCons">Registrar na consulta</button><button id="bEdit">Editar</button></div></div>
+  ${sugHTML(p)}
   ${sg.length?`<div class="sec">${sg.map(s=>`<div class="alert${s.tipo==="hi"?"":" soft"}">${s.tipo==="hi"?"<b>Atenção</b> · ":"<b>Observar</b> · "}${s.txt}</div>`).join("")}</div>`:""}
   <div class="kpis">
     <div class="kpi"><div class="l">Peso atual</div><div class="v">${a.ult?br(a.ult.kg)+" kg":"—"}</div><div class="l">${a.ult?dBR(a.ult.d)+(a.semEnvio>9?` · há ${a.semEnvio} dias`:""):"sem registro"}</div></div>
@@ -279,6 +281,9 @@ function renderFicha(){
   </tbody></table></div></div>`:""}
   <div class="sec muted">Perda de 5% já tem benefício metabólico; ritmo acima de ~1,5% do peso por semana, sustentado, merece atenção a proteína, hidratação e massa magra. A bioimpedância doméstica varia com hidratação e horário: compare tendências, não valores isolados.</div>`;
   $("bCons").onclick=()=>regForm(p);
+  const su=$("bSugOk");if(su)su.onclick=async()=>{const s=sugDe(p);if(await salvar(p,{med:s.med,sugAceita:s.lidoEm||Date.now()})){toast("Medicação atualizada")}};
+  const sn=$("bSugNo");if(sn)sn.onclick=()=>salvar(p,{sugRecusada:sugDe(p).lidoEm||Date.now()});
+  const sp=$("bSugPede");if(sp)sp.onclick=()=>pedeLeitura(p);
   $("bEdit").onclick=()=>form(p);
   $("bCopy").onclick=()=>copiar(link);
   $("bMsg").onclick=()=>copiar(msgZap(p,link));
@@ -289,6 +294,19 @@ function renderFicha(){
 function proxVs(p){const d=S.dir.find(x=>x.id===p.vsId);return d&&d.p?` · próxima consulta ${dBR(d.p)}`:""}
 const fone=t=>{const d=String(t||"").replace(/\D/g,"").replace(/^55(?=\d{10,11}$)/,"");return d.length===11?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d.length===10?`(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`:String(t||"")};
 const semAc=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+// Sugestão de medicação lida do prontuário (aba Prescrições) por uma sessão do Claude no computador do médico.
+const sugDe=p=>p.vsId?S.sug[p.vsId]:null;
+function sugHTML(p){
+  if(!p.vsId)return "";
+  const s=sugDe(p);
+  if(s&&s.med&&s.lidoEm!==p.sugAceita&&s.lidoEm!==p.sugRecusada&&s.med!==p.med)
+    return `<div class="alert soft"><b>Sugestão do prontuário</b> · lida em ${dt(s.lidoEm)}${s.data?" (prescrição de "+dBR(s.data)+")":""}:<div style="margin:6px 0;font-weight:700">${esc(s.med)}</div>${s.obs?`<div class="muted">${esc(s.obs)}</div>`:""}<div class="acts" style="margin-top:6px"><button class="pri" id="bSugOk">Usar esta medicação</button><button id="bSugNo">Recusar</button></div></div>`;
+  if(s&&s.pedido&&!s.lidoEm)return `<div class="muted">Leitura do prontuário pedida em ${dt(s.pedido)}; aguardando a sessão do seu computador.</div>`;
+  return `<div class="acts" style="margin:8px 0"><button id="bSugPede">Pedir leitura da medicação no prontuário</button></div>`;
+}
+async function pedeLeitura(p){
+  try{await S.db.doc(`data/users/${S.uid}/peso/sugestoes/${p.vsId}`).set({...(S.sug[p.vsId]||{}),pedido:Date.now(),nome:p.nome,lidoEm:null});toast("Pedido registrado")}catch(e){toast("Não salvou o pedido")}
+}
 const imcFaixa=v=>v<18.5?"baixo peso":v<25?"eutrofia":v<30?"sobrepeso":v<35?"obesidade grau I":v<40?"obesidade grau II":"obesidade grau III";
 function msgZap(p,link,lembrete){const n=(p.nome||"").split(" ")[0];return lembrete?`Olá, ${n}. Lembrete do registro semanal do peso: leva 1 minuto, pelo mesmo link de sempre.\n\n${link}\n\nDr. Luís Felipe Jardim`:`Olá, ${n}. Este é o seu link pessoal para acompanhar o peso. Uma vez por semana, de preferência no mesmo dia e em jejum, anote o peso, como foi a medicação e se sentiu algum efeito. Se fizer bioimpedância, pode anotar também. Você vê o seu gráfico na hora e o registro chega direto para mim.\n\n${link}\n\nGuarde este link nos favoritos. Em urgência, procure o pronto-atendimento ou ligue 192.\n\nDr. Luís Felipe Jardim`}
 function zapUrl(p,link,lem){let d=String(p.telefone||"").replace(/\D/g,"");if(d.length<=11)d="55"+d;return "https://web.whatsapp.com/send?phone="+d+"&text="+encodeURIComponent(msgZap(p,link,lem))}
@@ -390,7 +408,7 @@ function form(p){
     if(!d.nome){$("fMsg").innerHTML=`<div class="alert">Informe o nome.</div>`;return}
     if(d.pesoIni!=null&&!(d.pesoIni>=30&&d.pesoIni<=350))d.pesoIni=null;if(d.altura!=null&&!(d.altura>=120&&d.altura<=230))d.altura=null;if(d.meta!=null&&!(d.meta>0&&d.meta<60))d.meta=null;
     if(!col){$("fMsg").innerHTML=`<div class="alert">Sem acesso ao banco nesta visualização.</div>`;return}
-    try{if(novo){const ref=col.doc();await ref.set({...d,tok:tok(),tokDesde:Date.now(),criadoEm:Date.now(),regs:[]});S.sel=ref.id}else await col.doc(p.id).update(d);fecha();toast("Salvo")}
+    try{if(novo){const ref=col.doc();await ref.set({...d,tok:tok(),tokDesde:Date.now(),criadoEm:Date.now(),regs:[]});S.sel=ref.id;if(d.vsId&&!d.med&&!S.sug[d.vsId])pedeLeitura({...d})}else await col.doc(p.id).update(d);fecha();toast("Salvo")}
     catch(e){$("fMsg").innerHTML=`<div class="alert">Não salvou (${esc(e&&e.code||"erro")}).</div>`}
   };
   const del=$("fD");if(del)del.onclick=()=>confirma(del,"Excluir este paciente e todos os registros? Não dá para desfazer.",async()=>{try{await col.doc(p.id).delete();S.sel=null;fecha();toast("Excluído")}catch(e){toast("Não excluiu")}});
