@@ -1,0 +1,374 @@
+<title>Monitor de Peso</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: lista de pacientes à esquerda, ficha à direita; em telefone, uma coluna. Mesma família visual da Régua de Sintomas, com verde-água para o peso. */
+:root{
+  --bg:#f3f6f7;--panel:#ffffff;--ink:#17262b;--soft:#58686e;--line:#dde6e8;--brand:#127a78;--brand-soft:#e0f1f0;
+  --ok:#2a9566;--neu:#4f7fb8;--mid:#d9771a;--hi:#c43b3b;--track:#e2eaec;--alert-bg:#fdeceb;--alert-ink:#7d2020;
+  --f-display:"Nunito",system-ui,sans-serif;--f-body:"Nunito Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1a1c;--panel:#16252a;--ink:#e3eef0;--soft:#9fb3b8;--line:#28393e;--brand:#4cc7c2;--brand-soft:#1d3a3c;
+  --ok:#47c08a;--neu:#86aee0;--mid:#f0a050;--hi:#ff7a7a;--track:#28393e;--alert-bg:#3a1d24;--alert-ink:#ffc2c2;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1a1c;--panel:#16252a;--ink:#e3eef0;--soft:#9fb3b8;--line:#28393e;--brand:#4cc7c2;--brand-soft:#1d3a3c;
+  --ok:#47c08a;--neu:#86aee0;--mid:#f0a050;--hi:#ff7a7a;--track:#28393e;--alert-bg:#3a1d24;--alert-ink:#ffc2c2;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+h1{font-size:24px;color:var(--brand);font-weight:800}
+h3{font-size:15px}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.muted{color:var(--soft);font-size:13px}
+.grid{display:grid;grid-template-columns:330px 1fr;gap:16px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+button,.btn{font:700 14px var(--f-display);border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button.pri,.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+:root[data-theme="dark"] button.pri,:root[data-theme="dark"] .btn.pri{color:#0f1a1c}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button.pri,:root:not([data-theme="light"]) .btn.pri{color:#0f1a1c}}
+button.danger{color:var(--hi)}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+button:disabled{opacity:.5;cursor:default}
+input[type=text],input[type=tel],input[type=number],input[type=date],textarea{width:100%;font:15px var(--f-body);padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+label.f{display:block;font-size:13px;color:var(--soft);font-weight:600;margin:10px 0 4px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0 10px}
+.list{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.pi{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 11px;border-radius:10px;border:1px solid transparent;cursor:pointer;background:transparent;text-align:left;width:100%;font:inherit;color:inherit}
+.pi:hover{background:var(--brand-soft)}
+.pi.sel{background:var(--brand-soft);border-color:var(--brand)}
+.pi .nm{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{font:800 12px var(--f-display);padding:3px 8px;border-radius:999px;background:var(--track);color:var(--soft);white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.chip.mid{background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--mid)}
+.chip.hi{background:color-mix(in srgb,var(--hi) 18%,transparent);color:var(--hi)}
+.chip.new{background:var(--brand);color:#fff}
+.alert{background:var(--alert-bg);color:var(--alert-ink);border-radius:12px;padding:11px 13px;font-size:14px;margin-bottom:10px}
+.alert b{color:var(--hi)}
+.alert.soft{background:var(--brand-soft);color:var(--ink)}
+.alert.soft b{color:var(--brand)}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:flex-start}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi .v{font:800 22px var(--f-display);font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12px;color:var(--soft)}
+svg text{fill:var(--soft);font:11px var(--f-body)}
+.chart{width:100%;height:auto;display:block}
+.minis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:10px}
+.mini{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.mini .t{display:flex;justify-content:space-between;font-size:13px;font-weight:700;gap:6px}
+.tbl{overflow-x:auto;margin-top:12px}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+th{color:var(--soft);font-weight:700}
+td:first-child,th:first-child{text-align:left}
+td.ef{text-align:left;white-space:normal;min-width:160px}
+td.obs{text-align:left;white-space:normal;color:var(--soft);font-style:italic}
+.down{color:var(--ok);font-weight:800}.up{color:var(--hi);font-weight:800}
+.sec{margin-top:18px}
+.empty{padding:30px 10px;text-align:center;color:var(--soft)}
+.ov{position:fixed;inset:0;background:color-mix(in srgb,var(--ink) 45%,transparent);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:20px max(12px,env(safe-area-inset-left,0px)) 40px;z-index:20}
+.sheet{background:var(--bg);border-radius:16px;max-width:560px;width:100%;padding:18px 16px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.opts button{padding:7px 10px;font-size:13px}
+.opts button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.linkbox{display:flex;gap:8px;align-items:center;margin-top:8px}
+.linkbox code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:12px}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:700;z-index:30}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div><h1>Monitor de Peso</h1><div class="muted">Registro semanal do paciente: peso, cintura, bioimpedância, adesão e efeitos adversos</div></div>
+    <div class="acts"><span class="muted" id="sync">—</span><button id="bSync">Buscar respostas</button></div>
+  </div>
+  <div id="alertas"></div>
+  <div class="grid">
+    <div class="panel">
+      <div class="row"><h3>Pacientes</h3><button class="pri" id="bNovo">+ Novo</button></div>
+      <input type="text" id="busca" placeholder="Buscar por nome" style="margin-top:10px" aria-label="Buscar paciente">
+      <div class="list" id="lista"><div class="empty">Carregando…</div></div>
+    </div>
+    <div class="panel" id="ficha"><div class="empty">Escolha um paciente na lista, ou cadastre um novo em “+ Novo”.<br><br>Cada paciente recebe um link pessoal. Toda semana ele anota o peso no celular, vê o próprio gráfico, e o registro chega aqui com efeitos adversos e bioimpedância.</div></div>
+  </div>
+</div>
+<div id="ov"></div>
+
+<script>
+const PAGINA="https://drluisfelipejardimpsiquiatra.github.io/regua-sintomas/peso.html";
+const PLANILHA={id:"1WFZiy5fJfoCxymdRvbnbn6GSoZBu_vKyS9ulucr3F6Y",aba:"Respostas ao formulário 1"};
+const SHEETS="Google Sheets";
+const EF={nenhum:"Nenhum",nau:"Enjoo",vom:"Vômito",con:"Intestino preso",dia:"Diarreia",azi:"Azia/refluxo",dab:"Dor na barriga",cans:"Cansaço/fraqueza",ton:"Tontura",cab:"Queda de cabelo",hum:"Tristeza/ansiedade",out:"Outro"};
+const AD={s:"em dia",p:"esqueceu dose",n:"não usou",x:"sem medicação"};
+const AP={1:"fome bem menor",2:"fome um pouco menor",3:"fome igual",4:"fome maior"};
+const FX={1:"pouco",2:"moderado",3:"muito"};
+const BIO=[["cin","Cintura","cm",1],["gc","Gordura","%",1],["mm","Massa muscular","kg",1],["gv","Gordura visceral","",1],["ag","Água","%",1],["tmb","Metab. basal","kcal",0]];
+const RISCO=/suic|me matar|morrer|n[aã]o aguento|desmai|sangue|n[aã]o consigo beber|urin/i;
+const S={db:null,uid:null,pac:{},sel:null,busca:"",syncAt:null,syncErr:null,busy:false,demo:false};
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const br=(n,d=1)=>n==null||isNaN(n)?"—":Number(n).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const dBR=iso=>iso?iso.slice(8,10)+"/"+iso.slice(5,7)+"/"+iso.slice(2,4):"—";
+const dt=ts=>new Date(ts).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+const hoje=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const dias=(a,b)=>Math.round((Date.parse(a)-Date.parse(b))/864e5);
+const tok=()=>{const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";crypto.getRandomValues(new Uint8Array(8)).forEach(x=>s+=a[x%a.length]);return s};
+const regs=p=>(p.regs||[]).slice().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.ts-b.ts);
+function toast(m){const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+
+/* ---------- análise ---------- */
+const efReal=r=>(r.ef||[]).filter(k=>k!=="nenhum");
+function grave(r){const e=efReal(r);return e.includes("dab")&&(+r.fx||0)>=2||e.includes("vom")&&(+r.fx||0)>=2||(+r.fx||0)>=3||(r.obs&&RISCO.test(r.obs))}
+function analise(p){
+  const rr=regs(p);if(!rr.length)return {rr};
+  const base=p.pesoIni?{kg:+p.pesoIni,d:p.inicio||rr[0].d}:rr[0];
+  const ult=rr[rr.length-1],perda=ult.kg-base.kg,pct=perda/base.kg*100;
+  // ritmo: regressão simples nas últimas 4-6 semanas
+  const jan=rr.filter(r=>dias(ult.d,r.d)<=42);let ritmo=null;
+  if(jan.length>=2){const xs=jan.map(r=>dias(r.d,jan[0].d)/7),ys=jan.map(r=>r.kg),mx=xs.reduce((a,b)=>a+b)/xs.length,my=ys.reduce((a,b)=>a+b)/ys.length;
+    const num=xs.reduce((s,x,i)=>s+(x-mx)*(ys[i]-my),0),den=xs.reduce((s,x)=>s+(x-mx)**2,0);if(den>0)ritmo=num/den}
+  const ritmoPct=ritmo!=null?ritmo/ult.kg*100:null;
+  const imc=p.altura?ult.kg/Math.pow(p.altura/100,2):null;
+  const semEnvio=dias(hoje(),ult.d);
+  const ant=rr.length>1?rr[rr.length-2]:null;
+  return {rr,base,ult,perda,pct,ritmo,ritmoPct,imc,semEnvio,ant};
+}
+function sinais(p){
+  const a=analise(p),out=[];if(!a.ult)return out;
+  const novos=a.rr.filter(r=>!r.visto);
+  novos.filter(grave).forEach(r=>out.push({tipo:"hi",txt:`Efeito adverso importante em ${dBR(r.d)}: ${efReal(r).map(k=>EF[k]).join(", ")}${r.fx?" ("+FX[r.fx]+")":""}${r.obs?` · “${esc(r.obs.slice(0,90))}”`:""}`,r}));
+  if(a.ritmoPct!=null&&a.ritmoPct<-1.5&&a.rr.length>=3)out.push({tipo:"mid",txt:`Perda rápida: ${br(a.ritmo)} kg/semana (${br(a.ritmoPct)}%/sem) nas últimas semanas. Conferir ingestão proteica, hidratação e massa muscular.`});
+  if(a.ant&&a.ult.kg-a.ant.kg>=1)out.push({tipo:"mid",txt:`Ganho de ${br(a.ult.kg-a.ant.kg)} kg desde o registro anterior.`});
+  if(a.ult.mm!=null){const ref=a.rr.find(r=>r.mm!=null);if(ref&&ref!==a.ult&&a.ult.mm<ref.mm){const dm=ref.mm-a.ult.mm,dk=ref.kg-a.ult.kg;if(dk>0&&dm/dk>0.35)out.push({tipo:"mid",txt:`Perda de massa muscular alta: ${br(dm)} kg de ${br(dk)} kg perdidos (${br(dm/dk*100,0)}%) desde ${dBR(ref.d)}.`})}}
+  return out;
+}
+
+/* ---------- dados ---------- */
+let col=null;
+async function boot(){
+  const timer=setTimeout(()=>{if(!S.db){S.demo=true;render();}},10000);
+  try{
+    const [db,user]=await Promise.all([window.claude?.use?.("db"),window.claude?.use?.("user")]);
+    if(!db||!user){clearTimeout(timer);S.demo=true;render();return}
+    S.db=db;S.uid=await user.id();
+    col=db.collection(`data/users/${S.uid}/peso/pacientes`);
+    col.onSnapshot(snap=>{clearTimeout(timer);const o={};snap.docs.forEach(d=>o[d.id]={id:d.id,...d.data()});S.pac=o;render()},
+      err=>{clearTimeout(timer);$("lista").innerHTML=`<div class="empty">Não foi possível abrir os dados (${esc(err&&err.code||"erro")}).</div>`});
+    setTimeout(()=>sync(false),1500);setInterval(()=>sync(false),120000);
+  }catch(e){clearTimeout(timer);S.demo=true;render()}
+}
+async function salvar(p,campos){
+  if(!col){toast("Sem acesso ao banco nesta visualização");return false}
+  try{await col.doc(p.id).update(campos);return true}catch(e){toast("Não salvou: "+(e&&e.code||"erro"));return false}
+}
+
+/* ---------- leitura da planilha ---------- */
+function linhas(pl){if(!pl)return[];if(Array.isArray(pl))return pl;if(Array.isArray(pl.values))return pl.values;if(pl.valueRange&&Array.isArray(pl.valueRange.values))return pl.valueRange.values;if(typeof pl==="string"){try{return linhas(JSON.parse(pl))}catch(e){}}return[]}
+function tsPlanilha(s){const m=String(s||"").match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})/);return m?new Date(+m[3],m[2]-1,+m[1],+m[4],+m[5],+m[6]).getTime():null}
+const faixa={kg:[30,350],cin:[40,250],gc:[3,75],mm:[10,120],gv:[1,60],ag:[20,80],mo:[.5,10],tmb:[600,5000],alt:[120,230]};
+function parseResp(txt){
+  if(!txt.startsWith("v1;"))return null;
+  const kv={};txt.split(";").slice(1).forEach(x=>{const i=x.indexOf("=");if(i>0)kv[x.slice(0,i)]=x.slice(i+1)});
+  if(kv.e!=="peso"||!/^\d{4}-\d\d-\d\d$/.test(kv.d||""))return null;
+  const r={d:kv.d};
+  for(const k in faixa){if(kv[k]==null)continue;const n=+kv[k];if(isFinite(n)&&n>=faixa[k][0]&&n<=faixa[k][1])r[k]=n}
+  if(r.kg==null)return null;
+  if(AD[kv.ad])r.ad=kv.ad;if(AP[kv.ap])r.ap=kv.ap;if(FX[kv.fx])r.fx=kv.fx;
+  r.ef=(kv.ef||"").split(",").filter(k=>EF[k]);
+  let obs="";try{obs=kv.obs?decodeURIComponent(kv.obs):""}catch(_){obs=kv.obs||""}
+  r.obs=obs.slice(0,400);
+  return r;
+}
+async function sync(manual){
+  if(S.busy||!col)return;
+  const mcp=await window.claude?.use?.("mcp").catch(()=>null);
+  if(!mcp){S.syncErr="Leitura das respostas indisponível nesta visualização.";render();return}
+  S.busy=true;$("bSync").disabled=true;
+  try{
+    const r=await mcp.callTool(SHEETS,"get_values",{spreadsheetId:PLANILHA.id,range:`'${PLANILHA.aba}'!A2:C`},{cache:false});
+    S.syncErr=null;S.syncAt=Date.now();
+    const porTok={};Object.values(S.pac).forEach(p=>{if(p.tok)porTok[p.tok]=p});
+    const novos={};
+    linhas(r.payload).forEach(row=>{
+      const ts=tsPlanilha(row[0]),c=String(row[1]||"").trim().toUpperCase(),pr=parseResp(String(row[2]||""));
+      const p=porTok[c];if(!p||!ts||!pr)return;
+      if(p.tokDesde&&ts<p.tokDesde-60000)return;
+      const id=c+"|"+ts;
+      if((p.regs||[]).some(x=>x.id===id)||(novos[p.id]||[]).some(x=>x.id===id))return;
+      const {alt,...resto}=pr;
+      (novos[p.id]=novos[p.id]||{regs:[],alt:null}).regs.push({id,ts,origem:"casa",...resto,novo:true,visto:false});
+      if(alt)novos[p.id].alt=alt;
+    });
+    let n=0;
+    for(const pid in novos){const p=S.pac[pid],nv=novos[pid];n+=nv.regs.length;
+      // um registro por data: o mais recente substitui o anterior da mesma data
+      const datas=new Set(nv.regs.map(x=>x.d));
+      const campos={regs:[...(p.regs||[]).filter(x=>!(x.origem==="casa"&&datas.has(x.d))),...nv.regs]};
+      if(nv.alt&&!p.altura)campos.altura=nv.alt;
+      await salvar(p,campos)}
+    if(manual)toast(n?`${n} registro(s) novo(s)`:"Nenhum registro novo");
+  }catch(e){
+    const c=e&&e.code;
+    S.syncErr=c==="not_granted"?"Permita o Google Sheets quando o app pedir, ou no menu Permissões do artefato.":c==="server_not_connected"?"Conecte o Google Sheets no claude.ai para receber os registros.":"Não foi possível ler os registros ("+(c||"erro")+").";
+  }finally{S.busy=false;$("bSync").disabled=false;render()}
+}
+
+/* ---------- interface ---------- */
+function render(){
+  $("sync").textContent=S.demo?"Sem banco nesta visualização":S.syncErr?S.syncErr:S.syncAt?"Registros conferidos às "+new Date(S.syncAt).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"—";
+  const al=[];Object.values(S.pac).forEach(p=>sinais(p).filter(s=>s.tipo==="hi").forEach(s=>al.push([p,s])));
+  $("alertas").innerHTML=al.map(([p,s])=>`<div class="alert"><b>${esc(p.nome)}</b> · ${s.txt} <button data-ver="${p.id}">Abrir</button> <button data-visto="${p.id}">Avaliado</button></div>`).join("");
+  const ps=Object.values(S.pac).filter(p=>!S.busca||p.nome.toLowerCase().includes(S.busca)).sort((a,b)=>(sinais(b).length-sinais(a).length)||a.nome.localeCompare(b.nome));
+  $("lista").innerHTML=S.demo&&!ps.length?`<div class="empty">O banco do app só abre no claude.ai. Abra o artefato pelo link para ver seus pacientes.</div>`:ps.length?ps.map(p=>{
+    const a=analise(p),nv=(p.regs||[]).filter(r=>r.novo).length,sg=sinais(p);
+    const chips=a.ult?`<span class="chip">${br(a.ult.kg)} kg</span>${a.rr.length>1||p.pesoIni?`<span class="chip ${a.perda<0?"ok":a.perda>0?"hi":""}">${a.pct>0?"+":""}${br(a.pct)}%</span>`:""}${a.semEnvio>9?`<span class="chip mid">sem registro há ${a.semEnvio} d</span>`:""}${sg.some(s=>s.tipo==="hi")?`<span class="chip hi">efeito adverso</span>`:sg.length?`<span class="chip mid">atenção</span>`:""}`:`<span class="chip">sem registros</span>`;
+    return `<button class="pi${S.sel===p.id?" sel":""}" data-ver="${p.id}"><span style="min-width:0;flex:1"><div class="nm">${esc(p.nome)}</div><div class="muted">${a.ult?"último: "+dBR(a.ult.d):""}${p.med?" · "+esc(p.med):""}</div><div class="chips">${chips}</div></span>${nv?`<span class="chip new">${nv} novo${nv>1?"s":""}</span>`:""}</button>`}).join(""):`<div class="empty">Nenhum paciente ainda. Toque em “+ Novo” para cadastrar o primeiro.</div>`;
+  renderFicha();
+}
+
+function renderFicha(){
+  const p=S.pac[S.sel];if(!p)return;
+  const a=analise(p),rr=a.rr,link=PAGINA+"?c="+p.tok,sg=sinais(p);
+  const metaKg=p.meta&&a.base?a.base.kg*(1-p.meta/100):null;
+  $("ficha").innerHTML=`
+  <div class="head"><div><h2>${esc(p.nome)}</h2><div class="muted">${[p.med&&esc(p.med),p.inicio&&"início "+dBR(p.inicio),p.altura&&p.altura+" cm",p.meta&&"meta −"+p.meta+"%"].filter(Boolean).join(" · ")||"Complete o cadastro em Editar (altura, medicação, meta)."}</div></div>
+    <div class="acts"><button class="pri" id="bCons">Registrar na consulta</button><button id="bEdit">Editar</button></div></div>
+  ${sg.length?`<div class="sec">${sg.map(s=>`<div class="alert${s.tipo==="hi"?"":" soft"}">${s.tipo==="hi"?"<b>Atenção</b> · ":"<b>Observar</b> · "}${s.txt}</div>`).join("")}</div>`:""}
+  <div class="kpis">
+    <div class="kpi"><div class="l">Peso atual</div><div class="v">${a.ult?br(a.ult.kg)+" kg":"—"}</div><div class="l">${a.ult?dBR(a.ult.d)+(a.semEnvio>9?` · há ${a.semEnvio} dias`:""):"sem registro"}</div></div>
+    <div class="kpi"><div class="l">Perda total</div><div class="v ${a.perda<0?"down":a.perda>0?"up":""}">${a.ult&&(rr.length>1||p.pesoIni)?(a.perda>0?"+":"")+br(a.perda)+" kg":"—"}</div><div class="l">${a.ult&&(rr.length>1||p.pesoIni)?(a.pct>0?"+":"")+br(a.pct)+"% desde "+br(a.base.kg)+" kg":""}</div></div>
+    <div class="kpi"><div class="l">Ritmo recente</div><div class="v">${a.ritmo!=null?(a.ritmo>0?"+":"")+br(a.ritmo,2):"—"}</div><div class="l">${a.ritmo!=null?"kg/semana ("+(a.ritmoPct>0?"+":"")+br(a.ritmoPct)+"%) · até 6 sem":"precisa de 2 registros"}</div></div>
+    <div class="kpi"><div class="l">IMC</div><div class="v">${a.imc?br(a.imc):"—"}</div><div class="l">${a.imc?imcFaixa(a.imc):"informe a altura"}</div></div>
+    ${metaKg?`<div class="kpi"><div class="l">Meta (−${p.meta}%)</div><div class="v">${br(metaKg)} kg</div><div class="l">${a.ult?(a.ult.kg<=metaKg?"atingida":"faltam "+br(a.ult.kg-metaKg)+" kg"):""}</div></div>`:""}
+  </div>
+  <div class="sec"><h3>Link pessoal do paciente</h3>
+    <div class="muted">${p.linkEnviado?"Enviado pelo WhatsApp em "+dt(p.linkEnviado):"Ainda não enviado."} O paciente usa sempre o mesmo link, uma vez por semana.</div>
+    <div class="linkbox"><code>${esc(link)}</code><button id="bCopy">Copiar</button></div>
+    <div class="acts" style="margin-top:8px">${p.telefone?`<a class="btn pri" id="bZap" target="_blank" rel="noopener" href="${zapUrl(p,link)}">Enviar pelo WhatsApp</a>`:`<span class="muted">Cadastre o telefone para enviar pelo WhatsApp.</span>`}<button id="bMsg">Copiar mensagem</button>${a.semEnvio>6&&p.telefone?`<a class="btn" target="_blank" rel="noopener" href="${zapUrl(p,link,true)}">Lembrete da semana</a>`:""}<button id="bTroca">Trocar o link</button></div>
+  </div>
+  <div class="sec"><h3>Evolução do peso</h3>${rr.length?grafPeso(rr,a,metaKg):`<div class="empty">Sem registros. O gráfico aparece quando o paciente enviar o primeiro peso ou você registrar na consulta.</div>`}</div>
+  ${rr.some(r=>BIO.some(([k])=>r[k]!=null))?`<div class="sec"><h3>Cintura e bioimpedância</h3><div class="minis">${BIO.filter(([k])=>rr.some(r=>r[k]!=null)).map(b=>mini(rr,b)).join("")}</div></div>`:""}
+  ${rr.length?`<div class="sec"><h3>Registros</h3><div class="tbl"><table><thead><tr><th>Data</th><th>Peso</th><th>Δ</th><th>Cintura</th><th>Gord.%</th><th>Músc. kg</th><th>Visc.</th><th>Medicação</th><th>Efeitos</th><th></th></tr></thead><tbody>
+  ${rr.slice().reverse().map((r,i,arr)=>{const ant=arr[i+1],d=ant?r.kg-ant.kg:null;const e=efReal(r);
+    return `<tr><td>${dBR(r.d)}<div class="muted">${r.origem==="casa"?"casa":"consulta"}</div></td><td><b>${br(r.kg)}</b></td><td class="${d==null?"":d<=0?"down":"up"}">${d==null?"—":(d>0?"+":"")+br(d)}</td><td>${br(r.cin)}</td><td>${br(r.gc)}</td><td>${br(r.mm)}</td><td>${br(r.gv,0)}</td><td>${r.ad?AD[r.ad]:"—"}${r.ap?`<div class="muted">${AP[r.ap]}</div>`:""}</td><td class="ef">${e.length?`<span style="color:var(--${grave(r)?"hi":"mid"});font-weight:700">${e.map(k=>EF[k]).join(", ")}</span>${r.fx?` · ${FX[r.fx]}`:""}`:(r.ef||[]).includes("nenhum")?"nenhum":"—"}</td><td><button class="danger" data-del="${esc(r.id)}" aria-label="Remover registro">×</button></td></tr>${r.obs?`<tr><td colspan="10" class="obs">“${esc(r.obs)}”</td></tr>`:""}`}).join("")}
+  </tbody></table></div></div>`:""}
+  <div class="sec muted">Perda de 5% já tem benefício metabólico; ritmo acima de ~1,5% do peso por semana, sustentado, merece atenção a proteína, hidratação e massa magra. A bioimpedância doméstica varia com hidratação e horário: compare tendências, não valores isolados.</div>`;
+  $("bCons").onclick=()=>regForm(p);
+  $("bEdit").onclick=()=>form(p);
+  $("bCopy").onclick=()=>copiar(link);
+  $("bMsg").onclick=()=>copiar(msgZap(p,link));
+  $("bTroca").onclick=()=>confirma($("bTroca"),"Trocar o link? O link antigo deixa de valer.",async()=>{await salvar(p,{tok:tok(),tokDesde:Date.now(),linkEnviado:null});toast("Link trocado")});
+  const z=$("bZap");if(z)z.onclick=()=>{copiar(msgZap(p,link),true);salvar(p,{linkEnviado:Date.now()})};
+  if(rr.some(r=>r.novo))setTimeout(()=>{if(S.sel===p.id)salvar(p,{regs:(p.regs||[]).map(r=>({...r,novo:false}))})},4000);
+}
+const imcFaixa=v=>v<18.5?"baixo peso":v<25?"eutrofia":v<30?"sobrepeso":v<35?"obesidade grau I":v<40?"obesidade grau II":"obesidade grau III";
+function msgZap(p,link,lembrete){const n=(p.nome||"").split(" ")[0];return lembrete?`Olá, ${n}. Lembrete do registro semanal do peso: leva 1 minuto, pelo mesmo link de sempre.\n\n${link}\n\nDr. Luís Felipe Jardim`:`Olá, ${n}. Este é o seu link pessoal para acompanhar o peso. Uma vez por semana, de preferência no mesmo dia e em jejum, anote o peso, como foi a medicação e se sentiu algum efeito. Se fizer bioimpedância, pode anotar também. Você vê o seu gráfico na hora e o registro chega direto para mim.\n\n${link}\n\nGuarde este link nos favoritos. Em urgência, procure o pronto-atendimento ou ligue 192.\n\nDr. Luís Felipe Jardim`}
+function zapUrl(p,link,lem){let d=String(p.telefone||"").replace(/\D/g,"");if(d.length<=11)d="55"+d;return "https://web.whatsapp.com/send?phone="+d+"&text="+encodeURIComponent(msgZap(p,link,lem))}
+async function copiar(t,quiet){try{await navigator.clipboard.writeText(t);if(!quiet)toast("Copiado")}catch(e){if(!quiet)toast("Não foi possível copiar; selecione o texto")}}
+function confirma(btn,txt,fn){const d=document.createElement("div");d.className="alert";d.innerHTML=`${esc(txt)} <button class="danger">Confirmar</button> <button>Cancelar</button>`;(btn.closest(".sec,.panel,.sheet")||btn.parentElement).appendChild(d);const [a,b]=d.querySelectorAll("button");a.onclick=async()=>{d.remove();await fn()};b.onclick=()=>d.remove()}
+
+/* ---------- gráficos ---------- */
+function grafPeso(rr,a,metaKg){
+  const W=680,H=240,pl=40,pr=60,pt=14,pb=26;
+  const vs=rr.map(r=>r.kg).concat([a.base.kg]);if(metaKg)vs.push(metaKg);
+  let lo=Math.floor(Math.min(...vs)-1),hi=Math.ceil(Math.max(...vs)+1);if(hi-lo<4){const m=(hi+lo)/2;lo=Math.floor(m-2);hi=Math.ceil(m+2)}
+  const t0=Date.parse(rr[0].d),t1=Date.parse(rr[rr.length-1].d),span=Math.max(t1-t0,1);
+  const x=d=>rr.length===1?(pl+(W-pl-pr)/2):pl+(Date.parse(d)-t0)/span*(W-pl-pr),y=v=>pt+(1-(v-lo)/(hi-lo))*(H-pt-pb);
+  const passo=Math.max(1,Math.round((hi-lo)/5));let g="";
+  for(let v=lo;v<=hi;v+=passo)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+  [5,10,15].forEach(pc=>{const v=a.base.kg*(1-pc/100);if(v>lo&&v<hi)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ok)" stroke-dasharray="4 4" opacity=".7"/><text x="${W-pr+4}" y="${y(v)+4}" style="fill:var(--ok)">−${pc}%</text>`});
+  if(metaKg&&metaKg>lo)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(metaKg)}" y2="${y(metaKg)}" stroke="var(--brand)" stroke-width="1.5"/><text x="${W-pr+4}" y="${y(metaKg)-4}" style="fill:var(--brand);font-weight:700">meta</text>`;
+  const pts=rr.map(r=>[x(r.d),y(r.kg)]),path=pts.map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+","+q[1].toFixed(1)).join("");
+  if(rr.length>1)g+=`<path d="${path}L${pts[pts.length-1][0]},${y(lo)}L${pts[0][0]},${y(lo)}Z" fill="var(--brand)" opacity=".10"/><path d="${path}" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  rr.forEach((r,i)=>{const last=i===rr.length-1;g+=`<circle cx="${pts[i][0]}" cy="${pts[i][1]}" r="${last?6:4.5}" fill="${r.origem==="casa"?"var(--panel)":"var(--brand)"}" stroke="${grave(r)?"var(--hi)":"var(--brand)"}" stroke-width="${grave(r)?3:2.5}"><title>${dBR(r.d)} · ${br(r.kg)} kg · ${r.origem}${efReal(r).length?" · "+efReal(r).map(k=>EF[k]).join(", "):""}</title></circle>`;if(last||i===0)g+=`<text x="${pts[i][0]}" y="${pts[i][1]-10}" text-anchor="middle" style="font-weight:800;fill:var(--ink)">${br(r.kg)}</text>`});
+  const n=Math.min(rr.length,6);[...new Set(Array.from({length:n},(_,i)=>rr[Math.round(i*(rr.length-1)/Math.max(n-1,1))]))].forEach(r=>g+=`<text x="${x(r.d)}" y="${H-8}" text-anchor="middle">${r.d.slice(8,10)}/${r.d.slice(5,7)}</text>`);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução do peso">${g}</svg><div class="muted">● consulta &nbsp; ○ casa &nbsp; contorno vermelho: efeito adverso importante &nbsp;·&nbsp; linhas verdes: −5%, −10%, −15% do peso inicial</div>`;
+}
+function mini(rr,[k,nome,un,dec]){
+  const s=rr.filter(r=>r[k]!=null);const W=170,H=46,u=s[s.length-1],pr=s[0];
+  const t0=Date.parse(s[0].d),span=Math.max(Date.parse(u.d)-t0,1),vs=s.map(r=>r[k]),lo=Math.min(...vs),hi=Math.max(...vs),rg=Math.max(hi-lo,1e-6);
+  const x=d=>s.length===1?W/2:6+(Date.parse(d)-t0)/span*(W-12),y=v=>4+(1-(hi===lo?.5:(v-lo)/rg))*(H-8);
+  const dlt=s.length>1?u[k]-pr[k]:null;
+  const bom=k==="mm"||k==="ag"||k==="tmb"?dlt>=0:dlt<=0;
+  const d=s.map((r,i)=>(i?"L":"M")+x(r.d).toFixed(1)+","+y(r[k]).toFixed(1)).join("");
+  return `<div class="mini"><div class="t"><span>${nome}</span><span>${br(u[k],dec)}${un?" "+un:""}</span></div><svg viewBox="0 0 ${W} ${H}" class="chart"><path d="${d}" fill="none" stroke="var(--brand)" stroke-width="2"/><circle cx="${x(u.d)}" cy="${y(u[k])}" r="3.5" fill="var(--brand)"/></svg><div class="muted">${dlt==null?"1 registro":`<span class="${bom?"down":"up"}">${dlt>0?"+":""}${br(dlt,dec)}</span> desde ${dBR(pr.d)}`}</div></div>`;
+}
+
+/* ---------- registro na consulta ---------- */
+function regForm(p){
+  const sel={ef:[],ad:null,fx:null};
+  $("ov").innerHTML=`<div class="ov"><div class="sheet" role="dialog" aria-label="Registro na consulta"><div class="row"><h2>Registrar na consulta</h2><button id="rX" aria-label="Fechar">✕</button></div>
+  <div class="muted">${esc(p.nome)}</div>
+  <div class="g2"><div><label class="f" for="rD">Data</label><input type="date" id="rD" value="${hoje()}" max="${hoje()}" min="2020-01-01"></div><div><label class="f" for="rKg">Peso (kg)</label><input type="number" id="rKg" step="0.1" inputmode="decimal"></div>
+  <div><label class="f" for="rCin">Cintura (cm)</label><input type="number" id="rCin" step="0.5" inputmode="decimal"></div><div><label class="f" for="rGc">Gordura (%)</label><input type="number" id="rGc" step="0.1" inputmode="decimal"></div>
+  <div><label class="f" for="rMm">Massa muscular (kg)</label><input type="number" id="rMm" step="0.1" inputmode="decimal"></div><div><label class="f" for="rGv">Gordura visceral</label><input type="number" id="rGv" step="0.5" inputmode="decimal"></div>
+  <div><label class="f" for="rAg">Água (%)</label><input type="number" id="rAg" step="0.1" inputmode="decimal"></div><div><label class="f" for="rTmb">Metab. basal (kcal)</label><input type="number" id="rTmb" step="1" inputmode="numeric"></div></div>
+  <label class="f">Medicação</label><div class="opts" data-g="ad">${Object.entries(AD).map(([k,v])=>`<button type="button" data-v="${k}">${v}</button>`).join("")}</div>
+  <label class="f">Efeitos adversos</label><div class="opts" data-g="ef">${Object.entries(EF).map(([k,v])=>`<button type="button" data-v="${k}">${v}</button>`).join("")}</div>
+  <label class="f">Intensidade</label><div class="opts" data-g="fx">${Object.entries(FX).map(([k,v])=>`<button type="button" data-v="${k}">${v}</button>`).join("")}</div>
+  <label class="f" for="rObs">Observação</label><textarea id="rObs" rows="2"></textarea>
+  <div class="acts" style="justify-content:flex-end;margin-top:12px"><button id="rC">Cancelar</button><button class="pri" id="rS">Salvar registro</button></div><div id="rMsg"></div></div></div>`;
+  const fecha=()=>{$("ov").innerHTML="";$("ov").onclick=null};
+  $("rX").onclick=fecha;$("rC").onclick=fecha;
+  $("ov").onclick=ev=>{const b=ev.target.closest("[data-g] button");if(!b)return;const g=b.parentElement.dataset.g,v=b.dataset.v;
+    if(g==="ef"){let s=new Set(sel.ef);if(v==="nenhum")s=s.has(v)?new Set():new Set([v]);else{s.delete("nenhum");s.has(v)?s.delete(v):s.add(v)}sel.ef=[...s];b.parentElement.querySelectorAll("button").forEach(x=>x.classList.toggle("on",s.has(x.dataset.v)))}
+    else{sel[g]=sel[g]===v?null:v;b.parentElement.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.v===sel[g]))}};
+  $("rS").onclick=async()=>{
+    const n=id=>{const v=$(id).value.trim().replace(",",".");return v===""?null:+v};
+    const d=$("rD").value,kg=n("rKg");
+    if(!d||!$("rD").validity.valid||kg==null||!(kg>=30&&kg<=350)){$("rMsg").innerHTML=`<div class="alert">Informe a data e um peso válido.</div>`;return}
+    const r={id:"C|"+Date.now(),ts:Date.now(),origem:"consulta",d,kg,ef:sel.ef,obs:$("rObs").value.trim().slice(0,400),visto:true};
+    [["cin","rCin"],["gc","rGc"],["mm","rMm"],["gv","rGv"],["ag","rAg"],["tmb","rTmb"]].forEach(([k,id])=>{const v=n(id);if(v!=null&&v>=faixa[k][0]&&v<=faixa[k][1])r[k]=v});
+    if(sel.ad)r.ad=sel.ad;if(sel.fx)r.fx=sel.fx;
+    $("rS").disabled=true;
+    if(await salvar(p,{regs:[...(p.regs||[]),r]})){fecha();toast("Registro salvo")}else $("rS").disabled=false;
+  };
+}
+
+/* ---------- cadastro ---------- */
+function form(p){
+  const novo=!p;p=p||{};
+  $("ov").innerHTML=`<div class="ov"><div class="sheet" role="dialog" aria-label="Cadastro"><div class="row"><h2>${novo?"Novo paciente":"Editar cadastro"}</h2><button id="fX" aria-label="Fechar">✕</button></div>
+  <label class="f" for="fN">Nome completo</label><input type="text" id="fN" value="${esc(p.nome||"")}">
+  <label class="f" for="fT">WhatsApp (com DDD)</label><input type="tel" id="fT" value="${esc(p.telefone||"")}" placeholder="(48) 99999-9999">
+  <label class="f" for="fM">Medicação e dose atual</label><input type="text" id="fM" value="${esc(p.med||"")}" placeholder="ex.: tirzepatida 5 mg/semana">
+  <div class="g2"><div><label class="f" for="fI">Início do tratamento</label><input type="date" id="fI" value="${esc(p.inicio||"")}" min="2015-01-01" max="${hoje()}"></div>
+  <div><label class="f" for="fP">Peso inicial (kg)</label><input type="number" id="fP" step="0.1" value="${esc(p.pesoIni??"")}" placeholder="opcional"></div>
+  <div><label class="f" for="fA">Altura (cm)</label><input type="number" id="fA" step="1" value="${esc(p.altura??"")}"></div>
+  <div><label class="f" for="fG">Meta de perda (%)</label><input type="number" id="fG" step="1" value="${esc(p.meta??"")}" placeholder="ex.: 10"></div></div>
+  <div class="muted" style="margin-top:6px">Sem peso inicial, o primeiro registro vira a referência.</div>
+  <label class="f" for="fO">Observações</label><textarea id="fO" rows="2">${esc(p.obs||"")}</textarea>
+  <div class="acts" style="justify-content:space-between;margin-top:14px">${novo?"<span></span>":`<button class="danger" id="fD">Excluir paciente</button>`}<span class="acts"><button id="fC">Cancelar</button><button class="pri" id="fS">Salvar</button></span></div><div id="fMsg"></div></div></div>`;
+  const fecha=()=>$("ov").innerHTML="";
+  $("fX").onclick=fecha;$("fC").onclick=fecha;
+  $("fS").onclick=async()=>{
+    const nv=id=>{const v=$(id).value.trim().replace(",",".");return v===""?null:+v};
+    const d={nome:$("fN").value.trim(),telefone:$("fT").value.trim(),med:$("fM").value.trim(),inicio:$("fI").validity.valid?$("fI").value:"",pesoIni:nv("fP"),altura:nv("fA"),meta:nv("fG"),obs:$("fO").value.trim()};
+    if(!d.nome){$("fMsg").innerHTML=`<div class="alert">Informe o nome.</div>`;return}
+    if(d.pesoIni!=null&&!(d.pesoIni>=30&&d.pesoIni<=350))d.pesoIni=null;if(d.altura!=null&&!(d.altura>=120&&d.altura<=230))d.altura=null;if(d.meta!=null&&!(d.meta>0&&d.meta<60))d.meta=null;
+    if(!col){$("fMsg").innerHTML=`<div class="alert">Sem acesso ao banco nesta visualização.</div>`;return}
+    try{if(novo){const ref=col.doc();await ref.set({...d,tok:tok(),tokDesde:Date.now(),criadoEm:Date.now(),regs:[]});S.sel=ref.id}else await col.doc(p.id).update(d);fecha();toast("Salvo")}
+    catch(e){$("fMsg").innerHTML=`<div class="alert">Não salvou (${esc(e&&e.code||"erro")}).</div>`}
+  };
+  const del=$("fD");if(del)del.onclick=()=>confirma(del,"Excluir este paciente e todos os registros? Não dá para desfazer.",async()=>{try{await col.doc(p.id).delete();S.sel=null;fecha();toast("Excluído")}catch(e){toast("Não excluiu")}});
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener("click",e=>{
+  const v=e.target.closest("[data-ver]");if(v){S.sel=v.dataset.ver;render();if(innerWidth<820)$("ficha").scrollIntoView({behavior:"smooth"});return}
+  const vi=e.target.closest("[data-visto]");if(vi){const p=S.pac[vi.dataset.visto];salvar(p,{regs:(p.regs||[]).map(r=>({...r,visto:true}))});return}
+  const dl=e.target.closest("[data-del]");if(dl){const p=S.pac[S.sel],id=dl.dataset.del;confirma(dl,"Remover este registro?",()=>salvar(p,{regs:(p.regs||[]).filter(r=>r.id!==id)}));}
+});
+$("bNovo").onclick=()=>form(null);
+$("bSync").onclick=()=>sync(true);
+$("busca").oninput=e=>{S.busca=e.target.value.trim().toLowerCase();render()};
+boot();
+</script>
