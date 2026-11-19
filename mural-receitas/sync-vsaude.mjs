@@ -2,13 +2,16 @@
 //
 // Uso:  NODE_USE_ENV_PROXY=1 node mural-receitas/sync-vsaude.mjs <saida.json> [diretorio.json] [buscas.json] [diretorio-anterior.json]
 // O segundo arquivo (opcional) é a lista de pacientes para o cadastro do Monitor de Peso:
-// { atualizadoEm, lista: "<JSON [{id, n: nome, t: telefone, u: última consulta, p: próxima}]>" } — sem CPF.
+// { atualizadoEm, lista: "<JSON [{id, n: nome, t: telefone, c: hash do CPF, u: última consulta, p: próxima}]>" } — CPF só como hash.
 //
 // A chave da API é injetada pelo proxy do ambiente na nuvem (cabeçalho VSAUDE-API-KEY);
 // localmente, defina VSAUDE_API_KEY. Nada aqui grava no vSaúde.
 // Saída: { atualizadoEm, linhas: "<JSON>" } — um paciente por linha, sem CPF, telefone ou dados clínicos.
 
 import { writeFileSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+// CPF não vai em texto: só o hash SHA-256 dos 11 dígitos, para a busca por CPF no Monitor de Peso.
+const cpfHash = (v) => { const d = String(v || "").replace(/\D/g, ""); return d.length === 11 ? createHash("sha256").update(d).digest("hex").slice(0, 16) : ""; };
 
 const BASE = "https://public-api.vsaude.com.br/api/services/app";
 const MEDICO = "8ff03fa9-0ef3-4d11-a6dc-b1dd00878475";
@@ -67,7 +70,8 @@ if (process.argv[3]) {
   for (const a of porId.values()) {
     if (!a.patient?.id || !a.patient.name) continue;
     const dia = diaBR(a.date);
-    const d = dir.get(a.patient.id) || { id: a.patient.id, n: a.patient.name.replace(/\s+/g, " ").trim(), t: a.patient.phoneNumber || "", u: "", p: "" };
+    const d = dir.get(a.patient.id) || { id: a.patient.id, n: a.patient.name.replace(/\s+/g, " ").trim(), t: a.patient.phoneNumber || "", c: cpfHash(a.patient.personalIdentifier), u: "", p: "" };
+    if (!d.c) d.c = cpfHash(a.patient.personalIdentifier);
     if (!d.t && a.patient.phoneNumber) d.t = a.patient.phoneNumber;
     if (dia <= hoje) { if (dia > d.u) d.u = dia; } else if (!d.p || dia < d.p) d.p = dia;
     dir.set(a.patient.id, d);
@@ -76,7 +80,7 @@ if (process.argv[3]) {
   const termos = process.argv[4] ? (() => { try { return JSON.parse(readFileSync(process.argv[4], "utf8")).termos || []; } catch { return []; } })() : [];
   for (const t of termos.slice(0, 30)) {
     const r = await call(`PatientService/Search?keyword=${encodeURIComponent(String(t).slice(0, 60))}`, {});
-    for (const x of items(r)) if (x.id && x.name && !dir.has(x.id)) dir.set(x.id, { id: x.id, n: x.name.replace(/\s+/g, " ").trim(), t: x.phoneNumber || "", u: "", p: "" });
+    for (const x of items(r)) if (x.id && x.name && !dir.has(x.id)) dir.set(x.id, { id: x.id, n: x.name.replace(/\s+/g, " ").trim(), t: x.phoneNumber || "", c: cpfHash(x.personalIdentifier), u: "", p: "" });
   }
   // Mantém quem entrou por busca em rodadas anteriores (arquivo opcional: o documento salvo do diretório).
   if (process.argv[5]) { try { const ant = JSON.parse(readFileSync(process.argv[5], "utf8")); const doc = ant.data || ant; for (const x of JSON.parse(doc.lista || "[]")) if (x && x.id && !dir.has(x.id)) dir.set(x.id, x); } catch {} }
