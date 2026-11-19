@@ -1,0 +1,159 @@
+<title>Central de Apps</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: tela inicial de celular — grade de ícones por grupo; no computador a grade só ganha mais colunas. */
+:root{
+  --bg:#eef1f6;--panel:#ffffff;--ink:#1a2036;--soft:#5d6582;--line:#dfe3ee;--brand:#2f3fa0;
+  --c-rx:#c2512f;--c-regua:#2f3fa0;--c-peso:#127a78;--c-esc:#7b5338;--c-sec:#6b4bb0;--c-fat:#2a8a52;--c-psi:#b0457a;--c-treino:#d9771a;--c-site:#2b6fb3;--c-extra:#55607d;
+  --f-display:"Nunito",system-ui,sans-serif;--f-body:"Nunito Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111526;--panel:#1a1f36;--ink:#e9ebf6;--soft:#a4aac6;--line:#2b3152;--brand:#8e9cff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111526;--panel:#1a1f36;--ink:#e9ebf6;--soft:#a4aac6;--line:#2b3152;--brand:#8e9cff;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body)}
+.wrap{max-width:860px;margin:0 auto;padding-block:22px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+h1{font:800 26px var(--f-display);margin:0;color:var(--brand);text-wrap:balance}
+.hoje{color:var(--soft);font-size:13px}
+.busca{width:100%;margin:12px 0 4px;font:15px var(--f-body);padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+section{margin-top:22px}
+h2{font:800 12px var(--f-display);text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:18px 10px}
+.app{display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;color:var(--ink);border-radius:18px;padding:6px 2px;position:relative;min-width:0}
+.app:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.ic{width:64px;height:64px;border-radius:18px;background:var(--c);display:grid;place-items:center;box-shadow:0 4px 12px color-mix(in srgb,var(--c) 35%,transparent);transition:transform .15s}
+.ic svg{width:34px;height:34px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ic .mono{font:800 24px var(--f-display);color:#fff}
+.app:hover .ic{transform:translateY(-2px)}
+.app span.n{font:700 12.5px/1.2 var(--f-display);text-align:center;max-width:100%;overflow-wrap:anywhere}
+.app span.d{font-size:11px;color:var(--soft);text-align:center;line-height:1.25}
+.del{position:absolute;top:0;right:6px;width:22px;height:22px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);font:800 13px var(--f-display);cursor:pointer;display:none;line-height:22px;padding:0}
+.editing .del{display:block}
+.add .ic{background:transparent;border:2px dashed var(--line);box-shadow:none}
+.add .ic svg{stroke:var(--soft)}
+button.app{background:none;border:0;font:inherit;cursor:pointer}
+.bar{display:flex;gap:8px;justify-content:flex-end;margin-top:26px;flex-wrap:wrap}
+.btn{font:700 13px var(--f-display);border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 12px;cursor:pointer}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+:root[data-theme="dark"] .btn.pri{color:#111526}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.pri{color:#111526}}
+.form{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:14px;display:grid;gap:10px}
+.form label{font-size:13px;font-weight:600;color:var(--soft);display:grid;gap:4px}
+.form input,.form select{font:15px var(--f-body);padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.form[hidden]{display:none}
+.msg{font-size:13px;color:var(--soft)}
+.empty{color:var(--soft);font-size:13px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap" id="root">
+  <header>
+    <div><h1>Central de Apps</h1><div class="hoje" id="hoje">Consultório Dr. Luís Felipe Jardim</div></div>
+  </header>
+  <input class="busca" id="busca" type="search" placeholder="Procurar app" aria-label="Procurar app">
+  <div id="grupos"></div>
+
+  <form class="form" id="form" hidden>
+    <strong>Adicionar app</strong>
+    <label for="fNome">Nome<input id="fNome" maxlength="28" placeholder="ex.: Agenda de ECT" required></label>
+    <label for="fUrl">Link<input id="fUrl" type="url" placeholder="https://claude.ai/artifact/…" required></label>
+    <label for="fGrupo">Grupo<select id="fGrupo"></select></label>
+    <div class="msg" id="fMsg">Cole o link do app. Ele aparece aqui no computador e no celular.</div>
+    <div class="bar" style="margin:0"><button type="button" class="btn" id="fCancel">Cancelar</button><button class="btn pri">Adicionar</button></div>
+  </form>
+
+  <div class="bar"><button class="btn" id="bEdit">Organizar</button></div>
+</div>
+
+<script>
+const IC={
+  rx:'<path d="M7 4h7a4 4 0 0 1 0 8H7z"/><path d="M7 12v8M11 12l7 8M18 12l-5 8"/>',
+  regua:'<path d="M4 17h16"/><path d="M7 17v-3M10 17v-6M13 17v-4M16 17v-9"/><circle cx="16" cy="6" r="1.5"/>',
+  peso:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8.5 10a5 5 0 0 1 7 0"/><path d="M12 10l1.5-2"/>',
+  esc:'<path d="M7 3h10M7 21h10"/><path d="M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9"/>',
+  esc2:'<path d="M9 3h6M10 3v4l-5 9a3 3 0 0 0 2.6 4.5h8.8A3 3 0 0 0 19 16l-5-9V3"/><path d="M7.5 14h9"/>',
+  sec:'<path d="M4 6h16v10H8l-4 4z"/><path d="M8 10h8M8 13h5"/>',
+  fat:'<path d="M5 20V10M10 20V5M15 20v-7M20 20V8"/><path d="M3 20h18"/>',
+  psi:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  treino:'<path d="M3 10v4M21 10v4M6 7v10M18 7v10M6 12h12"/>',
+  site:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+  add:'<path d="M12 6v12M6 12h12"/>'
+};
+const GRUPOS=["Atendimento","Gestão do consultório","Pessoal"];
+const FIXOS=[
+  {id:"rx",g:0,n:"Receitas",d:"renovar antes da consulta",u:"https://claude.ai/artifact/PHeQx6dXHnNFdQ47XSXFqW",c:"--c-rx",i:"rx"},
+  {id:"regua",g:0,n:"Régua de Sintomas",d:"escalas de casa",u:"https://claude.ai/artifact/RTURZsSw67VjjJ2u2yzN7q",c:"--c-regua",i:"regua"},
+  {id:"peso",g:0,n:"Monitor de Peso",d:"registro semanal",u:"https://claude.ai/artifact/Q52YEmjLCTgEvgeamHoB6J",c:"--c-peso",i:"peso"},
+  {id:"esc",g:0,n:"Escetamina",d:"ficha de infusão",u:"https://claude.ai/artifact/Nt9e63j1f2rmeBDT3FhyST",c:"--c-esc",i:"esc"},
+  {id:"cet",g:0,n:"Cetamina",d:"ficha completa",u:"https://claude.ai/artifact/6GGCj6Vt2BjJE8ejDwUz72",c:"--c-esc",i:"esc2"},
+  {id:"psi",g:0,n:"Psicoeducação",d:"psicofármacos",u:"https://claude.ai/artifact/BxsUzu8TaE1ckPi2bn2eyP",c:"--c-psi",i:"psi"},
+  {id:"sec",g:1,n:"Secretária",d:"rotina do consultório",u:"https://claude.ai/artifact/PocdZRZW3r8NuTxXNp6R7Y",c:"--c-sec",i:"sec"},
+  {id:"fat",g:1,n:"Faturamento",d:"Torres",u:"https://claude.ai/artifact/DaofYgwX4AwWGyCEaRdAHA",c:"--c-fat",i:"fat"},
+  {id:"site",g:1,n:"Site Neuromodulação",d:"página pública",u:"https://claude.ai/artifact/BUcZhQTKx3D6VKqXs1retA",c:"--c-site",i:"site"},
+  {id:"treino",g:2,n:"Meu Treino",d:"A · B · C",u:"https://claude.ai/artifact/9vX8z3fCLreKkPLptUJ6wc",c:"--c-treino",i:"treino"},
+];
+const S={extras:[],ocultos:[],busca:"",edit:false,db:null,uid:null};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const semAc=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const okUrl=u=>/^https:\/\/[^\s]+$/i.test(u||"");
+
+$("hoje").textContent="Consultório Dr. Luís Felipe Jardim · "+new Date().toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+
+function icone(a){
+  const cor=a.c?`var(${a.c})`:"var(--c-extra)";
+  const dentro=a.i&&IC[a.i]?`<svg viewBox="0 0 24 24" aria-hidden="true">${IC[a.i]}</svg>`:`<span class="mono">${esc((a.n||"?").trim().charAt(0).toUpperCase())}</span>`;
+  return `<span class="ic" style="--c:${cor}">${dentro}</span>`;
+}
+function render(){
+  const q=semAc(S.busca.trim());
+  const todos=[...FIXOS.filter(a=>!S.ocultos.includes(a.id)),...S.extras];
+  const vis=todos.filter(a=>!q||semAc(a.n+" "+(a.d||"")).includes(q));
+  $("grupos").innerHTML=GRUPOS.map((g,gi)=>{
+    const apps=vis.filter(a=>(a.g||0)===gi);
+    const add=gi===0||S.edit?`<button type="button" class="app add" data-add="${gi}" aria-label="Adicionar app em ${esc(g)}">${icone({i:"add"})}<span class="n">Adicionar</span></button>`:"";
+    if(!apps.length&&q)return "";
+    return `<section><h2>${esc(g)}</h2><div class="grid${S.edit?" editing":""}">${apps.map(a=>`<a class="app" href="${esc(a.u)}" target="_blank" rel="noopener">${icone(a)}<span class="n">${esc(a.n)}</span>${a.d?`<span class="d">${esc(a.d)}</span>`:""}<button type="button" class="del" data-del="${esc(a.id)}" aria-label="Remover ${esc(a.n)}">×</button></a>`).join("")}${q?"":add}</div></section>`;
+  }).join("")||`<p class="empty">Nenhum app com esse nome.</p>`;
+  if(S.ocultos.length&&S.edit)$("grupos").insertAdjacentHTML("beforeend",`<p class="empty">${S.ocultos.length} app(s) escondido(s). <button class="btn" id="bRest">Mostrar de novo</button></p>`);
+  const r=$("bRest");if(r)r.onclick=()=>{S.ocultos=[];salvar();render()};
+  $("bEdit").textContent=S.edit?"Concluir":"Organizar";
+}
+
+/* Os apps que você adicionar ficam no banco do próprio app (seu e de mais ninguém), no computador e no celular. */
+async function boot(){
+  render();
+  try{
+    const [db,user]=await Promise.all([window.claude?.use?.("db"),window.claude?.use?.("user")]);
+    if(!db||!user)return;
+    S.db=db;S.uid=await user.id();
+    db.doc(`data/users/${S.uid}/central`).onSnapshot(d=>{const x=d.exists?d.data():{};S.extras=Array.isArray(x.extras)?x.extras.filter(a=>okUrl(a.u)):[];S.ocultos=Array.isArray(x.ocultos)?x.ocultos:[];render()},()=>{});
+  }catch(e){}
+}
+async function salvar(){
+  if(!S.db){$("fMsg").textContent="Nesta visualização não dá para salvar. Abra pelo claude.ai.";return false}
+  try{await S.db.doc(`data/users/${S.uid}/central`).set({extras:S.extras,ocultos:S.ocultos});return true}catch(e){$("fMsg").textContent="Não foi possível salvar agora.";return false}
+}
+
+$("fGrupo").innerHTML=GRUPOS.map((g,i)=>`<option value="${i}">${esc(g)}</option>`).join("");
+document.addEventListener("click",async e=>{
+  const ad=e.target.closest("[data-add]");
+  if(ad){$("form").hidden=false;$("fGrupo").value=ad.dataset.add;$("fNome").focus();$("form").scrollIntoView({behavior:"smooth",block:"center"});return}
+  const dl=e.target.closest("[data-del]");
+  if(dl){e.preventDefault();const id=dl.dataset.del;if(S.extras.some(a=>a.id===id))S.extras=S.extras.filter(a=>a.id!==id);else S.ocultos=[...S.ocultos,id];render();salvar()}
+});
+$("form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const n=$("fNome").value.trim(),u=$("fUrl").value.trim();
+  if(!n||!okUrl(u)){$("fMsg").textContent="Preencha o nome e um link que comece com https://";return}
+  S.extras=[...S.extras,{id:"x"+Date.now().toString(36),g:+$("fGrupo").value,n,u}];
+  render();
+  if(await salvar()){$("form").reset();$("form").hidden=true;$("fMsg").textContent="Cole o link do app. Ele aparece aqui no computador e no celular."}
+});
+$("fCancel").onclick=()=>{$("form").hidden=true};
+$("bEdit").onclick=()=>{S.edit=!S.edit;render()};
+$("busca").oninput=e=>{S.busca=e.target.value;render()};
+boot();
+</script>
