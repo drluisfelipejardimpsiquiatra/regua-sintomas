@@ -129,8 +129,21 @@ const MEDS=[
   {n:"Bupropiona XL",f:"/dia",d:["150 mg","300 mg"]},
   {n:"Bupropiona SR",f:"",d:["150 mg 1x/dia","150 mg 2x/dia"]},
   {n:"Naltrexona",f:"/dia",d:["12,5 mg","25 mg","50 mg"]},
+  {n:"Olanzapina",f:"/dia",d:["2,5 mg","5 mg","10 mg","15 mg","20 mg"]},
+  {n:"Quetiapina",f:"/dia",d:["25 mg","50 mg","100 mg","200 mg","300 mg","400 mg","600 mg"]},
+  {n:"Clozapina",f:"/dia",d:["25 mg","100 mg","200 mg","300 mg","400 mg"]},
+  {n:"Risperidona",f:"/dia",d:["0,5 mg","1 mg","2 mg","3 mg","4 mg","6 mg"]},
+  {n:"Mirtazapina",f:"/dia",d:["15 mg","30 mg","45 mg"]},
+  {n:"Carbonato de lítio",f:"/dia",d:["300 mg","600 mg","900 mg","1200 mg"]},
+  {n:"Divalproato de sódio",f:"/dia",d:["250 mg","500 mg","750 mg","1000 mg","1500 mg"]},
+  {n:"Paroxetina",f:"/dia",d:["10 mg","20 mg","30 mg","40 mg"]},
+  {n:"Amitriptilina",f:"/dia",d:["25 mg","50 mg","75 mg","100 mg"]},
+  {n:"Pregabalina",f:"/dia",d:["75 mg","150 mg","300 mg"]},
   {n:"Metformina XR",f:"/dia",d:["500 mg","1000 mg","1500 mg","2000 mg"]},
 ];
+const MOTIVOS={obes:"Tratamento da obesidade",pos:"Após suspender a caneta",psi:"Ganho de peso por psicofármaco",out:"Outro acompanhamento"};
+const MOT_CURTO={obes:"obesidade",pos:"pós-caneta",psi:"psicofármaco",out:"outro"};
+const ganhoModo=p=>p.motivo==="pos"||p.motivo==="psi";
 const RISCO=/suic|me matar|morrer|n[aã]o aguento|desmai|sangue|n[aã]o consigo beber|urin/i;
 const S={sug:{},dir:[],dirAt:null,db:null,uid:null,pac:{},sel:null,busca:"",syncAt:null,syncErr:null,busy:false,demo:false};
 
@@ -150,7 +163,8 @@ const efReal=r=>(r.ef||[]).filter(k=>k!=="nenhum");
 function grave(r){const e=efReal(r);return e.includes("dab")&&(+r.fx||0)>=2||e.includes("vom")&&(+r.fx||0)>=2||(+r.fx||0)>=3||(r.obs&&RISCO.test(r.obs))}
 function analise(p){
   const rr=regs(p);if(!rr.length)return {rr};
-  const base=p.pesoIni?{kg:+p.pesoIni,d:p.inicio||rr[0].d}:rr[0];
+  let base=p.pesoIni?{kg:+p.pesoIni,d:p.inicio||rr[0].d}:rr[0];
+  if(p.motivo==="pos"&&p.suspensao){const ate=rr.filter(r=>r.d<=p.suspensao);if(ate.length)base=ate[ate.length-1];else if(!p.pesoIni)base=rr[0]}
   const ult=rr[rr.length-1],perda=ult.kg-base.kg,pct=perda/base.kg*100;
   // ritmo: regressão simples nas últimas 4-6 semanas
   const jan=rr.filter(r=>dias(ult.d,r.d)<=42);let ritmo=null;
@@ -167,6 +181,7 @@ function sinais(p){
   const novos=a.rr.filter(r=>!r.visto);
   novos.filter(grave).forEach(r=>out.push({tipo:"hi",txt:`Efeito adverso importante em ${dBR(r.d)}: ${efReal(r).map(k=>EF[k]).join(", ")}${r.fx?" ("+FX[r.fx]+")":""}${r.obs?` · “${esc(r.obs.slice(0,90))}”`:""}`,r}));
   if(a.ritmoPct!=null&&a.ritmoPct<-1.5&&a.rr.length>=3)out.push({tipo:"mid",txt:`Perda rápida: ${br(a.ritmo)} kg/semana (${br(a.ritmoPct)}%/sem) nas últimas semanas. Conferir ingestão proteica, hidratação e massa muscular.`});
+  if(ganhoModo(p)&&(a.rr.length>1||p.pesoIni)&&a.pct>=5)out.push({tipo:"mid",txt:`${p.motivo==="pos"?"Reganho após suspender a caneta":"Ganho de peso"}: +${br(a.perda)} kg (+${br(a.pct)}%) desde ${dBR(a.base.d)}${a.pct>=7?" · acima de 7%, ganho clinicamente significativo":""}. Rever conduta (troca de psicofármaco, metformina, retomada de tratamento).`});
   if(a.ant&&a.ult.kg-a.ant.kg>=1)out.push({tipo:"mid",txt:`Ganho de ${br(a.ult.kg-a.ant.kg)} kg desde o registro anterior.`});
   if(a.ult.mm!=null){const ref=a.rr.find(r=>r.mm!=null);if(ref&&ref!==a.ult&&a.ult.mm<ref.mm){const dm=ref.mm-a.ult.mm,dk=ref.kg-a.ult.kg;if(dk>0&&dm/dk>0.35)out.push({tipo:"mid",txt:`Perda de massa muscular alta: ${br(dm)} kg de ${br(dk)} kg perdidos (${br(dm/dk*100,0)}%) desde ${dBR(ref.d)}.`})}}
   return out;
@@ -257,7 +272,7 @@ function render(){
   $("lista").innerHTML=S.demo&&!ps.length?`<div class="empty">O banco do app só abre no claude.ai. Abra o artefato pelo link para ver seus pacientes.</div>`:ps.length?ps.map(p=>{
     const a=analise(p),nv=(p.regs||[]).filter(r=>r.novo).length,sg=sinais(p);
     const chips=a.ult?`<span class="chip">${br(a.ult.kg)} kg</span>${a.rr.length>1||p.pesoIni?`<span class="chip ${a.perda<0?"ok":a.perda>0?"hi":""}">${a.pct>0?"+":""}${br(a.pct)}%</span>`:""}${a.semEnvio>9?`<span class="chip mid">sem registro há ${a.semEnvio} d</span>`:""}${sg.some(s=>s.tipo==="hi")?`<span class="chip hi">efeito adverso</span>`:sg.length?`<span class="chip mid">atenção</span>`:""}`:`<span class="chip">sem registros</span>`;
-    return `<button class="pi${S.sel===p.id?" sel":""}" data-ver="${p.id}"><span style="min-width:0;flex:1"><div class="nm">${esc(p.nome)}</div><div class="muted">${a.ult?"último: "+dBR(a.ult.d):""}${p.med?" · "+esc(p.med):""}</div><div class="chips">${chips}</div></span>${nv?`<span class="chip new">${nv} novo${nv>1?"s":""}</span>`:""}</button>`}).join(""):`<div class="empty">Nenhum paciente ainda. Toque em “+ Novo” para cadastrar o primeiro.</div>`;
+    return `<button class="pi${S.sel===p.id?" sel":""}" data-ver="${p.id}"><span style="min-width:0;flex:1"><div class="nm">${esc(p.nome)}</div><div class="muted">${p.motivo&&p.motivo!=="obes"?MOT_CURTO[p.motivo]+" · ":""}${a.ult?"último: "+dBR(a.ult.d):""}${p.med?" · "+esc(p.med):""}</div><div class="chips">${chips}</div></span>${nv?`<span class="chip new">${nv} novo${nv>1?"s":""}</span>`:""}</button>`}).join(""):`<div class="empty">Nenhum paciente ainda. Toque em “+ Novo” para cadastrar o primeiro.</div>`;
   renderFicha();
 }
 
@@ -266,13 +281,13 @@ function renderFicha(){
   const a=analise(p),rr=a.rr,link=PAGINA+"?c="+p.tok,sg=sinais(p);
   const metaKg=p.meta&&a.base?a.base.kg*(1-p.meta/100):null;
   $("ficha").innerHTML=`
-  <div class="head"><div><h2>${esc(p.nome)}</h2>${p.vsId?`<div class="muted"><a href="https://app.vsaude.com.br/patient/${encodeURIComponent(p.vsId)}" target="_blank" rel="noopener">Abrir prontuário no vSaúde</a>${proxVs(p)}</div>`:""}<div class="muted">${[p.med&&esc(p.med),p.inicio&&"início "+dBR(p.inicio),p.altura&&p.altura+" cm",p.meta&&"meta −"+p.meta+"%"].filter(Boolean).join(" · ")||"Complete o cadastro em Editar (altura, medicação, meta)."}</div></div>
+  <div class="head"><div><h2>${esc(p.nome)}</h2>${p.vsId?`<div class="muted"><a href="https://app.vsaude.com.br/patient/${encodeURIComponent(p.vsId)}" target="_blank" rel="noopener">Abrir prontuário no vSaúde</a>${proxVs(p)}</div>`:""}<div class="muted">${[p.motivo&&MOTIVOS[p.motivo]+(p.motivo==="pos"&&p.suspensao?" em "+dBR(p.suspensao):""),p.med&&esc(p.med),p.inicio&&"início "+dBR(p.inicio),p.altura&&p.altura+" cm",p.meta&&"meta −"+p.meta+"%"].filter(Boolean).join(" · ")||"Complete o cadastro em Editar (altura, medicação, meta)."}</div></div>
     <div class="acts"><button class="pri" id="bCons">Registrar na consulta</button><button id="bEdit">Editar</button></div></div>
   ${sugHTML(p)}
   ${sg.length?`<div class="sec">${sg.map(s=>`<div class="alert${s.tipo==="hi"?"":" soft"}">${s.tipo==="hi"?"<b>Atenção</b> · ":"<b>Observar</b> · "}${s.txt}</div>`).join("")}</div>`:""}
   <div class="kpis">
     <div class="kpi"><div class="l">Peso atual</div><div class="v">${a.ult?br(a.ult.kg)+" kg":"—"}</div><div class="l">${a.ult?dBR(a.ult.d)+(a.semEnvio>9?` · há ${a.semEnvio} dias`:""):"sem registro"}</div></div>
-    <div class="kpi"><div class="l">Perda total</div><div class="v ${a.perda<0?"down":a.perda>0?"up":""}">${a.ult&&(rr.length>1||p.pesoIni)?(a.perda>0?"+":"")+br(a.perda)+" kg":"—"}</div><div class="l">${a.ult&&(rr.length>1||p.pesoIni)?(a.pct>0?"+":"")+br(a.pct)+"% desde "+br(a.base.kg)+" kg":""}</div></div>
+    <div class="kpi"><div class="l">${ganhoModo(p)?"Variação desde "+(p.motivo==="pos"?"a suspensão":"o início"):"Perda total"}</div><div class="v ${a.perda<0?"down":a.perda>0?"up":""}">${a.ult&&(rr.length>1||p.pesoIni)?(a.perda>0?"+":"")+br(a.perda)+" kg":"—"}</div><div class="l">${a.ult&&(rr.length>1||p.pesoIni)?(a.pct>0?"+":"")+br(a.pct)+"% desde "+br(a.base.kg)+" kg":""}</div></div>
     <div class="kpi"><div class="l">Ritmo recente</div><div class="v">${a.ritmo!=null?(a.ritmo>0?"+":"")+br(a.ritmo,2):"—"}</div><div class="l">${a.ritmo!=null?"kg/semana ("+(a.ritmoPct>0?"+":"")+br(a.ritmoPct)+"%) · até 6 sem":"precisa de 2 registros"}</div></div>
     <div class="kpi"><div class="l">IMC</div><div class="v">${a.imc?br(a.imc):"—"}</div><div class="l">${a.imc?imcFaixa(a.imc):"informe a altura"}</div></div>
     ${metaKg?`<div class="kpi"><div class="l">Meta (−${p.meta}%)</div><div class="v">${br(metaKg)} kg</div><div class="l">${a.ult?(a.ult.kg<=metaKg?"atingida":"faltam "+br(a.ult.kg-metaKg)+" kg"):""}</div></div>`:""}
@@ -282,7 +297,7 @@ function renderFicha(){
     <div class="linkbox"><code>${esc(link)}</code><button id="bCopy">Copiar</button></div>
     <div class="acts" style="margin-top:8px">${p.telefone?`<a class="btn pri" id="bZap" target="_blank" rel="noopener" href="${zapUrl(p,link)}">Enviar pelo WhatsApp</a>`:`<span class="muted">Cadastre o telefone para enviar pelo WhatsApp.</span>`}<button id="bMsg">Copiar mensagem</button>${a.semEnvio>6&&p.telefone?`<a class="btn" target="_blank" rel="noopener" href="${zapUrl(p,link,true)}">Lembrete da semana</a>`:""}<button id="bTroca">Trocar o link</button></div>
   </div>
-  <div class="sec"><h3>Evolução do peso</h3>${rr.length?grafPeso(rr,a,metaKg):`<div class="empty">Sem registros. O gráfico aparece quando o paciente enviar o primeiro peso ou você registrar na consulta.</div>`}</div>
+  <div class="sec"><h3>Evolução do peso</h3>${rr.length?grafPeso(rr,a,metaKg,p):`<div class="empty">Sem registros. O gráfico aparece quando o paciente enviar o primeiro peso ou você registrar na consulta.</div>`}</div>
   ${rr.some(r=>BIO.some(([k])=>r[k]!=null))?`<div class="sec"><h3>Cintura e bioimpedância</h3><div class="minis">${BIO.filter(([k])=>rr.some(r=>r[k]!=null)).map(b=>mini(rr,b)).join("")}</div></div>`:""}
   ${rr.length?`<div class="sec"><h3>Registros</h3><div class="tbl"><table><thead><tr><th>Data</th><th>Peso</th><th>Δ</th><th>Cintura</th><th>Gord.%</th><th>Músc. kg</th><th>Visc.</th><th>Medicação</th><th>Efeitos</th><th></th></tr></thead><tbody>
   ${rr.slice().reverse().map((r,i,arr)=>{const ant=arr[i+1],d=ant?r.kg-ant.kg:null;const e=efReal(r);
@@ -323,15 +338,18 @@ async function copiar(t,quiet){try{await navigator.clipboard.writeText(t);if(!qu
 function confirma(btn,txt,fn){const d=document.createElement("div");d.className="alert";d.innerHTML=`${esc(txt)} <button class="danger">Confirmar</button> <button>Cancelar</button>`;(btn.closest(".sec,.panel,.sheet")||btn.parentElement).appendChild(d);const [a,b]=d.querySelectorAll("button");a.onclick=async()=>{d.remove();await fn()};b.onclick=()=>d.remove()}
 
 /* ---------- gráficos ---------- */
-function grafPeso(rr,a,metaKg){
+function grafPeso(rr,a,metaKg,p){
   const W=680,H=240,pl=40,pr=60,pt=14,pb=26;
-  const vs=rr.map(r=>r.kg).concat([a.base.kg]);if(metaKg)vs.push(metaKg);
+  const vs=rr.map(r=>r.kg).concat([a.base.kg]);if(metaKg)vs.push(metaKg);if(p&&ganhoModo(p))vs.push(a.base.kg*1.07);
   let lo=Math.floor(Math.min(...vs)-1),hi=Math.ceil(Math.max(...vs)+1);if(hi-lo<4){const m=(hi+lo)/2;lo=Math.floor(m-2);hi=Math.ceil(m+2)}
   const t0=Date.parse(rr[0].d),t1=Date.parse(rr[rr.length-1].d),span=Math.max(t1-t0,1);
   const x=d=>rr.length===1?(pl+(W-pl-pr)/2):pl+(Date.parse(d)-t0)/span*(W-pl-pr),y=v=>pt+(1-(v-lo)/(hi-lo))*(H-pt-pb);
   const passo=Math.max(1,Math.round((hi-lo)/5));let g="";
   for(let v=lo;v<=hi;v+=passo)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
-  [5,10,15].forEach(pc=>{const v=a.base.kg*(1-pc/100);if(v>lo&&v<hi)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ok)" stroke-dasharray="4 4" opacity=".7"/><text x="${W-pr+4}" y="${y(v)+4}" style="fill:var(--ok)">−${pc}%</text>`});
+
+  if(p&&ganhoModo(p))[5,7].forEach(pc=>{const v=a.base.kg*(1+pc/100);if(v>lo&&v<hi)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--${pc===7?"hi":"mid"})" stroke-dasharray="4 4" opacity=".8"/><text x="${W-pr+4}" y="${y(v)+4}" style="fill:var(--${pc===7?"hi":"mid"})">+${pc}%</text>`});
+  if(p&&p.motivo==="pos"&&p.suspensao&&rr.length>1){const sx=x(p.suspensao);if(sx>=pl&&sx<=W-pr)g+=`<line x1="${sx}" x2="${sx}" y1="${pt}" y2="${H-pb}" stroke="var(--soft)" stroke-dasharray="3 3"/><text x="${sx+4}" y="${pt+10}">caneta suspensa</text>`}
+  if(!(p&&ganhoModo(p)))[5,10,15].forEach(pc=>{const v=a.base.kg*(1-pc/100);if(v>lo&&v<hi)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--ok)" stroke-dasharray="4 4" opacity=".7"/><text x="${W-pr+4}" y="${y(v)+4}" style="fill:var(--ok)">−${pc}%</text>`});
   if(metaKg&&metaKg>lo)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(metaKg)}" y2="${y(metaKg)}" stroke="var(--brand)" stroke-width="1.5"/><text x="${W-pr+4}" y="${y(metaKg)-4}" style="fill:var(--brand);font-weight:700">meta</text>`;
   const pts=rr.map(r=>[x(r.d),y(r.kg)]),path=pts.map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+","+q[1].toFixed(1)).join("");
   if(rr.length>1)g+=`<path d="${path}L${pts[pts.length-1][0]},${y(lo)}L${pts[0][0]},${y(lo)}Z" fill="var(--brand)" opacity=".10"/><path d="${path}" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linejoin="round"/>`;
@@ -387,8 +405,11 @@ function form(p){
   ${S.dir.length?`<label class="f" for="fVs">Buscar no vSaúde</label><input type="text" id="fVs" placeholder="Digite parte do nome" autocomplete="off" aria-label="Buscar paciente no vSaúde"><div id="fVsR" class="list" style="max-height:220px;overflow:auto"></div><div class="muted" id="fVsOk">${p.vsId?"Vinculado ao cadastro do vSaúde.":`Lista do vSaúde com ${S.dir.length} pacientes que já passaram pela agenda.`}</div>`:`<div class="muted">A lista de pacientes do vSaúde ainda não chegou; ela é atualizada pela rotina automática.</div>`}
   <label class="f" for="fN">Nome completo</label><input type="text" id="fN" value="${esc(p.nome||"")}">
   <label class="f" for="fT">WhatsApp (com DDD)</label><input type="tel" id="fT" value="${esc(p.telefone||"")}" placeholder="(48) 99999-9999">
+  <label class="f" for="fMot">Motivo do acompanhamento</label>
+  <div class="opts" id="fMot">${Object.entries(MOTIVOS).map(([k,v])=>`<button type="button" data-v="${k}" class="${(p.motivo||"obes")===k?"on":""}">${v}</button>`).join("")}</div>
+  <div id="fSuspBox" ${(p.motivo||"obes")==="pos"?"":"hidden"}><label class="f" for="fSusp">Caneta suspensa em</label><input type="date" id="fSusp" value="${esc(p.suspensao||"")}" min="2015-01-01" max="${hoje()}"><div class="muted">O reganho é medido a partir do peso mais próximo dessa data.</div></div>
   <div style="border:1px solid var(--line);border-radius:12px;padding:4px 12px 12px;margin-top:12px">
-  <label class="f">Medicações para o peso <span class="muted">(adicione uma de cada vez)</span></label>
+  <label class="f">Medicações em uso ligadas ao peso <span class="muted">(opcional; adicione uma de cada vez)</span></label>
   <div id="fLista" class="list" style="margin-top:4px"></div>
   <div class="g2"><div><label class="f" for="fMed">Medicamento</label><input type="text" id="fMed" list="medsList" autocomplete="off" placeholder="Digite: tirzepatida, naltrexona…"></div>
   <div><label class="f" for="fDose">Dose</label><input type="text" id="fDose" autocomplete="off" placeholder="ex.: 5 mg"></div></div>
@@ -407,7 +428,8 @@ function form(p){
   <div class="acts" style="justify-content:space-between;margin-top:14px">${novo?"<span></span>":`<button class="danger" id="fD">Excluir paciente</button>`}<span class="acts"><button id="fC">Cancelar</button><button class="pri" id="fS">Salvar</button></span></div><div id="fMsg"></div></div></div>`;
   const fecha=()=>$("ov").innerHTML="";
   $("fX").onclick=fecha;$("fC").onclick=fecha;
-  let vsId=p.vsId||"";
+  let vsId=p.vsId||"",motivo=p.motivo||"obes";
+  $("fMot").querySelectorAll("button").forEach(b=>b.onclick=()=>{motivo=b.dataset.v;$("fMot").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));$("fSuspBox").hidden=motivo!=="pos"});
   const fMed=$("fMed"),fD=$("fDoses"),fU=$("fUsos");
   let meds=Array.isArray(p.meds)?p.meds.map(x=>({...x})):(p.med?[{n:p.med,dose:"",uso:""}]:[]);
   const medTxt=x=>[x.n,x.dose].filter(Boolean).join(" ")+(x.uso?" — "+x.uso:"");
@@ -433,7 +455,7 @@ function form(p){
   $("fS").onclick=async()=>{
     const nv=id=>{const v=$(id).value.trim().replace(",",".");return v===""?null:+v};
     if(fMed.value.trim())addMed();
-    const d={vsId,meds,nome:$("fN").value.trim(),telefone:$("fT").value.trim(),med:meds.map(medTxt).join(" + "),inicio:$("fI").validity.valid?$("fI").value:"",pesoIni:nv("fP"),altura:nv("fA"),meta:nv("fG"),obs:$("fO").value.trim()};
+    const d={vsId,meds,motivo,suspensao:motivo==="pos"&&$("fSusp").validity.valid?$("fSusp").value:"",nome:$("fN").value.trim(),telefone:$("fT").value.trim(),med:meds.map(medTxt).join(" + "),inicio:$("fI").validity.valid?$("fI").value:"",pesoIni:nv("fP"),altura:nv("fA"),meta:nv("fG"),obs:$("fO").value.trim()};
     if(!d.nome){$("fMsg").innerHTML=`<div class="alert">Informe o nome.</div>`;return}
     if(d.pesoIni!=null&&!(d.pesoIni>=30&&d.pesoIni<=350))d.pesoIni=null;if(d.altura!=null&&!(d.altura>=120&&d.altura<=230))d.altura=null;if(d.meta!=null&&!(d.meta>0&&d.meta<60))d.meta=null;
     if(!col){$("fMsg").innerHTML=`<div class="alert">Sem acesso ao banco nesta visualização.</div>`;return}
