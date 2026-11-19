@@ -1,6 +1,6 @@
 // Sincroniza a agenda do vSaúde com o Mural de Receitas (somente leitura na API).
 //
-// Uso:  NODE_USE_ENV_PROXY=1 node mural-receitas/sync-vsaude.mjs <saida.json> [diretorio.json] [buscas.json]
+// Uso:  NODE_USE_ENV_PROXY=1 node mural-receitas/sync-vsaude.mjs <saida.json> [diretorio.json] [buscas.json] [diretorio-anterior.json]
 // O segundo arquivo (opcional) é a lista de pacientes para o cadastro do Monitor de Peso:
 // { atualizadoEm, lista: "<JSON [{id, n: nome, t: telefone, u: última consulta, p: próxima}]>" } — sem CPF.
 //
@@ -78,6 +78,8 @@ if (process.argv[3]) {
     const r = await call(`PatientService/Search?keyword=${encodeURIComponent(String(t).slice(0, 60))}`, {});
     for (const x of items(r)) if (x.id && x.name && !dir.has(x.id)) dir.set(x.id, { id: x.id, n: x.name.replace(/\s+/g, " ").trim(), t: x.phoneNumber || "", u: "", p: "" });
   }
+  // Mantém quem entrou por busca em rodadas anteriores (arquivo opcional: o documento salvo do diretório).
+  if (process.argv[5]) { try { const ant = JSON.parse(readFileSync(process.argv[5], "utf8")); const doc = ant.data || ant; for (const x of JSON.parse(doc.lista || "[]")) if (x && x.id && !dir.has(x.id)) dir.set(x.id, x); } catch {} }
   const lista = [...dir.values()].sort((a, b) => a.n.localeCompare(b.n, "pt-BR"));
   writeFileSync(process.argv[3], JSON.stringify({ atualizadoEm: agora.toISOString(), total: lista.length, buscados: termos, lista: JSON.stringify(lista) }));
   console.log(`diretório: ${lista.length} pacientes${termos.length ? `, ${termos.length} busca(s) atendida(s)` : ""}`);
