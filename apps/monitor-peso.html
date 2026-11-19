@@ -288,7 +288,7 @@ function renderFicha(){
   </tbody></table></div></div>`:""}
   <div class="sec muted">Perda de 5% já tem benefício metabólico; ritmo acima de ~1,5% do peso por semana, sustentado, merece atenção a proteína, hidratação e massa magra. A bioimpedância doméstica varia com hidratação e horário: compare tendências, não valores isolados.</div>`;
   $("bCons").onclick=()=>regForm(p);
-  const su=$("bSugOk");if(su)su.onclick=async()=>{const s=sugDe(p);if(await salvar(p,{med:s.med,sugAceita:s.lidoEm||Date.now()})){toast("Medicação atualizada")}};
+  const su=$("bSugOk");if(su)su.onclick=async()=>{const s=sugDe(p);if(await salvar(p,{med:s.med,meds:[{n:s.med,dose:"",uso:""}],sugAceita:s.lidoEm||Date.now()})){toast("Medicação atualizada")}};
   const sn=$("bSugNo");if(sn)sn.onclick=()=>salvar(p,{sugRecusada:sugDe(p).lidoEm||Date.now()});
   const sp=$("bSugPede");if(sp)sp.onclick=()=>pedeLeitura(p);
   $("bEdit").onclick=()=>form(p);
@@ -385,10 +385,17 @@ function form(p){
   ${S.dir.length?`<label class="f" for="fVs">Buscar no vSaúde</label><input type="text" id="fVs" placeholder="Digite parte do nome" autocomplete="off" aria-label="Buscar paciente no vSaúde"><div id="fVsR" class="list" style="max-height:220px;overflow:auto"></div><div class="muted" id="fVsOk">${p.vsId?"Vinculado ao cadastro do vSaúde.":`Lista do vSaúde com ${S.dir.length} pacientes da agenda recente.`}</div>`:`<div class="muted">A lista de pacientes do vSaúde ainda não chegou; ela é atualizada pela rotina automática.</div>`}
   <label class="f" for="fN">Nome completo</label><input type="text" id="fN" value="${esc(p.nome||"")}">
   <label class="f" for="fT">WhatsApp (com DDD)</label><input type="tel" id="fT" value="${esc(p.telefone||"")}" placeholder="(48) 99999-9999">
-  <label class="f" for="fMed">Medicação</label><input type="text" id="fMed" list="medsList" autocomplete="off" placeholder="Digite: tirzepatida, semaglutida, liraglutida…">
+  <div style="border:1px solid var(--line);border-radius:12px;padding:4px 12px 12px;margin-top:12px">
+  <label class="f">Medicações para o peso <span class="muted">(adicione uma de cada vez)</span></label>
+  <div id="fLista" class="list" style="margin-top:4px"></div>
+  <div class="g2"><div><label class="f" for="fMed">Medicamento</label><input type="text" id="fMed" list="medsList" autocomplete="off" placeholder="Digite: tirzepatida, naltrexona…"></div>
+  <div><label class="f" for="fDose">Dose</label><input type="text" id="fDose" autocomplete="off" placeholder="ex.: 5 mg"></div></div>
   <datalist id="medsList">${MEDS.map(m=>`<option value="${esc(m.n)}"></option>`).join("")}</datalist>
   <div class="opts" id="fDoses"></div>
-  <label class="f" for="fM">Medicação e dose atual <span class="muted">(pode editar; para mais de um, separe com “+”)</span></label><input type="text" id="fM" value="${esc(p.med||"")}" placeholder="ex.: Tirzepatida (Mounjaro) 5 mg/semana, SC">
+  <label class="f" for="fUso">Como vai usar</label><input type="text" id="fUso" autocomplete="off" placeholder="ex.: 1x/semana, SC · 1 cp à noite">
+  <div class="opts" id="fUsos"></div>
+  <div class="acts" style="margin-top:10px"><button type="button" id="fAddMed">+ Adicionar à lista</button><span class="muted" id="fMedMsg"></span></div>
+  </div>
   <div class="g2"><div><label class="f" for="fI">Início do tratamento</label><input type="date" id="fI" value="${esc(p.inicio||"")}" min="2015-01-01" max="${hoje()}"></div>
   <div><label class="f" for="fP">Peso inicial (kg)</label><input type="number" id="fP" step="0.1" value="${esc(p.pesoIni??"")}" placeholder="opcional"></div>
   <div><label class="f" for="fA">Altura (cm)</label><input type="number" id="fA" step="1" value="${esc(p.altura??"")}"></div>
@@ -399,19 +406,31 @@ function form(p){
   const fecha=()=>$("ov").innerHTML="";
   $("fX").onclick=fecha;$("fC").onclick=fecha;
   let vsId=p.vsId||"";
-  const fMed=$("fMed"),fD=$("fDoses");
+  const fMed=$("fMed"),fD=$("fDoses"),fU=$("fUsos");
+  let meds=Array.isArray(p.meds)?p.meds.map(x=>({...x})):(p.med?[{n:p.med,dose:"",uso:""}]:[]);
+  const medTxt=x=>[x.n,x.dose].filter(Boolean).join(" ")+(x.uso?" — "+x.uso:"");
   const achaMed=v=>{const q=semAc(v.trim());return q?MEDS.find(m=>semAc(m.n)===q)||(MEDS.filter(m=>semAc(m.n).includes(q)).length===1?MEDS.find(m=>semAc(m.n).includes(q)):null):null};
-  const mostraDoses=()=>{const m=achaMed(fMed.value);fD.innerHTML=m?m.d.map(d=>`<button type="button" data-dose="${esc(d)}">${esc(d)}</button>`).join(""):"";
-    fD.querySelectorAll("[data-dose]").forEach(b=>b.onclick=()=>{const txt=`${m.n} ${b.dataset.dose}${m.f}`;const atual=$("fM").value.trim();
-      const outros=atual.split(" + ").filter(x=>x&&!semAc(x).startsWith(semAc(m.n)));$("fM").value=[...outros,txt].join(" + ");fD.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b))})};
-  fMed.oninput=mostraDoses;fMed.onchange=mostraDoses;
+  const USOS=["1x/semana, SC","1x/dia","2x/dia","3x/dia","pela manhã","à noite","em jejum","nas refeições"];
+  const chips=(box,vals,alvo)=>{box.innerHTML=vals.map(v=>`<button type="button" data-v="${esc(v)}">${esc(v)}</button>`).join("");box.querySelectorAll("button").forEach(b=>b.onclick=()=>{$(alvo).value=b.dataset.v;box.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b))})};
+  const desenhaLista=()=>{$("fLista").innerHTML=meds.length?meds.map((x,i)=>`<div class="pi" style="cursor:default"><span style="min-width:0;flex:1"><b>${esc(x.n)}</b>${x.dose?" · "+esc(x.dose):""}${x.uso?`<div class="muted">${esc(x.uso)}</div>`:""}</span><button type="button" class="danger" data-rm="${i}" aria-label="Remover ${esc(x.n)}">×</button></div>`).join(""):`<div class="muted">Nenhuma medicação na lista ainda.</div>`;
+    $("fLista").querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{meds.splice(+b.dataset.rm,1);desenhaLista()})};
+  let medAtual;
+  const mostraDoses=()=>{const m=achaMed(fMed.value);if(m===medAtual&&fD.dataset.ok)return;medAtual=m;fD.dataset.ok="1";chips(fD,m?m.d:[],"fDose");
+    const pref=m?(m.f.includes("semana")?["1x/semana, SC"]:m.f.includes("jejum")?["1x/dia em jejum"]:m.f.includes("refei")?["nas refeições"]:[]):[];
+    chips(fU,[...new Set([...pref,...USOS])],"fUso")};
+  const addMed=()=>{const m=achaMed(fMed.value),n=m?m.n:fMed.value.trim();if(!n)return false;
+    meds.push({n,dose:$("fDose").value.trim(),uso:$("fUso").value.trim()});fMed.value="";$("fDose").value="";$("fUso").value="";mostraDoses();desenhaLista();
+    $("fMedMsg").textContent="Adicionada. Inclua outra ou salve o cadastro.";fMed.focus();return true};
+  fMed.oninput=mostraDoses;fMed.onchange=mostraDoses;$("fAddMed").onclick=addMed;
+  desenhaLista();mostraDoses();
   const bx=$("fVs");if(bx){bx.oninput=()=>{const q=semAc(bx.value.trim());const r=$("fVsR");if(q.length<2){r.innerHTML="";return}
     const hits=S.dir.filter(d=>semAc(d.n).includes(q)).slice(0,12);
     r.innerHTML=hits.length?hits.map(d=>`<button type="button" class="pi" data-vs="${esc(d.id)}"><span style="min-width:0;flex:1"><div class="nm">${esc(d.n)}</div><div class="muted">${esc(fone(d.t))}${d.u?" · última "+dBR(d.u):""}${d.p?" · próxima "+dBR(d.p):""}</div></span></button>`).join(""):`<div class="muted">Ninguém com esse nome na agenda recente. Preencha à mão.</div>`;
-    r.querySelectorAll("[data-vs]").forEach(b=>b.onclick=()=>{const d=S.dir.find(x=>x.id===b.dataset.vs);if(!d)return;vsId=d.id;$("fN").value=d.n;$("fT").value=fone(d.t);r.innerHTML="";bx.value="";$("fVsOk").textContent="Vinculado: "+d.n+" (dados do vSaúde).";$("fM").focus()})}}
+    r.querySelectorAll("[data-vs]").forEach(b=>b.onclick=()=>{const d=S.dir.find(x=>x.id===b.dataset.vs);if(!d)return;vsId=d.id;$("fN").value=d.n;$("fT").value=fone(d.t);r.innerHTML="";bx.value="";$("fVsOk").textContent="Vinculado: "+d.n+" (dados do vSaúde).";$("fMed").focus()})}}
   $("fS").onclick=async()=>{
     const nv=id=>{const v=$(id).value.trim().replace(",",".");return v===""?null:+v};
-    const d={vsId,nome:$("fN").value.trim(),telefone:$("fT").value.trim(),med:$("fM").value.trim(),inicio:$("fI").validity.valid?$("fI").value:"",pesoIni:nv("fP"),altura:nv("fA"),meta:nv("fG"),obs:$("fO").value.trim()};
+    if(fMed.value.trim())addMed();
+    const d={vsId,meds,nome:$("fN").value.trim(),telefone:$("fT").value.trim(),med:meds.map(medTxt).join(" + "),inicio:$("fI").validity.valid?$("fI").value:"",pesoIni:nv("fP"),altura:nv("fA"),meta:nv("fG"),obs:$("fO").value.trim()};
     if(!d.nome){$("fMsg").innerHTML=`<div class="alert">Informe o nome.</div>`;return}
     if(d.pesoIni!=null&&!(d.pesoIni>=30&&d.pesoIni<=350))d.pesoIni=null;if(d.altura!=null&&!(d.altura>=120&&d.altura<=230))d.altura=null;if(d.meta!=null&&!(d.meta>0&&d.meta<60))d.meta=null;
     if(!col){$("fMsg").innerHTML=`<div class="alert">Sem acesso ao banco nesta visualização.</div>`;return}
