@@ -1,6 +1,8 @@
 // Sincroniza a agenda do vSaúde com o Mural de Receitas (somente leitura na API).
 //
-// Uso:  NODE_USE_ENV_PROXY=1 node mural-receitas/sync-vsaude.mjs <saida.json>
+// Uso:  NODE_USE_ENV_PROXY=1 node mural-receitas/sync-vsaude.mjs <saida.json> [diretorio.json]
+// O segundo arquivo (opcional) é a lista de pacientes para o cadastro do Monitor de Peso:
+// { atualizadoEm, lista: "<JSON [{id, n: nome, t: telefone, u: última consulta, p: próxima}]>" } — sem CPF.
 //
 // A chave da API é injetada pelo proxy do ambiente na nuvem (cabeçalho VSAUDE-API-KEY);
 // localmente, defina VSAUDE_API_KEY. Nada aqui grava no vSaúde.
@@ -53,6 +55,20 @@ for (const a of porId.values()) {
     p.proxima = dia; p.proximaHora = horaBR(a.date); p.proximaProc = proc; p.proximaUnidade = UNIDADES[a.careUnit?.id] || "";
   }
   pac.set(a.patient.id, p);
+}
+if (process.argv[3]) {
+  const dir = new Map();
+  for (const a of porId.values()) {
+    if (!a.patient?.id || !a.patient.name) continue;
+    const dia = diaBR(a.date);
+    const d = dir.get(a.patient.id) || { id: a.patient.id, n: a.patient.name.replace(/\s+/g, " ").trim(), t: a.patient.phoneNumber || "", u: "", p: "" };
+    if (!d.t && a.patient.phoneNumber) d.t = a.patient.phoneNumber;
+    if (dia <= hoje) { if (dia > d.u) d.u = dia; } else if (!d.p || dia < d.p) d.p = dia;
+    dir.set(a.patient.id, d);
+  }
+  const lista = [...dir.values()].sort((a, b) => a.n.localeCompare(b.n, "pt-BR"));
+  writeFileSync(process.argv[3], JSON.stringify({ atualizadoEm: agora.toISOString(), total: lista.length, lista: JSON.stringify(lista) }));
+  console.log(`diretório: ${lista.length} pacientes`);
 }
 const linhas = [...pac.values()].filter((p) => p.ultima);
 const saida = { atualizadoEm: agora.toISOString(), agendamentos: porId.size, pacientes: linhas.length, linhas: JSON.stringify(linhas) };

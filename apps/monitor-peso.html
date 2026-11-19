@@ -111,7 +111,7 @@ const AP={1:"fome bem menor",2:"fome um pouco menor",3:"fome igual",4:"fome maio
 const FX={1:"pouco",2:"moderado",3:"muito"};
 const BIO=[["cin","Cintura","cm",1],["gc","Gordura","%",1],["mm","Massa muscular","kg",1],["gv","Gordura visceral","",1],["ag","Água","%",1],["tmb","Metab. basal","kcal",0]];
 const RISCO=/suic|me matar|morrer|n[aã]o aguento|desmai|sangue|n[aã]o consigo beber|urin/i;
-const S={db:null,uid:null,pac:{},sel:null,busca:"",syncAt:null,syncErr:null,busy:false,demo:false};
+const S={dir:[],dirAt:null,db:null,uid:null,pac:{},sel:null,busca:"",syncAt:null,syncErr:null,busy:false,demo:false};
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -162,6 +162,7 @@ async function boot(){
     col=db.collection(`data/users/${S.uid}/peso/pacientes`);
     col.onSnapshot(snap=>{clearTimeout(timer);const o={};snap.docs.forEach(d=>o[d.id]={id:d.id,...d.data()});S.pac=o;render()},
       err=>{clearTimeout(timer);$("lista").innerHTML=`<div class="empty">Não foi possível abrir os dados (${esc(err&&err.code||"erro")}).</div>`});
+    db.doc(`data/users/${S.uid}/peso/diretorio/vsaude`).onSnapshot(d=>{const x=d.exists?d.data():null;if(!x)return;try{S.dir=JSON.parse(x.lista||"[]")}catch(e){S.dir=[]}S.dirAt=x.atualizadoEm||null;renderFicha()},()=>{});
     setTimeout(()=>sync(false),1500);setInterval(()=>sync(false),120000);
   }catch(e){clearTimeout(timer);S.demo=true;render()}
 }
@@ -239,7 +240,7 @@ function renderFicha(){
   const a=analise(p),rr=a.rr,link=PAGINA+"?c="+p.tok,sg=sinais(p);
   const metaKg=p.meta&&a.base?a.base.kg*(1-p.meta/100):null;
   $("ficha").innerHTML=`
-  <div class="head"><div><h2>${esc(p.nome)}</h2><div class="muted">${[p.med&&esc(p.med),p.inicio&&"início "+dBR(p.inicio),p.altura&&p.altura+" cm",p.meta&&"meta −"+p.meta+"%"].filter(Boolean).join(" · ")||"Complete o cadastro em Editar (altura, medicação, meta)."}</div></div>
+  <div class="head"><div><h2>${esc(p.nome)}</h2>${p.vsId?`<div class="muted"><a href="https://app.vsaude.com.br/patient/${encodeURIComponent(p.vsId)}" target="_blank" rel="noopener">Abrir prontuário no vSaúde</a>${proxVs(p)}</div>`:""}<div class="muted">${[p.med&&esc(p.med),p.inicio&&"início "+dBR(p.inicio),p.altura&&p.altura+" cm",p.meta&&"meta −"+p.meta+"%"].filter(Boolean).join(" · ")||"Complete o cadastro em Editar (altura, medicação, meta)."}</div></div>
     <div class="acts"><button class="pri" id="bCons">Registrar na consulta</button><button id="bEdit">Editar</button></div></div>
   ${sg.length?`<div class="sec">${sg.map(s=>`<div class="alert${s.tipo==="hi"?"":" soft"}">${s.tipo==="hi"?"<b>Atenção</b> · ":"<b>Observar</b> · "}${s.txt}</div>`).join("")}</div>`:""}
   <div class="kpis">
@@ -269,6 +270,9 @@ function renderFicha(){
   const z=$("bZap");if(z)z.onclick=()=>{copiar(msgZap(p,link),true);salvar(p,{linkEnviado:Date.now()})};
   if(rr.some(r=>r.novo))setTimeout(()=>{if(S.sel===p.id)salvar(p,{regs:(p.regs||[]).map(r=>({...r,novo:false}))})},4000);
 }
+function proxVs(p){const d=S.dir.find(x=>x.id===p.vsId);return d&&d.p?` · próxima consulta ${dBR(d.p)}`:""}
+const fone=t=>{const d=String(t||"").replace(/\D/g,"").replace(/^55(?=\d{10,11}$)/,"");return d.length===11?`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`:d.length===10?`(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`:String(t||"")};
+const semAc=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
 const imcFaixa=v=>v<18.5?"baixo peso":v<25?"eutrofia":v<30?"sobrepeso":v<35?"obesidade grau I":v<40?"obesidade grau II":"obesidade grau III";
 function msgZap(p,link,lembrete){const n=(p.nome||"").split(" ")[0];return lembrete?`Olá, ${n}. Lembrete do registro semanal do peso: leva 1 minuto, pelo mesmo link de sempre.\n\n${link}\n\nDr. Luís Felipe Jardim`:`Olá, ${n}. Este é o seu link pessoal para acompanhar o peso. Uma vez por semana, de preferência no mesmo dia e em jejum, anote o peso, como foi a medicação e se sentiu algum efeito. Se fizer bioimpedância, pode anotar também. Você vê o seu gráfico na hora e o registro chega direto para mim.\n\n${link}\n\nGuarde este link nos favoritos. Em urgência, procure o pronto-atendimento ou ligue 192.\n\nDr. Luís Felipe Jardim`}
 function zapUrl(p,link,lem){let d=String(p.telefone||"").replace(/\D/g,"");if(d.length<=11)d="55"+d;return "https://web.whatsapp.com/send?phone="+d+"&text="+encodeURIComponent(msgZap(p,link,lem))}
@@ -337,6 +341,7 @@ function regForm(p){
 function form(p){
   const novo=!p;p=p||{};
   $("ov").innerHTML=`<div class="ov"><div class="sheet" role="dialog" aria-label="Cadastro"><div class="row"><h2>${novo?"Novo paciente":"Editar cadastro"}</h2><button id="fX" aria-label="Fechar">✕</button></div>
+  ${S.dir.length?`<label class="f" for="fVs">Buscar no vSaúde</label><input type="text" id="fVs" placeholder="Digite parte do nome" autocomplete="off" aria-label="Buscar paciente no vSaúde"><div id="fVsR" class="list" style="max-height:220px;overflow:auto"></div><div class="muted" id="fVsOk">${p.vsId?"Vinculado ao cadastro do vSaúde.":`Lista do vSaúde com ${S.dir.length} pacientes da agenda recente.`}</div>`:`<div class="muted">A lista de pacientes do vSaúde ainda não chegou; ela é atualizada pela rotina automática.</div>`}
   <label class="f" for="fN">Nome completo</label><input type="text" id="fN" value="${esc(p.nome||"")}">
   <label class="f" for="fT">WhatsApp (com DDD)</label><input type="tel" id="fT" value="${esc(p.telefone||"")}" placeholder="(48) 99999-9999">
   <label class="f" for="fM">Medicação e dose atual</label><input type="text" id="fM" value="${esc(p.med||"")}" placeholder="ex.: tirzepatida 5 mg/semana">
@@ -349,9 +354,14 @@ function form(p){
   <div class="acts" style="justify-content:space-between;margin-top:14px">${novo?"<span></span>":`<button class="danger" id="fD">Excluir paciente</button>`}<span class="acts"><button id="fC">Cancelar</button><button class="pri" id="fS">Salvar</button></span></div><div id="fMsg"></div></div></div>`;
   const fecha=()=>$("ov").innerHTML="";
   $("fX").onclick=fecha;$("fC").onclick=fecha;
+  let vsId=p.vsId||"";
+  const bx=$("fVs");if(bx){bx.oninput=()=>{const q=semAc(bx.value.trim());const r=$("fVsR");if(q.length<2){r.innerHTML="";return}
+    const hits=S.dir.filter(d=>semAc(d.n).includes(q)).slice(0,12);
+    r.innerHTML=hits.length?hits.map(d=>`<button type="button" class="pi" data-vs="${esc(d.id)}"><span style="min-width:0;flex:1"><div class="nm">${esc(d.n)}</div><div class="muted">${esc(fone(d.t))}${d.u?" · última "+dBR(d.u):""}${d.p?" · próxima "+dBR(d.p):""}</div></span></button>`).join(""):`<div class="muted">Ninguém com esse nome na agenda recente. Preencha à mão.</div>`;
+    r.querySelectorAll("[data-vs]").forEach(b=>b.onclick=()=>{const d=S.dir.find(x=>x.id===b.dataset.vs);if(!d)return;vsId=d.id;$("fN").value=d.n;$("fT").value=fone(d.t);r.innerHTML="";bx.value="";$("fVsOk").textContent="Vinculado: "+d.n+" (dados do vSaúde).";$("fM").focus()})}}
   $("fS").onclick=async()=>{
     const nv=id=>{const v=$(id).value.trim().replace(",",".");return v===""?null:+v};
-    const d={nome:$("fN").value.trim(),telefone:$("fT").value.trim(),med:$("fM").value.trim(),inicio:$("fI").validity.valid?$("fI").value:"",pesoIni:nv("fP"),altura:nv("fA"),meta:nv("fG"),obs:$("fO").value.trim()};
+    const d={vsId,nome:$("fN").value.trim(),telefone:$("fT").value.trim(),med:$("fM").value.trim(),inicio:$("fI").validity.valid?$("fI").value:"",pesoIni:nv("fP"),altura:nv("fA"),meta:nv("fG"),obs:$("fO").value.trim()};
     if(!d.nome){$("fMsg").innerHTML=`<div class="alert">Informe o nome.</div>`;return}
     if(d.pesoIni!=null&&!(d.pesoIni>=30&&d.pesoIni<=350))d.pesoIni=null;if(d.altura!=null&&!(d.altura>=120&&d.altura<=230))d.altura=null;if(d.meta!=null&&!(d.meta>0&&d.meta<60))d.meta=null;
     if(!col){$("fMsg").innerHTML=`<div class="alert">Sem acesso ao banco nesta visualização.</div>`;return}
