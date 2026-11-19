@@ -110,6 +110,22 @@ const AD={s:"em dia",p:"esqueceu dose",n:"não usou",x:"sem medicação"};
 const AP={1:"fome bem menor",2:"fome um pouco menor",3:"fome igual",4:"fome maior"};
 const FX={1:"pouco",2:"moderado",3:"muito"};
 const BIO=[["cin","Cintura","cm",1],["gc","Gordura","%",1],["mm","Massa muscular","kg",1],["gv","Gordura visceral","",1],["ag","Água","%",1],["tmb","Metab. basal","kcal",0]];
+// Medicamentos para obesidade e compulsão alimentar, com as doses de cada etapa (lista própria do app).
+const MEDS=[
+  {n:"Tirzepatida (Mounjaro)",f:"/semana, SC",d:["2,5 mg","5 mg","7,5 mg","10 mg","12,5 mg","15 mg"]},
+  {n:"Semaglutida (Wegovy)",f:"/semana, SC",d:["0,25 mg","0,5 mg","1 mg","1,7 mg","2,4 mg"]},
+  {n:"Semaglutida (Ozempic)",f:"/semana, SC",d:["0,25 mg","0,5 mg","1 mg","2 mg"]},
+  {n:"Semaglutida oral (Rybelsus)",f:"/dia, VO em jejum",d:["3 mg","7 mg","14 mg"]},
+  {n:"Liraglutida (Saxenda)",f:"/dia, SC",d:["0,6 mg","1,2 mg","1,8 mg","2,4 mg","3 mg"]},
+  {n:"Liraglutida (Victoza)",f:"/dia, SC",d:["0,6 mg","1,2 mg","1,8 mg"]},
+  {n:"Naltrexona + bupropiona (Contrave 8/90)",f:"",d:["1 cp/dia","1 cp 2x/dia","2 cp manhã + 1 cp noite","2 cp 2x/dia"]},
+  {n:"Orlistate",f:", nas refeições",d:["60 mg 3x/dia","120 mg 1x/dia","120 mg 2x/dia","120 mg 3x/dia"]},
+  {n:"Sibutramina",f:"/dia",d:["10 mg","15 mg"]},
+  {n:"Topiramato",f:"/dia",d:["25 mg","50 mg","75 mg","100 mg","150 mg","200 mg"]},
+  {n:"Lisdexanfetamina (compulsão alimentar)",f:"/dia",d:["30 mg","50 mg","70 mg"]},
+  {n:"Bupropiona XL",f:"/dia",d:["150 mg","300 mg"]},
+  {n:"Metformina XR",f:"/dia",d:["500 mg","1000 mg","1500 mg","2000 mg"]},
+];
 const RISCO=/suic|me matar|morrer|n[aã]o aguento|desmai|sangue|n[aã]o consigo beber|urin/i;
 const S={dir:[],dirAt:null,db:null,uid:null,pac:{},sel:null,busca:"",syncAt:null,syncErr:null,busy:false,demo:false};
 
@@ -344,7 +360,10 @@ function form(p){
   ${S.dir.length?`<label class="f" for="fVs">Buscar no vSaúde</label><input type="text" id="fVs" placeholder="Digite parte do nome" autocomplete="off" aria-label="Buscar paciente no vSaúde"><div id="fVsR" class="list" style="max-height:220px;overflow:auto"></div><div class="muted" id="fVsOk">${p.vsId?"Vinculado ao cadastro do vSaúde.":`Lista do vSaúde com ${S.dir.length} pacientes da agenda recente.`}</div>`:`<div class="muted">A lista de pacientes do vSaúde ainda não chegou; ela é atualizada pela rotina automática.</div>`}
   <label class="f" for="fN">Nome completo</label><input type="text" id="fN" value="${esc(p.nome||"")}">
   <label class="f" for="fT">WhatsApp (com DDD)</label><input type="tel" id="fT" value="${esc(p.telefone||"")}" placeholder="(48) 99999-9999">
-  <label class="f" for="fM">Medicação e dose atual</label><input type="text" id="fM" value="${esc(p.med||"")}" placeholder="ex.: tirzepatida 5 mg/semana">
+  <label class="f" for="fMed">Medicação</label><input type="text" id="fMed" list="medsList" autocomplete="off" placeholder="Digite: tirzepatida, semaglutida, liraglutida…">
+  <datalist id="medsList">${MEDS.map(m=>`<option value="${esc(m.n)}"></option>`).join("")}</datalist>
+  <div class="opts" id="fDoses"></div>
+  <label class="f" for="fM">Medicação e dose atual <span class="muted">(pode editar; para mais de um, separe com “+”)</span></label><input type="text" id="fM" value="${esc(p.med||"")}" placeholder="ex.: Tirzepatida (Mounjaro) 5 mg/semana, SC">
   <div class="g2"><div><label class="f" for="fI">Início do tratamento</label><input type="date" id="fI" value="${esc(p.inicio||"")}" min="2015-01-01" max="${hoje()}"></div>
   <div><label class="f" for="fP">Peso inicial (kg)</label><input type="number" id="fP" step="0.1" value="${esc(p.pesoIni??"")}" placeholder="opcional"></div>
   <div><label class="f" for="fA">Altura (cm)</label><input type="number" id="fA" step="1" value="${esc(p.altura??"")}"></div>
@@ -355,6 +374,12 @@ function form(p){
   const fecha=()=>$("ov").innerHTML="";
   $("fX").onclick=fecha;$("fC").onclick=fecha;
   let vsId=p.vsId||"";
+  const fMed=$("fMed"),fD=$("fDoses");
+  const achaMed=v=>{const q=semAc(v.trim());return q?MEDS.find(m=>semAc(m.n)===q)||(MEDS.filter(m=>semAc(m.n).includes(q)).length===1?MEDS.find(m=>semAc(m.n).includes(q)):null):null};
+  const mostraDoses=()=>{const m=achaMed(fMed.value);fD.innerHTML=m?m.d.map(d=>`<button type="button" data-dose="${esc(d)}">${esc(d)}</button>`).join(""):"";
+    fD.querySelectorAll("[data-dose]").forEach(b=>b.onclick=()=>{const txt=`${m.n} ${b.dataset.dose}${m.f}`;const atual=$("fM").value.trim();
+      const outros=atual.split(" + ").filter(x=>x&&!semAc(x).startsWith(semAc(m.n)));$("fM").value=[...outros,txt].join(" + ");fD.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b))})};
+  fMed.oninput=mostraDoses;fMed.onchange=mostraDoses;
   const bx=$("fVs");if(bx){bx.oninput=()=>{const q=semAc(bx.value.trim());const r=$("fVsR");if(q.length<2){r.innerHTML="";return}
     const hits=S.dir.filter(d=>semAc(d.n).includes(q)).slice(0,12);
     r.innerHTML=hits.length?hits.map(d=>`<button type="button" class="pi" data-vs="${esc(d.id)}"><span style="min-width:0;flex:1"><div class="nm">${esc(d.n)}</div><div class="muted">${esc(fone(d.t))}${d.u?" · última "+dBR(d.u):""}${d.p?" · próxima "+dBR(d.p):""}</div></span></button>`).join(""):`<div class="muted">Ninguém com esse nome na agenda recente. Preencha à mão.</div>`;
