@@ -1,6 +1,6 @@
 // Sincroniza a agenda do vSaúde com o Mural de Receitas (somente leitura na API).
 //
-// Uso:  NODE_USE_ENV_PROXY=1 node mural-receitas/sync-vsaude.mjs <saida.json> [diretorio.json]
+// Uso:  NODE_USE_ENV_PROXY=1 node mural-receitas/sync-vsaude.mjs <saida.json> [diretorio.json] [buscas.json]
 // O segundo arquivo (opcional) é a lista de pacientes para o cadastro do Monitor de Peso:
 // { atualizadoEm, lista: "<JSON [{id, n: nome, t: telefone, u: última consulta, p: próxima}]>" } — sem CPF.
 //
@@ -8,7 +8,7 @@
 // localmente, defina VSAUDE_API_KEY. Nada aqui grava no vSaúde.
 // Saída: { atualizadoEm, linhas: "<JSON>" } — um paciente por linha, sem CPF, telefone ou dados clínicos.
 
-import { writeFileSync } from "node:fs";
+import { writeFileSync, readFileSync } from "node:fs";
 
 const BASE = "https://public-api.vsaude.com.br/api/services/app";
 const MEDICO = "8ff03fa9-0ef3-4d11-a6dc-b1dd00878475";
@@ -57,6 +57,12 @@ for (const a of porId.values()) {
   pac.set(a.patient.id, p);
 }
 if (process.argv[3]) {
+  // Diretório para o cadastro do Monitor de Peso: todo paciente que já passou pela agenda
+  // (a API traz agendamentos desde 08/2024, em janelas de ~6 meses), mais os pedidos de busca.
+  const jan = [];
+  for (let d = new Date("2024-07-01T12:00:00Z"); d < agora; d = new Date(d.getTime() + 182 * 864e5)) jan.push(d.toISOString().slice(0, 10));
+  const hist = await Promise.all(jan.map((from) => call("ScheduleService/GetAll", { professionals: [MEDICO], from, range: 4 })));
+  for (const j of hist) for (const a of items(j)) porId.set(a.id, a);
   const dir = new Map();
   for (const a of porId.values()) {
     if (!a.patient?.id || !a.patient.name) continue;
@@ -66,9 +72,15 @@ if (process.argv[3]) {
     if (dia <= hoje) { if (dia > d.u) d.u = dia; } else if (!d.p || dia < d.p) d.p = dia;
     dir.set(a.patient.id, d);
   }
+  // Pedidos de busca feitos no painel (arquivo opcional com {"termos": [...]}): PatientService/Search, até 20 por termo.
+  const termos = process.argv[4] ? (() => { try { return JSON.parse(readFileSync(process.argv[4], "utf8")).termos || []; } catch { return []; } })() : [];
+  for (const t of termos.slice(0, 30)) {
+    const r = await call(`PatientService/Search?keyword=${encodeURIComponent(String(t).slice(0, 60))}`, {});
+    for (const x of items(r)) if (x.id && x.name && !dir.has(x.id)) dir.set(x.id, { id: x.id, n: x.name.replace(/\s+/g, " ").trim(), t: x.phoneNumber || "", u: "", p: "" });
+  }
   const lista = [...dir.values()].sort((a, b) => a.n.localeCompare(b.n, "pt-BR"));
-  writeFileSync(process.argv[3], JSON.stringify({ atualizadoEm: agora.toISOString(), total: lista.length, lista: JSON.stringify(lista) }));
-  console.log(`diretório: ${lista.length} pacientes`);
+  writeFileSync(process.argv[3], JSON.stringify({ atualizadoEm: agora.toISOString(), total: lista.length, buscados: termos, lista: JSON.stringify(lista) }));
+  console.log(`diretório: ${lista.length} pacientes${termos.length ? `, ${termos.length} busca(s) atendida(s)` : ""}`);
 }
 const linhas = [...pac.values()].filter((p) => p.ultima);
 const saida = { atualizadoEm: agora.toISOString(), agendamentos: porId.size, pacientes: linhas.length, linhas: JSON.stringify(linhas) };

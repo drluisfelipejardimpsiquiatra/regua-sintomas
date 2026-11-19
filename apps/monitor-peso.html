@@ -382,7 +382,7 @@ function regForm(p){
 function form(p){
   const novo=!p;p=p||{};
   $("ov").innerHTML=`<div class="ov"><div class="sheet" role="dialog" aria-label="Cadastro"><div class="row"><h2>${novo?"Novo paciente":"Editar cadastro"}</h2><button id="fX" aria-label="Fechar">✕</button></div>
-  ${S.dir.length?`<label class="f" for="fVs">Buscar no vSaúde</label><input type="text" id="fVs" placeholder="Digite parte do nome" autocomplete="off" aria-label="Buscar paciente no vSaúde"><div id="fVsR" class="list" style="max-height:220px;overflow:auto"></div><div class="muted" id="fVsOk">${p.vsId?"Vinculado ao cadastro do vSaúde.":`Lista do vSaúde com ${S.dir.length} pacientes da agenda recente.`}</div>`:`<div class="muted">A lista de pacientes do vSaúde ainda não chegou; ela é atualizada pela rotina automática.</div>`}
+  ${S.dir.length?`<label class="f" for="fVs">Buscar no vSaúde</label><input type="text" id="fVs" placeholder="Digite parte do nome" autocomplete="off" aria-label="Buscar paciente no vSaúde"><div id="fVsR" class="list" style="max-height:220px;overflow:auto"></div><div class="muted" id="fVsOk">${p.vsId?"Vinculado ao cadastro do vSaúde.":`Lista do vSaúde com ${S.dir.length} pacientes que já passaram pela agenda.`}</div>`:`<div class="muted">A lista de pacientes do vSaúde ainda não chegou; ela é atualizada pela rotina automática.</div>`}
   <label class="f" for="fN">Nome completo</label><input type="text" id="fN" value="${esc(p.nome||"")}">
   <label class="f" for="fT">WhatsApp (com DDD)</label><input type="tel" id="fT" value="${esc(p.telefone||"")}" placeholder="(48) 99999-9999">
   <div style="border:1px solid var(--line);border-radius:12px;padding:4px 12px 12px;margin-top:12px">
@@ -425,7 +425,8 @@ function form(p){
   desenhaLista();mostraDoses();
   const bx=$("fVs");if(bx){bx.oninput=()=>{const q=semAc(bx.value.trim());const r=$("fVsR");if(q.length<2){r.innerHTML="";return}
     const hits=S.dir.filter(d=>semAc(d.n).includes(q)).slice(0,12);
-    r.innerHTML=hits.length?hits.map(d=>`<button type="button" class="pi" data-vs="${esc(d.id)}"><span style="min-width:0;flex:1"><div class="nm">${esc(d.n)}</div><div class="muted">${esc(fone(d.t))}${d.u?" · última "+dBR(d.u):""}${d.p?" · próxima "+dBR(d.p):""}</div></span></button>`).join(""):`<div class="muted">Ninguém com esse nome na agenda recente. Preencha à mão.</div>`;
+    r.innerHTML=hits.length?hits.map(d=>`<button type="button" class="pi" data-vs="${esc(d.id)}"><span style="min-width:0;flex:1"><div class="nm">${esc(d.n)}</div><div class="muted">${esc(fone(d.t))}${d.u?" · última "+dBR(d.u):""}${d.p?" · próxima "+dBR(d.p):""}</div></span></button>`).join(""):`<div class="muted" style="padding:6px 0">Não está na lista da agenda. <button type="button" id="fVsPede">Buscar “${esc(bx.value.trim())}” no vSaúde</button><div>A rotina automática procura no cadastro do vSaúde (até 3 horas) e o nome passa a aparecer aqui. Se tiver pressa, preencha à mão.</div></div>`;
+    const pd=$("fVsPede");if(pd)pd.onclick=async()=>{try{await S.db.doc(`data/users/${S.uid}/peso/buscas/b${Date.now()}`).set({termo:bx.value.trim().slice(0,60),pedido:Date.now()});pd.disabled=true;pd.textContent="Busca pedida"}catch(e){toast("Não foi possível pedir a busca")}};
     r.querySelectorAll("[data-vs]").forEach(b=>b.onclick=()=>{const d=S.dir.find(x=>x.id===b.dataset.vs);if(!d)return;vsId=d.id;$("fN").value=d.n;$("fT").value=fone(d.t);r.innerHTML="";bx.value="";$("fVsOk").textContent="Vinculado: "+d.n+" (dados do vSaúde).";$("fMed").focus()})}}
   $("fS").onclick=async()=>{
     const nv=id=>{const v=$(id).value.trim().replace(",",".");return v===""?null:+v};
