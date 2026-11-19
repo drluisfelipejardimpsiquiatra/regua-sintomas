@@ -90,6 +90,7 @@ td.obs{text-align:left;white-space:normal;color:var(--soft);font-style:italic}
     <div class="acts"><span class="muted" id="sync">—</span><button id="bSync">Buscar respostas</button></div>
   </div>
   <div id="alertas"></div>
+  <div id="novos"></div>
   <div class="grid">
     <div class="panel">
       <div class="row"><h3>Pacientes</h3><button class="pri" id="bNovo">+ Novo</button></div>
@@ -243,6 +244,10 @@ async function sync(manual){
 function render(){
   $("sync").textContent=S.demo?"Sem banco nesta visualização":S.syncErr?S.syncErr:S.syncAt?"Registros conferidos às "+new Date(S.syncAt).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"—";
   const al=[];Object.values(S.pac).forEach(p=>sinais(p).filter(s=>s.tipo==="hi").forEach(s=>al.push([p,s])));
+  const nov=[];Object.values(S.pac).forEach(p=>(p.regs||[]).filter(r=>r.novo&&r.origem==="casa").forEach(r=>nov.push([p,r])));nov.sort((a,b)=>b[1].ts-a[1].ts);
+  $("novos").innerHTML=nov.length?`<div class="panel" style="margin-bottom:12px"><div class="row"><h3>Registros novos (${nov.length})</h3><button id="bLidos">Marcar todos como vistos</button></div><div class="list">${nov.slice(0,12).map(([p,r])=>{const a=analise(p),i=a.rr.indexOf(r),ant=i>0?a.rr[i-1]:null,dd=ant?r.kg-ant.kg:null,e=efReal(r);
+    return `<button class="pi" data-ver="${p.id}"><span style="min-width:0;flex:1"><div class="nm">${esc(p.nome)}</div><div class="muted">${dBR(r.d)} · enviado ${dt(r.ts)}${e.length?` · <span style="color:var(--${grave(r)?"hi":"mid"})">${e.map(k=>EF[k]).join(", ")}</span>`:""}</div></span><span class="chips"><span class="chip">${br(r.kg)} kg</span>${dd!=null?`<span class="chip ${dd<=0?"ok":"hi"}">${dd>0?"+":""}${br(dd)}</span>`:""}</span></button>`}).join("")}</div></div>`:"";
+  const bl=$("bLidos");if(bl)bl.onclick=async()=>{for(const p of Object.values(S.pac))if((p.regs||[]).some(r=>r.novo))await salvar(p,{regs:p.regs.map(r=>({...r,novo:false}))})};
   $("alertas").innerHTML=al.map(([p,s])=>`<div class="alert"><b>${esc(p.nome)}</b> · ${s.txt} <button data-ver="${p.id}">Abrir</button> <button data-visto="${p.id}">Avaliado</button></div>`).join("");
   const ps=Object.values(S.pac).filter(p=>!S.busca||p.nome.toLowerCase().includes(S.busca)).sort((a,b)=>(sinais(b).length-sinais(a).length)||a.nome.localeCompare(b.nome));
   $("lista").innerHTML=S.demo&&!ps.length?`<div class="empty">O banco do app só abre no claude.ai. Abra o artefato pelo link para ver seus pacientes.</div>`:ps.length?ps.map(p=>{
@@ -309,7 +314,7 @@ async function pedeLeitura(p){
 }
 const imcFaixa=v=>v<18.5?"baixo peso":v<25?"eutrofia":v<30?"sobrepeso":v<35?"obesidade grau I":v<40?"obesidade grau II":"obesidade grau III";
 function msgZap(p,link,lembrete){const n=(p.nome||"").split(" ")[0];return lembrete?`Olá, ${n}. Lembrete do registro semanal do peso: leva 1 minuto, pelo mesmo link de sempre.\n\n${link}\n\nDr. Luís Felipe Jardim`:`Olá, ${n}. Este é o seu link pessoal para acompanhar o peso. Uma vez por semana, de preferência no mesmo dia e em jejum, anote o peso, como foi a medicação e se sentiu algum efeito. Se fizer bioimpedância, pode anotar também. Você vê o seu gráfico na hora e o registro chega direto para mim.\n\n${link}\n\nGuarde este link nos favoritos. Em urgência, procure o pronto-atendimento ou ligue 192.\n\nDr. Luís Felipe Jardim`}
-function zapUrl(p,link,lem){let d=String(p.telefone||"").replace(/\D/g,"");if(d.length<=11)d="55"+d;return "https://web.whatsapp.com/send?phone="+d+"&text="+encodeURIComponent(msgZap(p,link,lem))}
+function zapUrl(p,link,lem){let d=String(p.telefone||"").replace(/\D/g,"");if(d.length<=11)d="55"+d;return "https://wa.me/"+d+"?text="+encodeURIComponent(msgZap(p,link,lem))}
 async function copiar(t,quiet){try{await navigator.clipboard.writeText(t);if(!quiet)toast("Copiado")}catch(e){if(!quiet)toast("Não foi possível copiar; selecione o texto")}}
 function confirma(btn,txt,fn){const d=document.createElement("div");d.className="alert";d.innerHTML=`${esc(txt)} <button class="danger">Confirmar</button> <button>Cancelar</button>`;(btn.closest(".sec,.panel,.sheet")||btn.parentElement).appendChild(d);const [a,b]=d.querySelectorAll("button");a.onclick=async()=>{d.remove();await fn()};b.onclick=()=>d.remove()}
 
