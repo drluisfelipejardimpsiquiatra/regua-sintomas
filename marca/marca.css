@@ -1,0 +1,70 @@
+/* ==========================================================================
+   Marca Dr. Luis Felipe Jardim · sistema digital
+   Fonte: Guia de Marca Pessoal (SIMPLE, but.) + Símbolos.ai + ONE PAGE.
+   Cores oficiais (amostradas dos arquivos vetoriais da Simple):
+     oliva #656635 · pinho #38584B · sálvia #A3B2A4 · bronze #88764F
+     areia #AA9071 · castanho #83462D · terracota #C3622D · âmbar #EC8C00
+     off-white #F2F1F0 · preto #000
+   Tipografia oficial: Optima (títulos) + Garet (texto).
+     Optima vem instalada em iPhone/Mac; nos demais usamos Marcellus.
+     Garet não está no Google Fonts; Figtree é a substituta mais próxima.
+   Use SEMPRE os tokens (var(--...)), nunca o hex direto, para o modo escuro funcionar.
+   ========================================================================== */
+
+:root{
+  /* paleta oficial */
+  --oliva:#656635; --pinho:#38584B; --salvia:#A3B2A4; --bronze:#88764F;
+  --areia:#AA9071; --castanho:#83462D; --terracota:#C3622D; --ambar:#EC8C00;
+  --offwhite:#F2F1F0;
+
+  /* papéis (modo claro) */
+  --bg:#F4F2EE;          /* off-white quente */
+  --card:#FFFEFB;
+  --ink:#24251B;         /* quase-preto oliva */
+  --soft:#625F4E;        /* texto secundário (AA sobre --bg) */
+  --line:#E2DED3;
+  --track:#E6E2D8;
+  --brand:#656635;       /* oliva: botões, títulos, ênfase */
+  --brand-ink:#FFFFFF;   /* texto sobre --brand */
+  --brand-soft:#ECEBDD;  /* fundo leve de destaque */
+  --accent:#EC8C00;      /* âmbar: símbolo e detalhes, nunca texto pequeno sobre claro */
+  --accent-ink:#9A5A00;  /* âmbar escurecido para texto/links sobre claro */
+
+  /* semáforo clínico dentro da paleta */
+  --ok:#38584B;          /* pinho  · leve */
+  --mid:#A66300;         /* âmbar fechado · moderado (AA com texto branco) */
+  --bad:#A2482A;         /* terracota/castanho · forte */
+  --neu:#7A6A45;         /* bronze fechado · sem julgamento de gravidade */
+  --alert-bg:#F7E9E1; --alert-line:#E5C2B0; --alert-ink:#6B2E16;
+  --pill-ink:#FFFFFF;    /* texto sobre as pílulas do semáforo */
+
+  /* tipografia */
+  --f-display:Optima,"Optima nova","Marcellus","Candara",serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+
+  --r-card:16px; --r-ctl:12px;
+  color-scheme:light;
+}
+
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1B1C14; --card:#25261C; --ink:#F2F1F0; --soft:#BDB8A6; --line:#3A3A2B; --track:#3A3A2B;
+    --brand:#B5B67A; --brand-ink:#1B1C14; --brand-soft:#2F3022; --accent:#EC8C00; --accent-ink:#F2A93B;
+    --ok:#7FA595; --mid:#F2A93B; --bad:#E08560; --neu:#C2AE86;
+    --alert-bg:#3A2219; --alert-line:#6B3A26; --alert-ink:#F6CDB8; --pill-ink:#1B1C14;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1B1C14; --card:#25261C; --ink:#F2F1F0; --soft:#BDB8A6; --line:#3A3A2B; --track:#3A3A2B;
+  --brand:#B5B67A; --brand-ink:#1B1C14; --brand-soft:#2F3022; --accent:#EC8C00; --accent-ink:#F2A93B;
+  --ok:#7FA595; --mid:#F2A93B; --bad:#E08560; --neu:#C2AE86;
+  --alert-bg:#3A2219; --alert-line:#6B3A26; --alert-ink:#F6CDB8; --pill-ink:#1B1C14;
+  color-scheme:dark;
+}
+
+/* faixa de marca (cabeçalho em oliva com símbolo âmbar, como na capa do app) */
+.marca-faixa{background:#656635;color:#F2F1F0;padding:18px 16px 20px;text-align:center}
+.marca-faixa .simbolo{width:22px;height:31px;display:block;margin:0 auto 10px;fill:#EC8C00}
+.marca-faixa .nome{font:600 20px/1.15 var(--f-display);letter-spacing:.01em;margin:0}
+.marca-faixa .cargo{font:500 11px/1.4 var(--f-body);letter-spacing:.14em;text-transform:uppercase;opacity:.82;margin-top:4px}

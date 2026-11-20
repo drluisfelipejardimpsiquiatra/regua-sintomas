@@ -6,43 +6,48 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Régua de sintomas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Marcellus&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="marca/marca.css?v=1">
+<link rel="icon" href="marca/simbolo.svg" type="image/svg+xml">
+<meta name="theme-color" content="#656635">
 <style>
-:root{--bg:#f4f6fb;--card:#fff;--ink:#1d2340;--soft:#5b6280;--brand:#2f3fa0;--track:#e3e6f0;--ok:#2e9d6a;--mid:#e07b1a;--bad:#c73a3a;--neu:#5566c8;--line:#e6e8f0}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-.wrap{max-width:560px;margin:0 auto;padding:20px 16px 40px}
-header h1{font-size:26px;margin:4px 0 2px;color:var(--brand);font-weight:800}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:560px;margin:0 auto;padding:18px 16px 40px}
+.item,.card,.total{box-shadow:0 1px 2px rgba(60,55,30,.05)}
+h2,.card h2{font-family:var(--f-display);font-weight:600}
+header h1{font:600 28px/1.15 var(--f-display);margin:6px 0 2px;color:var(--brand);letter-spacing:.005em}
 header p{margin:6px 0 0;color:var(--soft);line-height:1.45;font-size:15px}
 .item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px 12px;margin:10px 0}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .lbl{font-weight:700;font-size:16px}
 .sub{font-size:13px;color:var(--soft);margin-top:2px}
-.val{min-width:44px;padding:0 10px;height:36px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;background:var(--ok);white-space:nowrap;transition:background .2s}
+.val{min-width:44px;padding:0 10px;height:36px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:var(--pill-ink);background:var(--ok);white-space:nowrap;transition:background .2s}
 input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;margin:10px 0 0;touch-action:pan-y}
 input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:6px;background:linear-gradient(90deg,var(--fill) var(--p),var(--track) var(--p))}
 input[type=range]::-moz-range-track{height:10px;border-radius:6px;background:linear-gradient(90deg,var(--fill) var(--p),var(--track) var(--p))}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:#fff;border:3px solid var(--fill);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
-input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid var(--fill)}
-.ends{display:flex;justify-content:space-between;font-size:12px;color:#8a90a8;padding:0 4px;font-weight:700}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:var(--card);border:3px solid var(--fill);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--card);border:3px solid var(--fill)}
+.ends{display:flex;justify-content:space-between;font-size:12px;color:var(--soft);padding:0 4px;font-weight:700}
 .opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.opts button{flex:1 1 auto;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 12px;font:700 15px Nunito,system-ui,sans-serif;cursor:pointer}
-.opts button.on{border-color:var(--brand);background:var(--brand);color:#fff}
-.alert{display:none;background:#fdecec;border:1px solid #f2b8b8;color:#7a1f1f;border-radius:12px;padding:12px 14px;margin-top:10px;font-size:14px;line-height:1.45}
+.opts button{flex:1 1 auto;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 12px;font:700 15px var(--f-body);cursor:pointer}
+.opts button.on{border-color:var(--brand);background:var(--brand);color:var(--brand-ink)}
+.alert{display:none;background:var(--alert-bg);border:1px solid var(--alert-line);color:var(--alert-ink);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:14px;line-height:1.45}
 .alert b{color:var(--bad)}
 .total{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:16px 0;display:flex;justify-content:space-between;align-items:center;font-weight:700}
 .total span:last-child{font-size:22px;color:var(--brand)}
-textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;font:15px Nunito,system-ui,sans-serif;margin-top:8px;min-height:70px}
-#send{width:100%;border:0;border-radius:14px;padding:16px;font:800 17px Nunito,system-ui,sans-serif;background:var(--brand);color:#fff;cursor:pointer;margin-top:6px}
+textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;font:15px var(--f-body);background:var(--bg);color:var(--ink);margin-top:8px;min-height:70px}
+#send{width:100%;border:0;border-radius:14px;padding:16px;font:800 17px var(--f-body);background:var(--brand);color:var(--brand-ink);cursor:pointer;margin-top:6px}
 #send:disabled{opacity:.55}
 .note{font-size:13px;color:var(--soft);line-height:1.45;margin-top:14px;text-align:center}
 .done,.err{display:none;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 18px;text-align:center;margin-top:20px}
 .done h2{color:var(--ok);margin:0 0 8px}
 .err h2{color:var(--bad);margin:0 0 8px}
-footer{margin-top:26px;text-align:center;font-size:12px;color:#8a90a8;line-height:1.5}
+footer{margin-top:26px;text-align:center;font-size:12px;color:var(--soft);line-height:1.5}
 </style>
 </head>
 <body>
+<div class="marca-faixa"><svg class="simbolo" viewBox="0 0 110 155" aria-hidden="true"><path d="M0 0H108V42L97 62 75 77 103 93 110 112V155H3V113L13 93 35 77 8 62 0 42Z"/></svg><p class="nome">Dr. Luis Felipe Jardim</p><div class="cargo">Psiquiatria · Psicoterapia</div></div>
 <div class="wrap">
   <header><h1 id="tit">Régua de sintomas</h1><p id="intro"></p></header>
   <div id="form">
@@ -68,7 +73,9 @@ const E = ESCALAS[esc];
 const V = {};
 document.title = E.nome; document.getElementById("tit").textContent = E.nome;
 document.getElementById("intro").innerHTML = (E.intro ? E.intro + " " : "") + (E.diario ? "" : `Arraste cada bolinha para mostrar como esteve <b>${E.periodo}</b>. Mais para a direita = mais forte. Não existe resposta certa.`);
-const COR = { ok: "#2e9d6a", mid: "#e07b1a", bad: "#c73a3a", neu: "#5566c8" };
+const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const COR = {}; const lerCores = () => ["ok", "mid", "bad", "neu"].forEach((k) => (COR[k] = cssVar("--" + k)));
+lerCores(); matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { lerCores(); upd(); });
 const corDe = (it, v) => { const n = nivel(it, v); return n == null ? COR.neu : n <= 3 ? COR.ok : n <= 6 ? COR.mid : COR.bad; };
 const box = document.getElementById("items");
 E.itens.forEach((it) => {
