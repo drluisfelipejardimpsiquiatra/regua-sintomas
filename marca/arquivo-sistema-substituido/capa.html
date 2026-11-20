@@ -1,0 +1,49 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Marca Dr. Luis Felipe Jardim</title>
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--fundo); color:var(--tinta); font-family:var(--font-sans); overflow:hidden; }
+  .cover { position:relative; height:288px; overflow:hidden; }
+  .band { position:absolute; top:0; left:0; width:960px; height:120px; }
+  .band svg { display:block; width:960px; height:120px; }
+  .oliva { fill:var(--oliva); } .ambar { fill:var(--ambar); } .pinho { fill:var(--pinho); }
+  .terracota { fill:var(--terracota); } .areia { fill:var(--areia); } .cut { fill:var(--offwhite); }
+  .words { position:absolute; left:var(--space-6); right:var(--space-6); bottom:var(--space-6); }
+  .name { margin:0; font-family:var(--font-display); font-size:58px; line-height:.95; font-weight:400; letter-spacing:.005em; color:var(--tinta); white-space:nowrap; }
+  .tag { margin:var(--space-2) 0 0 2px; font-size:14px; line-height:20px; color:var(--tinta-suave); max-width:440px; }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="band" aria-hidden="true">
+<svg viewBox="0 0 960 120" width="960" height="120">
+<!--
+  blocks      oliva 432×120 (cor-mãe, maior) · terracota 192×120 · pinho 144×120 · areia 192×120 bleeding right · ambar só nas ampulhetas — faixa ≈42% de 960×288
+  arrangement uma tira de bandas desiguais no topo (a marca compõe em faixas, como o rodapé do ONE PAGE e a faixa dos apps)
+  pattern     silhueta literal: a ampulheta facetada do Símbolos.ai, 9 unidades a passo space-8×2, âmbar sobre oliva (a assinatura) e recortadas em offwhite sobre as outras bandas
+  scales      larguras múltiplas de space-6 (24); ampulhetas 22×31 (proporção 110:155); cantos retos, como o símbolo
+-->
+<defs><path id="h" d="M0 0H22V8.4L19.8 12.4 15 15.4 20.6 18.6 22 22.4V31H.6V22.6L2.6 18.6 7 15.4 1.6 12.4 0 8.4Z"/></defs>
+<rect class="oliva" x="0" y="0" width="432" height="120"/>
+<rect class="terracota" x="432" y="0" width="192" height="120"/>
+<rect class="pinho" x="624" y="0" width="144" height="120"/>
+<rect class="areia" x="768" y="0" width="192" height="120"/>
+<use href="#h" class="ambar" x="205" y="44"/>
+<use href="#h" class="cut" x="480" y="44" opacity=".9"/>
+<use href="#h" class="cut" x="544" y="44" opacity=".9"/>
+<use href="#h" class="cut" x="685" y="44" opacity=".9"/>
+<use href="#h" class="cut" x="816" y="44" opacity=".9"/>
+<use href="#h" class="cut" x="880" y="44" opacity=".9"/>
+</svg>
+</div>
+<div class="words">
+<p class="name">Marca Dr. Luis Felipe Jardim</p>
+<p class="tag">Simplicidade no cenário complexo: o tempo, o equilíbrio e o cuidado com a mente.</p>
+</div>
+</div>
+</body>
+</html>
