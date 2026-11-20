@@ -1,70 +1,49 @@
 /* ==========================================================================
-   Marca Dr. Luis Felipe Jardim · sistema digital
-   Fonte: Guia de Marca Pessoal (SIMPLE, but.) + Símbolos.ai + ONE PAGE.
-   Cores oficiais (amostradas dos arquivos vetoriais da Simple):
-     oliva #656635 · pinho #38584B · sálvia #A3B2A4 · bronze #88764F
-     areia #AA9071 · castanho #83462D · terracota #C3622D · âmbar #EC8C00
-     off-white #F2F1F0 · preto #000
-   Tipografia oficial: Optima (títulos) + Garet (texto).
-     Optima vem instalada em iPhone/Mac; nos demais usamos Marcellus.
-     Garet não está no Google Fonts; Figtree é a substituta mais próxima.
-   Use SEMPRE os tokens (var(--...)), nunca o hex direto, para o modo escuro funcionar.
+   Marca Dr. Luis Felipe Jardim · telas do paciente
+   Fonte canônica: sistema de design "Dr. Luis Felipe Jardim — Marca"
+   (https://claude.ai/artifact/HkhxFoizd8u9aKWFqPi4Rn), baseado no Guia de Marca
+   Pessoal da Simple But (Pantone/HEX oficiais).
+   Tema "Oliva", como o app oficial da App Store: fundo oliva, cartões creme,
+   ações em pílula âmbar com texto em tinta. Tema único, sem modo escuro
+   (o fundo oliva já é escuro e é a identidade do app).
+   Use sempre os tokens, nunca o hex direto.
    ========================================================================== */
-
 :root{
-  /* paleta oficial */
-  --oliva:#656635; --pinho:#38584B; --salvia:#A3B2A4; --bronze:#88764F;
-  --areia:#AA9071; --castanho:#83462D; --terracota:#C3622D; --ambar:#EC8C00;
-  --offwhite:#F2F1F0;
+  /* paleta oficial (Pantone) */
+  --cafe:#83462D; --terracota:#C3622D; --ambar:#E89925; --oliva-dourado:#88764F;
+  --oliva:#656635; --salvia:#A3B2A4; --verde-floresta:#38584B; --off-white:#F2F1F0;
 
-  /* papéis (modo claro) */
-  --bg:#F4F2EE;          /* off-white quente */
-  --card:#FFFEFB;
-  --ink:#24251B;         /* quase-preto oliva */
-  --soft:#625F4E;        /* texto secundário (AA sobre --bg) */
-  --line:#E2DED3;
-  --track:#E6E2D8;
-  --brand:#656635;       /* oliva: botões, títulos, ênfase */
-  --brand-ink:#FFFFFF;   /* texto sobre --brand */
-  --brand-soft:#ECEBDD;  /* fundo leve de destaque */
-  --accent:#EC8C00;      /* âmbar: símbolo e detalhes, nunca texto pequeno sobre claro */
-  --accent-ink:#9A5A00;  /* âmbar escurecido para texto/links sobre claro */
+  /* superfícies do tema Oliva */
+  --bg:#656635;          /* fundo da página = oliva */
+  --on-bg:#F2F1F0;       /* texto direto sobre o oliva (5,3:1) */
+  --on-bg-soft:#E4E1D3;  /* texto secundário sobre o oliva (4,6:1) */
+  --card:#FBF8EE;        /* cartão creme, como no app */
+  --field:#FFFFFF;       /* campos e opções dentro do cartão */
+  --ink:#2B2A22;         /* texto sobre cartão (13,6:1) */
+  --soft:#5E5A4C;        /* texto secundário sobre cartão (6,5:1) */
+  --line:#E2DDCB;
+  --track:#E6E1D0;
+  --brand:#656635;       /* oliva como texto/traço sobre creme (5,6:1) */
+  --brand-soft:#F0ECDD;  /* destaque leve dentro do cartão */
+  --accent:#E89925;      /* âmbar: botão primário, opção escolhida */
+  --on-accent:#2B2A22;   /* texto sobre âmbar (6,2:1) */
 
-  /* semáforo clínico dentro da paleta */
-  --ok:#38584B;          /* pinho  · leve */
-  --mid:#A66300;         /* âmbar fechado · moderado (AA com texto branco) */
-  --bad:#A2482A;         /* terracota/castanho · forte */
-  --neu:#7A6A45;         /* bronze fechado · sem julgamento de gravidade */
-  --alert-bg:#F7E9E1; --alert-line:#E5C2B0; --alert-ink:#6B2E16;
-  --pill-ink:#FFFFFF;    /* texto sobre as pílulas do semáforo */
+  /* estados (sempre com rótulo ou número, nunca só a cor) */
+  --ok:#38584B;  --ok-ink:#F2F1F0;   /* verde-floresta · leve (7,0:1) */
+  --mid:#E89925; --mid-ink:#2B2A22;  /* âmbar · moderado (6,2:1) */
+  --bad:#C3622D; --bad-ink:#FFFFFF;  /* terracota · forte (4,1:1, só texto ≥19px negrito) */
+  --neu:#88764F; --neu-ink:#FFFFFF;  /* oliva-dourado · neutro */
+  --bad-text:#83462D;                /* café: texto de alerta sobre creme (6,9:1) */
+  --alert-bg:#F7E6DA; --alert-line:#E9C9B4; --alert-ink:#83462D;
 
-  /* tipografia */
-  --f-display:Optima,"Optima nova","Marcellus","Candara",serif;
-  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
-
-  --r-card:16px; --r-ctl:12px;
+  --f-display:"Optima LT Pro",Optima,"Optima nova","Marcellus",Candara,serif;
+  --f-body:Garet,"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --shadow-card:0 2px 10px rgba(43,42,34,.10);
   color-scheme:light;
 }
 
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#1B1C14; --card:#25261C; --ink:#F2F1F0; --soft:#BDB8A6; --line:#3A3A2B; --track:#3A3A2B;
-    --brand:#B5B67A; --brand-ink:#1B1C14; --brand-soft:#2F3022; --accent:#EC8C00; --accent-ink:#F2A93B;
-    --ok:#7FA595; --mid:#F2A93B; --bad:#E08560; --neu:#C2AE86;
-    --alert-bg:#3A2219; --alert-line:#6B3A26; --alert-ink:#F6CDB8; --pill-ink:#1B1C14;
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#1B1C14; --card:#25261C; --ink:#F2F1F0; --soft:#BDB8A6; --line:#3A3A2B; --track:#3A3A2B;
-  --brand:#B5B67A; --brand-ink:#1B1C14; --brand-soft:#2F3022; --accent:#EC8C00; --accent-ink:#F2A93B;
-  --ok:#7FA595; --mid:#F2A93B; --bad:#E08560; --neu:#C2AE86;
-  --alert-bg:#3A2219; --alert-line:#6B3A26; --alert-ink:#F6CDB8; --pill-ink:#1B1C14;
-  color-scheme:dark;
-}
-
-/* faixa de marca (cabeçalho em oliva com símbolo âmbar, como na capa do app) */
-.marca-faixa{background:#656635;color:#F2F1F0;padding:18px 16px 20px;text-align:center}
-.marca-faixa .simbolo{width:22px;height:31px;display:block;margin:0 auto 10px;fill:#EC8C00}
-.marca-faixa .nome{font:600 20px/1.15 var(--f-display);letter-spacing:.01em;margin:0}
-.marca-faixa .cargo{font:500 11px/1.4 var(--f-body);letter-spacing:.14em;text-transform:uppercase;opacity:.82;margin-top:4px}
+/* faixa de marca: símbolo âmbar + nome em off-white sobre oliva */
+.marca-faixa{background:var(--oliva);color:var(--off-white);padding:22px 16px 6px;text-align:center}
+.marca-faixa .simbolo{width:22px;height:31px;display:block;margin:0 auto 10px;fill:var(--ambar)}
+.marca-faixa .nome{font:500 20px/1.15 var(--f-display);letter-spacing:.01em;margin:0}
+.marca-faixa .cargo{font:600 11px/1.4 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--on-bg-soft);margin-top:4px}
