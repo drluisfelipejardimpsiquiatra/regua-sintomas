@@ -71,7 +71,7 @@ header.top .btn{min-height:38px;padding:0 18px;font-size:11px}
 .hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);min-height:640px}
 .hero-txt{display:flex;flex-direction:column;justify-content:center;padding-block:80px 150px;padding-left:max(20px,calc((100vw - var(--max)) / 2 + 20px));padding-right:56px}
 .hero .rot{color:var(--on-dark-soft)}
-.hero h1{font-size:clamp(36px,4.3vw,58px);line-height:1.08;margin:22px 0 24px}
+.hero h1{font-size:clamp(42px,5.6vw,74px);line-height:1.04;margin:22px 0 24px;max-width:12ch}
 .hero .lede{color:var(--on-dark-soft);font-size:18px;font-weight:300;max-width:46ch}
 .hero-foto{position:relative;overflow:hidden;min-height:420px;margin:0}
 .hero-foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
@@ -279,9 +279,9 @@ footer b{color:var(--on-dark);font-weight:600}
   <div class="hero-grid">
     <div class="hero-txt">
       <p class="rot">Psiquiatria · Psicoterapia · Neuromodulação</p>
-      <h1 id="hTit">Psiquiatria com rigor científico, informação clara e acompanhamento contínuo</h1>
-      <p class="lede">Para quem busca atendimento de qualidade técnica e um médico comprometido com o tratamento. Cada decisão parte de uma avaliação aprofundada, se apoia em evidência atualizada e é explicada com clareza. E o cuidado continua entre uma consulta e outra.</p>
-      <p class="hero-locais">Torres/RS · Praia Grande/SC · Sombrio/SC · On-line</p>
+      <h1 id="hTit">Psiquiatria com ciência, escuta e cuidado</h1>
+      <p class="lede">Para quem busca atendimento com qualidade técnica e um médico comprometido com o tratamento. Cada decisão parte de uma avaliação aprofundada, se apoia em evidência atualizada e é explicada com clareza. E o acompanhamento continua entre uma consulta e outra.</p>
+      <p class="hero-locais">On-line e presencial · Torres/RS · Praia Grande/SC · Sombrio/SC</p>
     </div>
     <figure class="hero-foto">
       <img src="dr-luis-felipe-jardim.jpg" alt="Dr. Luis Felipe Jardim, sorrindo, de camisa branca, com os óculos na mão" width="724" height="1104">
@@ -303,9 +303,9 @@ footer b{color:var(--on-dark);font-weight:600}
 
 <div class="numeros" aria-label="Como trabalhamos">
   <ul class="in" style="list-style:none;margin-block:0">
-    <li><b>Rigor técnico-científico</b><span>Diagnóstico construído com cuidado e decisões apoiadas em evidência atualizada.</span></li>
-    <li><b>Informação clara</b><span>Você entende o que foi avaliado, o plano proposto e cada medicamento, por escrito.</span></li>
-    <li><b>Acompanhamento contínuo</b><span>Escalas, registros e um canal definido entre as consultas, do início ao fim do tratamento.</span></li>
+    <li><b>Ciência</b><span>Rigor técnico-científico em cada decisão: diagnóstico construído com cuidado e tratamento apoiado em evidência atualizada.</span></li>
+    <li><b>Escuta</b><span>Avaliação aprofundada, sem pressa para dar nomes, e informação clara sobre o que foi compreendido, o plano e cada medicamento.</span></li>
+    <li><b>Cuidado</b><span>Acompanhamento contínuo entre as consultas, com escalas, registros e um canal definido, do início ao fim do tratamento.</span></li>
   </ul>
 </div>
 
@@ -545,7 +545,7 @@ footer b{color:var(--on-dark);font-weight:600}
     <div>
       <p><b>Responsável técnico:</b> Dr. Luis Felipe Coutinho Jardim · CREMESC 12767 · RQE 22739 (Psiquiatria) · RQE 24818 (Psicoterapia) · CREMERS 27789 · RQE 40903 · 43409</p>
       <p>As informações deste site têm caráter educativo e não substituem a consulta médica. A indicação de qualquer tratamento depende de avaliação individual.</p>
-      <p>Instagram <a href="https://www.instagram.com/luisfelipejardim.psiquiatra" target="_blank" rel="noopener">@luisfelipejardim.psiquiatra</a> · WhatsApp (48) 99209-2831</p>
+      <p>Psiquiatria com ciência, escuta e cuidado · Instagram <a href="https://www.instagram.com/luisfelipejardim.psiquiatra" target="_blank" rel="noopener">@luisfelipejardim.psiquiatra</a> · <a href="https://linktr.ee/drfelipejardim" target="_blank" rel="noopener">linktr.ee/drfelipejardim</a> · WhatsApp (48) 99209-2831</p>
     </div>
   </div>
 </footer>
@@ -556,7 +556,7 @@ const CARTOES = [
   { k: "ios", t: "App para iPhone", s: "Conteúdos educativos e lembretes de medicação", ir: "App Store" },
   { k: "android", t: "App para Android", s: "Conteúdos educativos e lembretes de medicação", ir: "Google Play" },
   { k: "whats", t: "WhatsApp", s: "Agendamento e dúvidas administrativas", ir: "Abrir conversa" },
-  { k: "insta", t: "Instagram", s: "@luisfelipejardim.psiquiatra", ir: "Abrir perfil" },
+  { k: "insta", t: "Instagram", s: "Diálogos, reflexões e rádio · @luisfelipejardim.psiquiatra", ir: "Abrir perfil" },
 ];
 const qrSvg = (k, lbl) => { const q = QR[k], m = 2, v = q.n + 2 * m;
   return `<svg viewBox="${-m} ${-m} ${v} ${v}" role="img" aria-label="QR code: ${lbl}" shape-rendering="crispEdges"><rect x="${-m}" y="${-m}" width="${v}" height="${v}" fill="#fff"/><path fill="#2B2A22" d="${q.d}"/></svg>`; };
