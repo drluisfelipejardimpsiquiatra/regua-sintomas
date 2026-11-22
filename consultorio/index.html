@@ -71,7 +71,7 @@ header.top .btn{min-height:38px;padding:0 18px;font-size:11px}
 .hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);min-height:640px}
 .hero-txt{display:flex;flex-direction:column;justify-content:center;padding-block:80px 150px;padding-left:max(20px,calc((100vw - var(--max)) / 2 + 20px));padding-right:56px}
 .hero .rot{color:var(--on-dark-soft)}
-.hero h1{font-size:clamp(40px,5.4vw,70px);line-height:1.05;margin:22px 0 24px;max-width:14ch}
+.hero h1{font-size:clamp(36px,4.3vw,58px);line-height:1.08;margin:22px 0 24px}
 .hero .lede{color:var(--on-dark-soft);font-size:18px;font-weight:300;max-width:46ch}
 .hero-foto{position:relative;overflow:hidden;min-height:420px;margin:0}
 .hero-foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
@@ -87,9 +87,14 @@ header.top .btn{min-height:38px;padding:0 18px;font-size:11px}
 
 /* faixa de números */
 .numeros{background:var(--verde-floresta);color:var(--on-dark);padding-block:44px;margin-top:56px}
-.numeros .in{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;text-align:center}
-.numeros b{display:block;font:500 clamp(23px,2.6vw,30px)/1.2 var(--f-display)}
-.numeros span{font-size:13px;color:var(--on-dark-soft)}
+.numeros .in{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 48px}
+.numeros li{border-top:1px solid rgba(242,241,240,.25);padding-top:16px}
+.numeros b{display:block;font:500 clamp(22px,2.4vw,27px)/1.2 var(--f-display);margin-bottom:6px}
+.numeros span{font-size:14.5px;color:var(--on-dark-soft);line-height:1.55}
+.hero-locais{margin-top:26px;font:600 11px/1.4 var(--f-body);letter-spacing:.22em;text-transform:uppercase;color:var(--on-dark-soft)}
+.foco .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.foco .acts .lin{color:var(--on-dark);min-height:44px}
+.foco .acts .pri{min-height:44px}
 
 /* jornada: lista numerada com filetes */
 .dividido{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:72px;align-items:start}
@@ -227,8 +232,8 @@ footer b{color:var(--on-dark);font-weight:600}
   .agenda form{grid-template-columns:1fr 1fr}
   .agenda .btn{grid-column:1/-1}
   .dividido,.medir-grid,.online-grid,.sobre-grid,.ferr,.focos{grid-template-columns:1fr;gap:48px}
-  .outras,.qrs,.locais,.numeros .in{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .numeros .in{row-gap:28px}
+  .outras,.qrs,.locais{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .numeros .in{grid-template-columns:1fr;row-gap:22px}
   footer .in{grid-template-columns:1fr;gap:28px}
   .sobre-foto{max-width:420px}
 }
@@ -260,6 +265,7 @@ footer b{color:var(--on-dark);font-weight:600}
     <nav class="links" aria-label="Seções">
       <a href="#jornada">Acompanhamento</a>
       <a href="#areas">Áreas</a>
+      <a href="neuromodulacao.html">Neuromodulação</a>
       <a href="#online">On-line</a>
       <a href="#apps">Apps</a>
       <a href="#duvidas">Dúvidas</a>
@@ -273,8 +279,9 @@ footer b{color:var(--on-dark);font-weight:600}
   <div class="hero-grid">
     <div class="hero-txt">
       <p class="rot">Psiquiatria · Psicoterapia · Neuromodulação</p>
-      <h1 id="hTit">O tratamento também acontece entre uma consulta e outra</h1>
-      <p class="lede">Avaliação sem pressa, plano de tratamento por escrito e acompanhamento de perto nas semanas seguintes. Em Torres/RS, Praia Grande/SC, Sombrio/SC ou on-line.</p>
+      <h1 id="hTit">Psiquiatria com rigor científico, informação clara e acompanhamento contínuo</h1>
+      <p class="lede">Para quem busca atendimento de qualidade técnica e um médico comprometido com o tratamento. Cada decisão parte de uma avaliação aprofundada, se apoia em evidência atualizada e é explicada com clareza. E o cuidado continua entre uma consulta e outra.</p>
+      <p class="hero-locais">Torres/RS · Praia Grande/SC · Sombrio/SC · On-line</p>
     </div>
     <figure class="hero-foto">
       <img src="dr-luis-felipe-jardim.jpg" alt="Dr. Luis Felipe Jardim, sorrindo, de camisa branca, com os óculos na mão" width="724" height="1104">
@@ -294,12 +301,11 @@ footer b{color:var(--on-dark);font-weight:600}
   </div>
 </div>
 
-<div class="numeros">
+<div class="numeros" aria-label="Como trabalhamos">
   <ul class="in" style="list-style:none;margin-block:0">
-    <li><b>Desde 2002</b><span>na medicina</span></li>
-    <li><b>3 cidades</b><span>e consulta on-line</span></li>
-    <li><b>6 escalas</b><span>respondidas de casa</span></li>
-    <li><b>Escetamina e ECT</b><span>para depressão resistente</span></li>
+    <li><b>Rigor técnico-científico</b><span>Diagnóstico construído com cuidado e decisões apoiadas em evidência atualizada.</span></li>
+    <li><b>Informação clara</b><span>Você entende o que foi avaliado, o plano proposto e cada medicamento, por escrito.</span></li>
+    <li><b>Acompanhamento contínuo</b><span>Escalas, registros e um canal definido entre as consultas, do início ao fim do tratamento.</span></li>
   </ul>
 </div>
 
@@ -394,6 +400,10 @@ footer b{color:var(--on-dark);font-weight:600}
           <li>Médicos podem encaminhar e recebem relatórios de evolução.</li>
         </ul>
         <p class="fio">Quem indica o procedimento é o mesmo médico que acompanha você antes, durante e depois dele. Hospital Nossa Senhora de Fátima, Praia Grande/SC.</p>
+        <div class="acts">
+          <a class="btn pri" href="neuromodulacao.html">Saiba mais sobre neuromodulação</a>
+          <a class="btn lin" href="neuromodulacao.html#medicos">Para médicos</a>
+        </div>
       </article>
       <article class="foco comp" id="compulsao">
         <p class="rot">Compulsão alimentar · Peso</p>
