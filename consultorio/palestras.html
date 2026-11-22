@@ -109,6 +109,15 @@ header.top .btn{min-height:38px;padding:0 18px;font-size:11px}
 .pal.destaque ul{border-top-color:rgba(242,241,240,.25)}
 .pal.destaque ul li{border-bottom-color:rgba(242,241,240,.18)}
 
+.sob{grid-column:1/-1;background:var(--cafe);color:var(--on-dark);border-radius:4px;padding:36px 34px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:32px;align-items:center}
+.sob .rot{color:var(--on-dark-soft)}
+.sob h3{font-size:clamp(26px,3vw,34px);line-height:1.12;margin:10px 0 12px}
+.sob p{color:var(--on-dark-soft);font-size:15.5px}
+.sob ul{list-style:none;margin:0;padding:0;border-top:1px solid rgba(242,241,240,.25)}
+.sob li{padding:11px 0;border-bottom:1px solid rgba(242,241,240,.2);font-size:15px}
+.sob .btn{margin-top:20px}
+@media (max-width:760px){.sob{grid-template-columns:1fr;padding:28px 22px}}
+
 /* rádio */
 .radio{background:var(--oliva);color:var(--on-dark)}
 .radio .rot,.radio .lede{color:#E4E1D3}
@@ -196,7 +205,7 @@ footer b{color:var(--on-dark);font-weight:600}
       <p class="lede">Palestras personalizadas para empresas, cooperativas, escolas e campanhas de saúde. Conteúdo com base científica, explicado com clareza e adaptado à realidade de quem vai ouvir, do campo à sala de aula.</p>
       <div class="acts">
         <a class="btn pri" href="#contratar">Contrate sua palestra</a>
-        <a class="btn lin" href="#portfolio">Ver o portfólio</a>
+        <a class="btn lin" href="#sob-medida">Tema sob medida</a>
       </div>
     </div>
     <figure class="hero-foto"><img src="dr-luis-felipe-jardim.jpg" alt="Dr. Luis Felipe Jardim, médico psiquiatra e palestrante" width="724" height="1104"></figure>
@@ -224,7 +233,7 @@ footer b{color:var(--on-dark);font-weight:600}
     <div class="centro">
       <p class="rot">Portfólio</p>
       <h2 class="titulo" id="pTit">Palestras já realizadas</h2>
-      <p class="lede">Todas podem ser adaptadas ao seu público ou combinadas em um novo tema.</p>
+      <p class="lede">Cada uma é adaptada ao seu público. E, se preferir, a palestra é personalizada com o tema que você escolher.</p>
     </div>
     <div class="port">
       <article class="pal destaque">
@@ -359,6 +368,21 @@ footer b{color:var(--on-dark);font-weight:600}
         </ul>
         <div class="meta"><span><b>Também em</b> duas partes no rádio, no Psiquiatria em Pauta</span></div>
       </article>
+      <article class="sob" id="sob-medida">
+        <div>
+          <p class="rot">Tema sob medida</p>
+          <h3>Não encontrou o tema? A palestra é personalizada para o seu evento</h3>
+          <p>Além das palestras acima, montamos uma palestra nova a partir do tema que você escolher, com base científica, linguagem do seu público e a duração que o evento pede.</p>
+          <a class="btn pri" href="#contratar">Sugerir um tema</a>
+        </div>
+        <ul aria-label="Exemplos de temas sob medida">
+          <li>Ansiedade, sono e uso de telas</li>
+          <li>Saúde mental de lideranças e equipes de saúde</li>
+          <li>Dependência química e álcool</li>
+          <li>Luto, perdas e recomeços</li>
+          <li>O tema que a sua instituição precisa</li>
+        </ul>
+      </article>
     </div>
   </div>
 </section>
@@ -401,9 +425,10 @@ footer b{color:var(--on-dark);font-weight:600}
   <div class="in centro">
     <p class="rot">Contrate sua palestra</p>
     <h2 class="titulo" id="kTit">Uma palestra personalizada para o seu evento</h2>
-    <p class="lede">Conte o que você precisa. A mensagem abre pronta no WhatsApp do consultório, (48) 99209-2831, e respondemos com disponibilidade e proposta.</p>
+    <p class="lede">Escolha uma das palestras ou descreva o tema que você quer: a palestra é personalizada para o seu evento. A mensagem abre pronta no WhatsApp do consultório, (48) 99209-2831, e respondemos com disponibilidade e proposta.</p>
     <form class="form" id="fPal" aria-label="Pedir proposta de palestra">
       <label for="pTema">Tema<select id="pTema">
+        <option>Tema personalizado (vou descrever)</option>
         <option>Ainda não sei, quero sugestões</option>
         <option>Entre estar cansado e estar doente (educadores)</option>
         <option>Homem também cuida de si (Novembro Azul)</option>
@@ -418,11 +443,11 @@ footer b{color:var(--on-dark);font-weight:600}
         <option>Saúde mental na infância e no autismo</option>
         <option>Burnout: o caminho de volta</option>
         <option>Climatério e menopausa</option>
-        <option>Outro tema</option>
-      </select></label>
+              </select></label>
       <label for="pPub">Público<select id="pPub"><option>Empresa</option><option>Cooperativa</option><option>Escola ou secretaria de educação</option><option>Prefeitura ou campanha de saúde</option><option>Outro</option></select></label>
       <label for="pFmt">Formato<select id="pFmt"><option>Presencial</option><option>On-line</option></select></label>
       <label for="pCid">Cidade e data prevista<input id="pCid" type="text" placeholder="ex.: Torres/RS, março" maxlength="80"></label>
+      <label for="pDesc" class="full">Tema desejado ou público (opcional)<input id="pDesc" type="text" placeholder="ex.: ansiedade em adolescentes, para pais e professores" maxlength="140"></label>
       <button class="btn" type="submit">Pedir proposta pelo WhatsApp</button>
     </form>
     <p class="form-nota">Você também pode falar diretamente pelo número (48) 99209-2831.</p>
@@ -447,6 +472,7 @@ document.getElementById("fPal").addEventListener("submit", (e) => {
   const v = (id) => document.getElementById(id).value.trim();
   let msg = `Olá! Gostaria de contratar uma palestra do Dr. Luis Felipe Jardim. Tema: ${v("pTema")}. Público: ${v("pPub")}. Formato: ${v("pFmt")}.`;
   if (v("pCid")) msg += ` Cidade e data: ${v("pCid")}.`;
+  if (v("pDesc")) msg += ` Tema desejado: ${v("pDesc")}.`;
   const a = document.createElement("a"); a.href = "https://wa.me/5548992092831?text=" + encodeURIComponent(msg); a.target = "_blank"; a.rel = "noopener";
   document.body.appendChild(a); a.click(); a.remove();
 });
