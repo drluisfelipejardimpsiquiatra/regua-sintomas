@@ -2,6 +2,8 @@
 
 **O que é este documento.** É a fusão de dois modelos: o *Prontuário psiquiátrico · criança e adolescente* (PDF, 10 páginas, com orientações clínicas) e o *Prontuário PIA — uso diário* (.docx, versão compacta). Mais o SDQ como instrumento. Serve de **matriz**: daqui saem (1) o prontuário da consulta e (2) o material de preparação dos pais para a primeira consulta, que depois vira aplicativo.
 
+**Fundamentação.** Revisado com a bibliografia da aula sobre a primeira avaliação psiquiátrica da infância e adolescência: princípios de desenho no Anexo B.1, cada bloco ligado à referência no Anexo E, instrumentos no Anexo F.
+
 **Crédito.** Os dois modelos de base trazem "Modelo elaborado por Dr. José Matheus · CRM-SP 211058". Manter o crédito em uso interno. Para material próprio distribuído a famílias, convém reescrever com texto próprio (é o que a etapa seguinte faz).
 
 **Como a mescla foi feita**
@@ -83,6 +85,15 @@
 | Queixa na perspectiva do paciente (registrada separadamente) | A · M |
 | "Como você acha que eu posso ajudar da melhor forma?" — responsáveis | F |
 | A mesma pergunta, feita ao paciente | A · M |
+
+### 4.1 Metas da família e do paciente — F, A
+| Campo | Quem |
+|---|---|
+| "Daqui a 6 meses, o que precisaria estar diferente para vocês acharem que o tratamento valeu a pena?" (até 3 metas, em palavras concretas) | F (cada responsável) |
+| "O que você gostaria que mudasse na sua vida?" | A |
+| Metas negociadas e priorizadas | M |
+
+> Base: plano de tratamento orientado por objetivos negociados com a família (Nurcombe, IACAPAP A.9). Aliança com pais e com o paciente associa-se a engajamento e desfecho (Shirk et al., 2011; Karver et al., 2018). As metas voltam nas consultas de acompanhamento como medida de progresso.
 
 ## 5. História da doença atual
 
@@ -214,6 +225,17 @@ Transtornos psiquiátricos, uso de álcool e drogas, suicídio, deficiência int
 
 Amizades (qualidade e estabilidade), lazer, religiosidade, comunidade, situação socioeconômica, acesso a serviços.
 
+### 14.1 Forças, interesses e fatores de proteção — F, A
+| Campo | Quem |
+|---|---|
+| "O que seu filho(a) tem de bom? Do que vocês mais gostam nele(a)?" | F |
+| Interesses, talentos, o que faz bem feito | F, A |
+| Em que momentos ou lugares ele(a) fica bem | F, A |
+| Pessoas de referência fora de casa (avós, professor, treinador, amigo) | F, A |
+| Forças a mobilizar no tratamento | M (alimenta "protetores" da formulação, seção 21) |
+
+> Base: resiliência como vias interligadas de bem-estar (Panter-Brick & Leckman, 2013); escala pró-social do SDQ. No material dos pais, este bloco muda o tom da avaliação: de um levantamento de problemas para conhecer a criança.
+
 ## 15. Uso de substâncias — M 🔒 (A em particular)
 
 | Substância | Idade de início | Padrão e frequência | Último uso | Consequências / tentativas de parar |
@@ -298,6 +320,13 @@ Medida seriada. Em uso de psicoestimulante, peso, altura, PA e FC são repetidos
 
 Registrar o mesmo instrumento em datas diferentes é o que permite comparar. Escolher um sistema e mantê-lo vale mais do que variar de instrumento a cada consulta.
 
+**Lógica de dois estágios** (Fisher, Chin & Vidair, Rutter cap. 33; modelo DAWBA, Goodman et al., 2000):
+1. **Triagem ampla, para todos:** SDQ oficial + suplemento de impacto (pais; professor; autorrelato ≥ 11 anos).
+2. **Módulos por domínio, só quando a queixa ou a triagem indicar:** escolher no Anexo F.
+3. **Instrumentos do clínico, na consulta:** entrevistas semiestruturadas e escalas de gravidade aplicadas pelo médico.
+
+A revisão sistemática de todos os domínios no estágio 1, e não só da queixa trazida, é a defesa prática contra ancoragem, fechamento prematuro e viés de confirmação (Galanter & Patel, 2005).
+
 > **Atenção ao SDQ enviado (ver nota no fim).** A versão anexada não é a oficial e não pode ser pontuada pelas subescalas do Goodman.
 
 ## 20. Funcionalidade e prejuízo — F\* · M
@@ -312,6 +341,8 @@ Registrar o mesmo instrumento em datas diferentes é o que permite comparar. Esc
 
 - CGAS (1 a 100) · Período de referência — M
 
+> Base: prejuízo por domínio na CIS e na BIS (Bird et al., 1993; 2005); CGAS como medida global do clínico (Shaffer et al., 1983). Repetir a mesma medida nas consultas de acompanhamento permite mostrar a melhora à família, o que é decisivo para a percepção de valor do tratamento.
+>
 > No material dos pais, este bloco funciona bem como régua leiga ("quanto isso atrapalha a vida dele(a) em casa? na escola? com amigos?"), no mesmo estilo de arrastar o dedo das escalas do `escalas.js`. A classificação final é do médico.
 
 ## 21. Formulação e hipótese diagnóstica — M
@@ -348,6 +379,8 @@ Registrar o mesmo instrumento em datas diferentes é o que permite comparar. Esc
 | Autorização para contato com escola e demais profissionais | F (pode ser colhida antes) |
 
 > No material dos pais: explicar antes que **parte da consulta pode ser só com o(a) adolescente**, o que é sigilo e quando ele é quebrado (risco à vida). Pais que chegam sabendo disso resistem menos.
+>
+> Base: o Código de Ética Médica (Res. CFM 2.217/2018) veda revelar sigilo de paciente menor de idade com capacidade de discernimento, inclusive aos pais, salvo quando a não revelação puder acarretar dano ao paciente. Atestados e relatórios seguem a Res. CFM 1.658/2002: explicar antes o que é emitido, quando e por quê (muitas famílias chegam esperando laudo na primeira consulta).
 
 ## 24. Evoluções — M
 
@@ -389,20 +422,56 @@ Copiar o bloco a cada nova consulta. Todo registro exige data, horário e identi
 
 ## Anexo B. O que vai para o material dos pais
 
-**Entra como pergunta (F):** 1, 2 (exceto litígio em detalhe), 4, 5, 8 (exceto tentativas), 9, 10, 11, 12, 13 (incluindo bullying), 14, 16, SDQ (versão oficial, ver Anexo C), régua de funcionalidade (20).
+### B.1 Princípios de desenho (da bibliografia da aula)
+1. **Cada pergunta diz por que é feita**, em uma linha. A avaliação já é o início da aliança (Leckman & Taylor; Shirk et al., 2011; Karver et al., 2018).
+2. **Um formulário por informante:** cada responsável separadamente, a escola e o(a) adolescente. A discordância entre eles é informação sobre o contexto, não erro (De Los Reyes et al., 2015).
+3. **Primeiro o aberto, depois o sistemático:** relato livre (queixa, história, metas), depois triagem ampla (SDQ + impacto) e, só se indicado, módulos por domínio (Fisher et al.; DAWBA). Isso evita o cansaço de responder e reduz vieses (Galanter & Patel, 2005).
+4. **Forças e metas ao lado dos problemas** (Panter-Brick & Leckman, 2013; Nurcombe).
+5. **O prejuízo funcional é a régua comum**, repetida nas consultas de acompanhamento (Bird et al.).
+6. **O material já é psicoeducação:** explica como se avalia e por que o diagnóstico pode levar mais de uma consulta (Lucksted et al., 2012; Weisz et al.).
+7. **Instrumentos com validação brasileira e licença compatível** com o formato (Anexo F).
+
+### B.2 Ordem sugerida das telas (formulário de cada responsável)
+1. Boas-vindas: como é a primeira consulta, quanto tempo leva preencher, privacidade.
+2. Dados da criança e da família (1, 2, domicílio).
+3. **Por que procuraram ajuda** (4) e **como posso ajudar**.
+4. **Metas** (4.1).
+5. História do problema (5): quando começou, como evoluiu, o que fazem quando acontece, o que já tentaram.
+6. **Forças e interesses** (14.1).
+7. Rotina, sono, alimentação, telas (12).
+8. Escola (13) e suporte escolar (16.4).
+9. Saúde: alergias, doenças, medicações atuais e antigas, terapias (8, 16).
+10. Família: quem tem o quê, o que funcionou (9).
+11. Gestação, parto e desenvolvimento (10, 11), com "não lembro / vou consultar a caderneta".
+12. Triagem ampla: SDQ oficial + impacto (19).
+13. Módulos por domínio, só se indicados (Anexo F).
+14. Régua de prejuízo: casa, escola, amigos, autonomia, lazer (20).
+15. Pergunta-ponte de segurança (6) e aviso de urgência.
+16. O que trazer e encerramento.
+
+### B.3 Classificação dos campos
+**Entra como pergunta (F):** 1, 2 (exceto litígio em detalhe), 4, 4.1, 5, 8 (exceto tentativas), 9, 10, 11, 12, 13 (incluindo bullying), 14, 14.1, 16, SDQ (versão oficial, ver Anexo C), régua de funcionalidade (20), autorização de contato com a escola (23).
 
 **Entra em versão leve (F\*):** litígio/medida protetiva (sim/não), pergunta-ponte de segurança (6), suicídio na família, substâncias na gestação, preocupação com substâncias no(a) filho(a), menarca, concordância com tratamento.
 
 **Fica fora (M/🔒):** 0, 3, 6 (detalhe), 7 (exceto bullying), 15 (detalhe), 17, 18, 21, 22, 24.
 
-**Blocos que só existem no material dos pais (não estão no prontuário):**
-1. *Como é a primeira consulta:* duração, quem deve vir (de preferência os dois responsáveis; em guarda compartilhada, combinar antes), parte da consulta pode ser só com o(a) adolescente, pode não sair diagnóstico nem receita nesse dia.
-2. *O que trazer:* Caderneta da Criança, receitas e caixas dos remédios atuais e antigos, exames recentes, laudos e relatórios de outros profissionais, boletins e relatórios escolares, encaminhamento (se houver).
-3. *Pedido à escola:* modelo curto para os pais entregarem ao(à) professor(a).
-4. *Aviso de urgência:* SAMU 192 · CVV 188 · pronto-socorro.
-5. *Privacidade (LGPD):* para que servem os dados, quem tem acesso, onde ficam.
+### B.4 Blocos que só existem no material dos pais
+1. *Como é a primeira consulta:* duração, quem deve vir (de preferência os dois responsáveis; em guarda compartilhada, combinar antes), parte da consulta pode ser só com o(a) adolescente (e por quê: sigilo, CEM), **pode não sair diagnóstico nem receita nesse dia**, e por quê.
+2. *Por que ouvimos várias pessoas:* "É comum pais, escola e o próprio jovem verem coisas diferentes. Isso nos ajuda a entender onde a dificuldade aparece."
+3. *O que trazer:* Caderneta da Criança, receitas e caixas dos remédios atuais e antigos, exames recentes, laudos e relatórios de outros profissionais, boletins e relatórios escolares, encaminhamento (se houver).
+4. *Formulário da escola:* bilhete curto + SDQ do professor (e SNAP-IV do professor se a queixa envolver atenção ou comportamento), para entregar ao(à) professor(a) **antes** da consulta.
+5. *Relatórios e laudos:* o que o médico emite, quando e para quê (Res. CFM 1.658/2002).
+6. *O que a escola pode oferecer:* parágrafo curto sobre os direitos previstos na Lei 14.254/2021 (dislexia, TDAH e outros transtornos de aprendizagem) e na Lei 12.764/2012 (TEA). Sem prometer laudo.
+7. *Aviso de urgência:* SAMU 192 · CVV 188 · pronto-socorro.
+8. *Privacidade (LGPD):* para que servem os dados, quem tem acesso, onde ficam.
+9. *Rodapé de base científica (uma linha):* "Este roteiro segue referências internacionais de avaliação em psiquiatria da infância e adolescência e instrumentos validados no Brasil."
 
-**Módulo do adolescente (A), separado:** como prefere ser chamado, por que acha que veio, como posso ajudar, escola e amigos, sono e telas, SDQ autorrelato, e um bloco de substâncias com garantia de sigilo e dos seus limites.
+### B.5 Módulo do adolescente (A), separado
+Como prefere ser chamado · por que acha que veio · o que gostaria que mudasse (metas) · do que gosta e no que é bom (forças) · escola e amigos · sono e telas · SDQ autorrelato (11–17 anos) · módulos por domínio, se indicados · bloco de substâncias com garantia de sigilo e dos seus limites.
+
+### B.6 Formulário da escola
+Identificação da escola e do(a) professor(a) · há quanto tempo conhece o aluno · SDQ do professor + impacto · SNAP-IV do professor (se indicado) · texto livre: "O que mais chama sua atenção? Em que situações ele(a) vai bem?" · adaptações já em uso (16.4). Só enviar com autorização dos responsáveis (23).
 
 ## Anexo C. Nota sobre o SDQ anexado (importante antes de ir para o app)
 
@@ -424,3 +493,65 @@ Copiar o bloco a cada nova consulta. Todo registro exige data, horário e identi
 - Permitir **um formulário por responsável** (divergência é dado clínico).
 - Resposta "sim" na pergunta-ponte de segurança deve **gerar alerta** para a secretária e para o médico, não apenas ficar registrada.
 - Rascunhos de mensagens para as famílias seguem as regras do consultório: português do Brasil, nunca "retorno", nada enviado sem aprovação do médico.
+
+## Anexo E. Fundamentação: cada bloco ligado à sua referência
+
+Uso interno: justifica o desenho para você, para a equipe e para quem questionar. **Não vai para o material dos pais**, onde basta o rodapé de uma linha (B.4, item 9).
+
+| Bloco do modelo / decisão de desenho | Referência(s) da aula | O que a referência sustenta |
+|---|---|---|
+| Avaliação como processo que já é terapêutico; formulação além do diagnóstico (21) | Leckman & Taylor, Rutter cap. 32; Nurcombe, IACAPAP A.9 | Formulação com fatores predisponentes, precipitantes, perpetuantes e protetores; plano orientado por objetivos negociados |
+| Explicar o motivo de cada pergunta; metas da família (4.1); módulo do adolescente | Shirk, Karver & Brown, 2011; Karver et al., 2018 | Aliança (com o jovem e com os pais) associa-se a desfecho e a engajamento |
+| Formulário por responsável, escola e adolescente; registro de divergências (3) | De Los Reyes et al., 2015 | Baixa concordância entre informantes, com significado de contexto |
+| Formulário da escola (B.6) | Bussing et al., 2008; Goodman, 1997/2001 | Normas do SNAP-IV para pais e professores; SDQ do professor |
+| Primeiro o aberto, depois triagem ampla, depois módulos (19, B.2) | Fisher, Chin & Vidair, Rutter cap. 33; Goodman et al., 2000 (DAWBA) | Escalas e entrevistas estruturadas complementam o julgamento clínico; modelo on-line com vários informantes, perguntas fechadas e relato livre |
+| Revisão sistemática de todos os domínios; não fechar diagnóstico na 1ª consulta (21) | Galanter & Patel, 2005 | Heurísticas e vieses: ancoragem, fechamento prematuro, confirmação |
+| Entrevistas do clínico (estágio 3) | Kaufman et al., 1997 (K-SADS-PL); Shaffer et al., 2000 (DISC-IV); Brasil & Bordin, 2010 | Confiabilidade e validade; versão brasileira do K-SADS-PL |
+| Triagem ampla com SDQ oficial + impacto (19; Anexo C) | Goodman, 1997; 2001; Fleitlich-Bilyk & Goodman, 2004 | Propriedades psicométricas; uso no Brasil |
+| Alternativa ampla: CBCL / YSR / TRF | Achenbach & Rescorla, 2001; Bordin et al., 2013 | Versões brasileiras dos formulários ASEBA |
+| Módulos por domínio (Anexo F) | Birmaher; March; Angold; Kovacs; Conners; Swanson; Wolraich; Yudofsky; Sorgi; Robins; Ehlers; Rutter; Lord; Schopler; Leckman; Scahill; Foa; Young; Axelson | Instrumento de cada domínio e quem responde |
+| Prejuízo funcional como régua comum (20) | Shaffer et al., 1983 (CGAS); Bird et al., 1993 (CIS); 2005 (BIS); Sparrow et al., 2016 (Vineland-3) | Medidas globais e por domínio; comportamento adaptativo |
+| Forças e proteção (14.1) | Panter-Brick & Leckman, 2013 | Resiliência como vias interligadas de bem-estar |
+| Material como psicoeducação; material depois da consulta (22) | Lucksted et al., 2012; Weisz, Ng & Lau, Rutter cap. 36 | Psicoeducação familiar com base em evidência; engajamento como gargalo |
+| Avaliação psicológica e cognitiva como encaminhamento (22) | Charman, Hood & Howlin, Rutter cap. 34 | Quando e como pedir avaliação psicológica no contexto clínico |
+| Sigilo do adolescente (23) | Res. CFM 2.217/2018 (Código de Ética Médica) | Sigilo de menor com discernimento, inclusive perante os pais, salvo risco de dano |
+| Relatórios e laudos (B.4) | Res. CFM 1.658/2002; Res. CFM 2.217/2018 | Emissão de atestados e documentos médicos |
+| Direitos escolares (16.4; B.4) | Lei 14.254/2021; Lei 12.764/2012 | Acompanhamento integral de educandos com dislexia, TDAH e transtornos de aprendizagem; direitos da pessoa com TEA |
+| Classificação diagnóstica (21) | DSM-5-TR (APA, 2023); CID-11 (OMS, 2022); Miguel et al., *Clínica psiquiátrica*, 2021 | Critérios e referência nacional |
+
+## Anexo F. Instrumentos da bibliografia: onde cada um entra
+
+> **Situação de licença: verificar os termos atuais no site do detentor antes de implementar.** A coluna abaixo é orientação de partida, não parecer jurídico. Regra geral: o instrumento **não pode ser modificado**, e a versão **eletrônica** costuma exigir autorização mesmo quando o papel é gratuito.
+
+**Legenda da coluna "No app?":** ✅ candidato (confirmar licença) · 📄 papel/PDF para imprimir, até haver autorização · 💲 comercial (licença paga) · 🩺 do clínico, não vai para o app.
+
+| Domínio | Instrumento | Quem responde | Faixa etária (aprox.) | Validação/uso no Brasil | No app? |
+|---|---|---|---|---|---|
+| Triagem ampla | **SDQ** + impacto (Goodman) | Pais, professor, autorrelato | 2–17 (autorrelato 11–17) | Sim (Fleitlich-Bilyk & Goodman) | 📄 → ✅ com autorização eletrônica |
+| Triagem ampla | CBCL / TRF / YSR (ASEBA) | Pais, professor, autorrelato | 1½–18 (YSR 11–18) | Sim (Bordin et al., 2013) | 💲 |
+| Avaliação integrada | DAWBA | Pais, professor, jovem + clínico | 2–17 | Usado no Brasil (Fleitlich-Bilyk & Goodman, 2004) | Referência de arquitetura; uso via plataforma própria (licença) |
+| Entrevista diagnóstica | K-SADS-PL | Clínico | 6–18 | Sim (Brasil & Bordin, 2010) | 🩺 |
+| Entrevista diagnóstica | DISC-IV | Entrevistador | 6–17 | Verificar | 🩺 |
+| Ansiedade | SCARED (Birmaher) | Pais, autorrelato | 8–18 | Verificar versão brasileira | ✅ |
+| Ansiedade | MASC 2 (March) | Pais, autorrelato | 8–19 | Verificar | 💲 |
+| Depressão | MFQ / SMFQ (Angold) | Pais, autorrelato | 6–17 | Verificar | ✅ (uso não comercial) |
+| Depressão | CDI 2 (Kovacs) | Autorrelato, pais, professor | 7–17 | Verificar | 💲 |
+| TDAH | SNAP-IV (Swanson) | Pais, professor | 6–18 | Versão em português (Mattos et al., 2006); normas de pais e professores: Bussing et al., 2008 (EUA) | ✅ |
+| TDAH | SWAN (Swanson) | Pais, professor | 6–18 | Verificar | ✅ (formato dimensional, inclui pontos fortes) |
+| TDAH | Vanderbilt (Wolraich) | Pais, professor | 6–12 | Verificar | ✅ (confirmar termos) |
+| TDAH / externalizantes | Conners 3 | Pais, professor, autorrelato | 6–18 | Verificar | 💲 |
+| Agressividade | OAS / MOAS (Yudofsky); versão retrospectiva (Sorgi) | Clínico, a partir do relato | Todas | — | 🩺 (registro de episódios pode virar diário no app) |
+| Autismo (pequenos) | M-CHAT-R/F (Robins) | Pais | 16–30 meses | Sim | 📄 → ✅ com autorização eletrônica |
+| Autismo (idade escolar) | ASSQ (Ehlers, Gillberg & Wing) | Pais, professor | 7–16 | Verificar | ✅ (confirmar termos) |
+| Autismo | SCQ (Rutter, Bailey & Lord) | Pais | ≥ 4 anos | Verificar | 💲 |
+| Autismo | ADI-R · ADOS-2 · CARS-2 | Clínico treinado | Variável | — | 🩺 💲 |
+| Tiques | YGTSS (Leckman) | Clínico | 6–17 | — | 🩺 |
+| TOC | CY-BOCS (Scahill) | Clínico | 6–17 | — | 🩺 |
+| Trauma | CPSS (Foa) | Autorrelato | 8–18 | Verificar | ✅ (só após triagem; considerar 🔒) |
+| Mania | YMRS (Young); K-SADS-MRS (Axelson) | Clínico | Adolescentes / 6–18 | — | 🩺 |
+| Prejuízo | CGAS (Shaffer) | Clínico | 4–16 | — | 🩺 |
+| Prejuízo | CIS (Bird) | Pais, autorrelato | 7–17 | Verificar | ✅ (régua de prejuízo da seção 20) |
+| Prejuízo | BIS (Bird) | Pais | 4–17 | Verificar | ✅ (confirmar termos) |
+| Comportamento adaptativo | Vineland-3 | Entrevista / pais | 0–90 | Verificar | 💲 🩺 |
+
+**Proposta mínima para a versão 1 do material:** SDQ oficial + impacto (pais, professor e adolescente) para todos. Como módulos condicionais: SNAP-IV (atenção/comportamento), SCARED (ansiedade), SMFQ (humor), M-CHAT-R/F (16–30 meses) ou ASSQ (idade escolar, suspeita de TEA). Régua de prejuízo inspirada na CIS. Enquanto as autorizações eletrônicas não saírem, os instrumentos com restrição seguem em PDF para imprimir e trazer na consulta. As réguas próprias do `escalas.js` continuam com a ressalva "não são as versões oficiais".
