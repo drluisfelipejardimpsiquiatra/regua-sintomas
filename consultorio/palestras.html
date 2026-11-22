@@ -112,6 +112,7 @@ header.top .btn{min-height:38px;padding:0 18px;font-size:11px}
 /* rádio */
 .radio{background:var(--oliva);color:var(--on-dark)}
 .radio .rot,.radio .lede{color:#E4E1D3}
+.radio h2 small{display:block;font:600 12px var(--f-body);letter-spacing:.22em;text-transform:uppercase;color:var(--ambar);margin-top:10px}
 .radio-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:center}
 .temas-radio{list-style:none;margin:0;padding:0;border-top:1px solid rgba(242,241,240,.25)}
 .temas-radio li{padding:13px 0;border-bottom:1px solid rgba(242,241,240,.2);display:flex;justify-content:space-between;gap:16px;font-size:15.5px}
@@ -257,7 +258,7 @@ footer b{color:var(--on-dark);font-weight:600}
           <li>Carga mental, violência e o sofrimento que não é levado a sério</li>
           <li>Quando e onde procurar ajuda</li>
         </ul>
-        <div class="meta"><span><b>Duração</b> cerca de 45 minutos</span><span><b>Indicada para</b> Outubro Rosa, Dia da Mulher, equipes e comunidades</span></div>
+        <div class="meta"><span><b>Duração</b> cerca de 45 minutos</span><span><b>Indicada para</b> Outubro Rosa, Dia da Mulher, equipes e comunidades</span><span><b>Versão aprofundada</b> climatério e menopausa: sintomas psíquicos, triagem e manejo</span></div>
       </article>
       <article class="pal">
         <div class="tags"><span>Cooperativas</span><span>Setembro Amarelo</span></div>
@@ -293,6 +294,50 @@ footer b{color:var(--on-dark);font-weight:600}
         <div class="meta"><span><b>Criada para</b> o Sicoob Credija</span><span><b>Duração</b> 35 a 40 minutos</span></div>
       </article>
       <article class="pal">
+        <div class="tags"><span>Empresas</span><span>Janeiro Branco</span></div>
+        <h3>Saúde mental e trabalho</h3>
+        <p class="sub">Cuidar da mente é cuidar do negócio</p>
+        <ul>
+          <li>Saúde mental como espectro, do bem-estar ao adoecimento</li>
+          <li>Afastamentos em alta e o que a nova NR-1 exige das empresas</li>
+          <li>O que a empresa e cada pessoa podem fazer, a partir de amanhã</li>
+        </ul>
+        <div class="meta"><span><b>Versões criadas para</b> o Sicoob, em Içara/SC, e para servidores da Prefeitura de Mampituba/RS no Janeiro Branco</span></div>
+      </article>
+      <article class="pal">
+        <div class="tags"><span>Setembro Amarelo</span></div>
+        <h3>Suicídio: um problema de saúde pública</h3>
+        <p class="sub">Valorização da vida</p>
+        <ul>
+          <li>Mitos e verdades, com atenção especial aos homens</li>
+          <li>Sinais de alerta: o que fazer e o que não fazer</li>
+          <li>Rede de ajuda, posvenção e luto</li>
+        </ul>
+        <div class="meta"><span><b>Versões</b> para a comunidade e para equipes de saúde, atualizadas com dados de 2025</span></div>
+      </article>
+      <article class="pal">
+        <div class="tags"><span>Saúde e educação</span><span>Infância</span></div>
+        <h3>Saúde mental na infância e no autismo</h3>
+        <p class="sub">Para equipes multidisciplinares</p>
+        <ul>
+          <li>Emergências psiquiátricas na infância</li>
+          <li>Medicações em TDAH e TEA: o que se sabe</li>
+          <li>Diagnóstico diferencial e trabalho interdisciplinar</li>
+        </ul>
+        <div class="meta"><span><b>Criada para</b> a equipe multidisciplinar da APAE</span></div>
+      </article>
+      <article class="pal">
+        <div class="tags"><span>Público geral</span><span>Empresas</span></div>
+        <h3>Burnout: o caminho de volta</h3>
+        <p class="sub">Arte e saúde mental na superação do esgotamento</p>
+        <ul>
+          <li>Como o burnout se instala e quais os sinais</li>
+          <li>Diagnóstico, afastamento e recuperação</li>
+          <li>A história real de uma artista que usou a arte no próprio cuidado</li>
+        </ul>
+        <div class="meta"><span><b>Indicada para</b> equipes, lideranças e público geral</span></div>
+      </article>
+      <article class="pal">
         <div class="tags"><span>Empresas</span><span>NR-1</span></div>
         <h3>O poder do não no trabalho</h3>
         <p class="sub">Limites, riscos psicossociais e a nova NR-1</p>
@@ -322,8 +367,11 @@ footer b{color:var(--on-dark);font-weight:600}
   <div class="in radio-grid">
     <div>
       <p class="rot">No rádio</p>
-      <h2 class="titulo" id="rTit">Psiquiatria em Pauta</h2>
-      <p class="lede">Um programa de conversa sobre saúde mental na 93 FM de Sombrio, com a apresentadora Marivânia. Temas do dia a dia explicados com base científica e em linguagem de quem escuta.</p>
+      <h2 class="titulo" id="rTit">Psiquiatria em Pauta<small>Terças · 8h15 · 93 FM</small></h2>
+      <p class="lede">Toda terça-feira, às 8h15, na 93 FM, com a apresentadora Marivânia. Temas do dia a dia da saúde mental explicados com base científica e na linguagem de quem escuta.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:26px">
+        <a class="btn pri" href="https://portal93news.com.br/" target="_blank" rel="noopener">Ouvir a 93 FM ao vivo</a>
+      </div>
     </div>
     <ul class="temas-radio" aria-label="Temas já abordados">
       <li>Dificuldade de dizer não<span>culpa e autoanulação</span></li>
@@ -343,7 +391,7 @@ footer b{color:var(--on-dark);font-weight:600}
     <div class="publicos">
       <div><b>Empresas</b><p>SIPAT, lideranças e equipes, com atenção aos riscos psicossociais da NR-1.</p></div>
       <div><b>Cooperativas</b><p>Assembleias, encontros de produtores e programas para cooperados.</p></div>
-      <div><b>Escolas</b><p>Formações para professores e equipes de educação, com material de apoio.</p></div>
+      <div><b>Escolas e equipes de saúde</b><p>Formações para professores, APAEs e equipes multidisciplinares, com material de apoio.</p></div>
       <div><b>Campanhas</b><p>Janeiro Branco, Setembro Amarelo, Outubro Rosa e Novembro Azul.</p></div>
     </div>
   </div>
@@ -365,6 +413,11 @@ footer b{color:var(--on-dark);font-weight:600}
         <option>O que a gente faz para não sentir</option>
         <option>O poder do não no trabalho e a NR-1</option>
         <option>Narcisismo</option>
+        <option>Saúde mental e trabalho (empresas)</option>
+        <option>Setembro Amarelo: suicídio e valorização da vida</option>
+        <option>Saúde mental na infância e no autismo</option>
+        <option>Burnout: o caminho de volta</option>
+        <option>Climatério e menopausa</option>
         <option>Outro tema</option>
       </select></label>
       <label for="pPub">Público<select id="pPub"><option>Empresa</option><option>Cooperativa</option><option>Escola ou secretaria de educação</option><option>Prefeitura ou campanha de saúde</option><option>Outro</option></select></label>
