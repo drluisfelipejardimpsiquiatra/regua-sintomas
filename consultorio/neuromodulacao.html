@@ -64,7 +64,10 @@ header.top .in{position:relative}
 .menu-m{display:none}
 .menu-m summary{list-style:none;cursor:pointer;min-height:38px;padding:0 14px;border:1px solid rgba(242,241,240,.45);border-radius:999px;display:flex;align-items:center;gap:8px;font:600 11px var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--on-dark)}
 .menu-m summary::-webkit-details-marker{display:none}
-.menu-m summary::before{content:"";width:14px;height:9px;border-top:1.5px solid currentColor;border-bottom:1.5px solid currentColor;box-shadow:inset 0 -3.75px 0 -2.25px currentColor}
+.menu-m summary::after{display:none}
+@media (max-width:560px){.menu-m summary{font-size:0;letter-spacing:0;padding:0 12px;gap:0}.marca b{font-size:16px;overflow:hidden;text-overflow:ellipsis}header.top .in{gap:10px}header.top .btn{padding:0 14px}}
+.menu-m summary::before{content:"";width:15px;height:11px;background:linear-gradient(currentColor 0 0) top/100% 1.5px no-repeat,linear-gradient(currentColor 0 0) center/100% 1.5px no-repeat,linear-gradient(currentColor 0 0) bottom/100% 1.5px no-repeat}
+.menu-m{border:0}
 .menu-m nav{position:absolute;left:0;right:0;top:100%;background:var(--verde-floresta);display:grid;padding:6px max(20px,env(safe-area-inset-right,0px)) 18px max(20px,env(safe-area-inset-left,0px));box-shadow:0 18px 30px rgba(0,0,0,.18)}
 .menu-m nav a{padding:13px 0;border-bottom:1px solid rgba(242,241,240,.18);font:500 12px var(--f-body);letter-spacing:.2em;text-transform:uppercase;text-decoration:none;color:var(--on-dark)}
 @media (max-width:980px){.menu-m{display:block}}
@@ -206,7 +209,7 @@ footer b{color:var(--on-dark);font-weight:600}
       <a href="#medicos">Médicos</a>
       <a href="#duvidas">Dúvidas</a>
     </nav>
-    <details class="menu-m"><summary>Menu</summary><nav aria-label="Menu">
+    <details class="menu-m"><summary aria-label="Abrir menu">Menu</summary><nav aria-label="Menu">
       <a href="#tratamentos">Tratamentos</a>
       <a href="#indicacoes">Indicações</a>
       <a href="#pacientes">Pacientes</a>

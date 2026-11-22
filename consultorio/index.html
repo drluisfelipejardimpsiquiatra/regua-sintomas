@@ -70,7 +70,10 @@ header.top .in{position:relative}
 .menu-m{display:none}
 .menu-m summary{list-style:none;cursor:pointer;min-height:38px;padding:0 14px;border:1px solid rgba(242,241,240,.45);border-radius:999px;display:flex;align-items:center;gap:8px;font:600 11px var(--f-body);letter-spacing:.16em;text-transform:uppercase;color:var(--on-dark)}
 .menu-m summary::-webkit-details-marker{display:none}
-.menu-m summary::before{content:"";width:14px;height:9px;border-top:1.5px solid currentColor;border-bottom:1.5px solid currentColor;box-shadow:inset 0 -3.75px 0 -2.25px currentColor}
+.menu-m summary::after{display:none}
+@media (max-width:560px){.menu-m summary{font-size:0;letter-spacing:0;padding:0 12px;gap:0}.marca b{font-size:16px;overflow:hidden;text-overflow:ellipsis}header.top .in{gap:10px}header.top .btn{padding:0 14px}}
+.menu-m summary::before{content:"";width:15px;height:11px;background:linear-gradient(currentColor 0 0) top/100% 1.5px no-repeat,linear-gradient(currentColor 0 0) center/100% 1.5px no-repeat,linear-gradient(currentColor 0 0) bottom/100% 1.5px no-repeat}
+.menu-m{border:0}
 .menu-m nav{position:absolute;left:0;right:0;top:100%;background:var(--oliva);display:grid;padding:6px max(20px,env(safe-area-inset-right,0px)) 18px max(20px,env(safe-area-inset-left,0px));box-shadow:0 18px 30px rgba(0,0,0,.18)}
 .menu-m nav a{padding:13px 0;border-bottom:1px solid rgba(242,241,240,.18);font:500 12px var(--f-body);letter-spacing:.2em;text-transform:uppercase;text-decoration:none;color:var(--on-dark)}
 @media (max-width:980px){.menu-m{display:block}}
@@ -202,6 +205,16 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .creds li{padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
 .regs{margin-top:22px;font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums;line-height:1.8}
 
+
+/* palestras */
+.pal-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:72px;align-items:center}
+.pal-acts{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.pal-acts .btn.lin{color:var(--cafe);border-color:var(--cafe)}
+.pal-lista{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.pal-lista li{padding:15px 0;border-bottom:1px solid var(--line);display:grid;gap:2px}
+.pal-lista b{font:500 20px/1.2 var(--f-display)}
+.pal-lista span{font-size:14px;color:var(--soft)}
+
 /* onde */
 .locais{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px;margin-top:56px}
 .locais div{display:grid;gap:6px;align-content:start;border-top:1px solid var(--line);padding-top:18px}
@@ -241,7 +254,7 @@ footer b{color:var(--on-dark);font-weight:600}
   .agenda{margin-top:-60px}
   .agenda form{grid-template-columns:1fr 1fr}
   .agenda .btn{grid-column:1/-1}
-  .dividido,.medir-grid,.online-grid,.sobre-grid,.ferr,.focos{grid-template-columns:1fr;gap:48px}
+  .dividido,.medir-grid,.online-grid,.sobre-grid,.ferr,.focos,.pal-grid{grid-template-columns:1fr;gap:48px}
   .outras,.qrs,.locais{grid-template-columns:repeat(2,minmax(0,1fr))}
   .numeros .in{grid-template-columns:1fr;row-gap:22px}
   footer .in{grid-template-columns:1fr;gap:28px}
@@ -281,7 +294,7 @@ footer b{color:var(--on-dark);font-weight:600}
       <a href="#apps">Apps</a>
       <a href="#duvidas">Dúvidas</a>
     </nav>
-    <details class="menu-m"><summary>Menu</summary><nav aria-label="Menu">
+    <details class="menu-m"><summary aria-label="Abrir menu">Menu</summary><nav aria-label="Menu">
       <a href="#jornada">Acompanhamento</a>
       <a href="#areas">Áreas</a>
       <a href="neuromodulacao.html">Neuromodulação</a>
@@ -510,6 +523,27 @@ footer b{color:var(--on-dark);font-weight:600}
       </ul>
       <p class="regs">CREMESC 12767 · RQE Psiquiatria 22739 · RQE Psicoterapia 24818<br>CREMERS 27789 · RQE Psiquiatria 40903 · RQE Psicoterapia 43409</p>
     </div>
+  </div>
+</section>
+
+<section id="palestras" aria-labelledby="plTit">
+  <div class="in pal-grid">
+    <div>
+      <p class="rot">Palestras</p>
+      <h2 class="titulo" id="plTit">Saúde mental explicada para o seu público</h2>
+      <p class="lede">Palestras personalizadas para empresas, cooperativas, escolas e campanhas de saúde. Base científica, linguagem clara e exemplos da realidade de quem está na plateia. Presencial ou on-line.</p>
+      <div class="pal-acts">
+        <a class="btn pri" href="palestras.html#contratar">Contrate sua palestra</a>
+        <a class="btn lin" href="palestras.html">Confira o portfólio</a>
+      </div>
+    </div>
+    <ul class="pal-lista" aria-label="Alguns temas">
+      <li><b>Entre estar cansado e estar doente</b><span>A mente de quem educa · Três Cachoeiras/RS</span></li>
+      <li><b>Homem também cuida de si</b><span>Saúde mental masculina · Novembro Azul</span></li>
+      <li><b>Nem frescura, nem só hormônio</b><span>Saúde mental da mulher</span></li>
+      <li><b>Saúde mental no agro</b><span>Cooperativas, cooperados e lideranças</span></li>
+      <li><b>O poder do não no trabalho</b><span>Limites, riscos psicossociais e a NR-1</span></li>
+    </ul>
   </div>
 </section>
 
