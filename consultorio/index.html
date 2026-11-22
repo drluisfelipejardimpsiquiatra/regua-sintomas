@@ -233,6 +233,10 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .locais div{display:grid;gap:6px;align-content:start;border-top:1px solid var(--line);padding-top:18px}
 .locais b{font:500 26px/1.15 var(--f-display);color:var(--cafe)}
 .locais span{font-size:14.5px;color:var(--soft)}
+.locais address{font-style:normal;font-size:14.5px;line-height:1.5;color:var(--ink)}
+.locais .hora{font-weight:500;color:var(--cafe)}
+.locais a{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--cafe)}
+.locais-nota{margin-top:36px;text-align:center;font-size:14.5px;color:var(--soft)}
 
 /* dúvidas */
 .faq{width:100%;max-width:780px;margin:48px auto 0;border-top:1px solid var(--line);text-align:left}
@@ -289,6 +293,155 @@ footer b{color:var(--on-dark);font-weight:600}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 <!--artifact:head-end-->
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "Physician",
+ "name": "Dr. Luis Felipe Jardim",
+ "alternateName": "Luis Felipe Coutinho Jardim",
+ "url": "https://drluisfelipejardimpsiquiatra.github.io/regua-sintomas/consultorio/",
+ "image": "https://drluisfelipejardimpsiquiatra.github.io/regua-sintomas/consultorio/dr-luis-felipe-jardim.jpg",
+ "telephone": "+55-48-99209-2831",
+ "medicalSpecialty": [
+  "Psychiatric"
+ ],
+ "description": "Psiquiatria e psicoterapia com acompanhamento entre as consultas. Neuromodulação (escetamina e eletroconvulsoterapia) em Praia Grande/SC. Presencial em Torres/RS, Praia Grande/SC e Sombrio/SC, e on-line.",
+ "identifier": [
+  {
+   "@type": "PropertyValue",
+   "propertyID": "CREMESC",
+   "value": "12767"
+  },
+  {
+   "@type": "PropertyValue",
+   "propertyID": "CREMERS",
+   "value": "27789"
+  }
+ ],
+ "availableService": [
+  {
+   "@type": "MedicalTherapy",
+   "name": "Consulta psiquiátrica"
+  },
+  {
+   "@type": "MedicalTherapy",
+   "name": "Psicoterapia"
+  },
+  {
+   "@type": "MedicalTherapy",
+   "name": "Infusão de escetamina"
+  },
+  {
+   "@type": "MedicalTherapy",
+   "name": "Eletroconvulsoterapia"
+  },
+  {
+   "@type": "MedicalTherapy",
+   "name": "Consulta on-line"
+  }
+ ],
+ "paymentAccepted": "Particular; reembolso por plano de saúde mediante nota fiscal e laudo",
+ "areaServed": [
+  "Torres",
+  "Praia Grande",
+  "Sombrio",
+  "Brasil"
+ ],
+ "sameAs": [
+  "https://www.instagram.com/luisfelipejardim.psiquiatra",
+  "https://apps.apple.com/br/app/dr-luis-felipe-jardim/id6692631988",
+  "https://play.google.com/store/apps/details?id=br.com.drluisfelipe.app"
+ ],
+ "location": [
+  {
+   "@type": "MedicalClinic",
+   "name": "Dr. Luis Felipe Jardim · Torres (Vida Multiclínica)",
+   "telephone": "+55-48-99209-2831",
+   "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Rua Manoel Fortunato de Souza, 138",
+    "addressLocality": "Torres",
+    "addressRegion": "RS",
+    "postalCode": "95560-000",
+    "addressCountry": "BR"
+   },
+   "openingHoursSpecification": [
+    {
+     "@type": "OpeningHoursSpecification",
+     "dayOfWeek": [
+      "Monday",
+      "Friday"
+     ],
+     "opens": "13:00",
+     "closes": "18:00"
+    },
+    {
+     "@type": "OpeningHoursSpecification",
+     "dayOfWeek": [
+      "Wednesday"
+     ],
+     "opens": "09:00",
+     "closes": "18:00"
+    }
+   ],
+   "medicalSpecialty": "Psychiatric",
+   "isAcceptingNewPatients": true
+  },
+  {
+   "@type": "MedicalClinic",
+   "name": "Dr. Luis Felipe Jardim · Praia Grande (Clínica de Especialidades, anexa ao Hospital Nossa Senhora de Fátima)",
+   "telephone": "+55-48-99209-2831",
+   "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Rua Frei Protásio, 431",
+    "addressLocality": "Praia Grande",
+    "addressRegion": "SC",
+    "postalCode": "88990-000",
+    "addressCountry": "BR"
+   },
+   "openingHoursSpecification": [
+    {
+     "@type": "OpeningHoursSpecification",
+     "dayOfWeek": [
+      "Monday",
+      "Friday"
+     ],
+     "opens": "09:00",
+     "closes": "12:00"
+    }
+   ],
+   "medicalSpecialty": "Psychiatric",
+   "isAcceptingNewPatients": true
+  },
+  {
+   "@type": "MedicalClinic",
+   "name": "Dr. Luis Felipe Jardim · Sombrio (Clínica Cardiovitta)",
+   "telephone": "+55-48-99209-2831",
+   "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Rua Luiz Coelho, 213, sala 103",
+    "addressLocality": "Sombrio",
+    "addressRegion": "SC",
+    "postalCode": "88960-000",
+    "addressCountry": "BR"
+   },
+   "openingHoursSpecification": [
+    {
+     "@type": "OpeningHoursSpecification",
+     "dayOfWeek": [
+      "Tuesday",
+      "Thursday"
+     ],
+     "opens": "09:00",
+     "closes": "18:00"
+    }
+   ],
+   "medicalSpecialty": "Psychiatric",
+   "isAcceptingNewPatients": true
+  }
+ ]
+}
+</script>
 </head>
 <body>
 <!--artifact:body-start-->
@@ -594,11 +747,12 @@ footer b{color:var(--on-dark);font-weight:600}
       <h2 class="titulo" id="lTit">Entre a serra e o mar, e on-line</h2>
     </div>
     <div class="locais">
-      <div><b>Torres</b><span>Rio Grande do Sul · consultas presenciais</span></div>
-      <div><b>Praia Grande</b><span>Santa Catarina · consultas e neuromodulação no Hospital Nossa Senhora de Fátima, Rua Frei Protásio, 431</span></div>
-      <div><b>Sombrio</b><span>Santa Catarina · consultas presenciais</span></div>
-      <div><b>On-line</b><span>Pela VSaúde, para todo o Brasil</span></div>
+      <div><b>Torres</b><span>Rio Grande do Sul · consultas presenciais</span><address>Vida Multiclínica<br>Rua Manoel Fortunato de Souza, 138, Centro<br>Torres/RS · CEP 95560-000</address><span class="hora">Seg e sex, 13h–18h · Qua, 09h–18h</span><a href="https://www.google.com/maps/search/?api=1&query=Vida%20Multicl%C3%ADnica%2C%20Rua%20Manoel%20Fortunato%20de%20Souza%2C%20138%2C%20Centro%2C%20Torres/RS" target="_blank" rel="noopener">Ver no mapa</a></div>
+      <div><b>Praia Grande</b><span>Santa Catarina · consultas e neuromodulação</span><address>Clínica de Especialidades, anexa ao Hospital Nossa Senhora de Fátima<br>Rua Frei Protásio, 431, Centro<br>Praia Grande/SC · CEP 88990-000</address><span class="hora">Seg e sex, 09h–12h</span><a href="https://www.google.com/maps/search/?api=1&query=Cl%C3%ADnica%20de%20Especialidades%2C%20anexa%20ao%20Hospital%20Nossa%20Senhora%20de%20F%C3%A1tima%2C%20Rua%20Frei%20Prot%C3%A1sio%2C%20431%2C%20Centro%2C%20Praia%20Grande/SC" target="_blank" rel="noopener">Ver no mapa</a></div>
+      <div><b>Sombrio</b><span>Santa Catarina · consultas presenciais</span><address>Clínica Cardiovitta<br>Rua Luiz Coelho, 213, sala 103, Centro<br>Sombrio/SC · CEP 88960-000</address><span class="hora">Ter e qui, 09h–18h</span><a href="https://www.google.com/maps/search/?api=1&query=Cl%C3%ADnica%20Cardiovitta%2C%20Rua%20Luiz%20Coelho%2C%20213%2C%20sala%20103%2C%20Centro%2C%20Sombrio/SC" target="_blank" rel="noopener">Ver no mapa</a></div>
+      <div><b>On-line</b><span>Pela VSaúde, para todo o Brasil</span><span class="hora">Horários combinados com a secretária</span></div>
     </div>
+    <p class="locais-nota">Atendimento particular, sem convênios. Quem tem plano de saúde pode pedir reembolso com a nota fiscal e o laudo entregues na consulta. Agendamento pelo WhatsApp (48) 99209-2831.</p>
   </div>
 </section>
 
@@ -609,6 +763,7 @@ footer b{color:var(--on-dark);font-weight:600}
     <div class="faq">
       <details><summary>Como agendar a primeira consulta?</summary><p>Pelo WhatsApp do consultório, (48) 99209-2831. A secretária combina data, local ou consulta on-line e envia as orientações para antes do primeiro encontro.</p></details>
       <details><summary>Preciso de encaminhamento?</summary><p>Não. Você pode marcar diretamente. Se já faz tratamento com outro médico, traga ou envie as receitas e os relatórios que tiver: eles ajudam muito na avaliação.</p></details>
+      <details><summary>Atende convênio?</summary><p>O atendimento é particular, sem convênios. Quem tem plano de saúde pode pedir reembolso com a nota fiscal e o laudo entregues na consulta; vale consultar antes as regras de reembolso do seu plano.</p></details>
       <details><summary>Um familiar pode participar?</summary><p>Pode, e muitas vezes ajuda, especialmente na primeira consulta. Combinamos com você quanto e quando o familiar participa.</p></details>
       <details><summary>A consulta on-line é igual à presencial?</summary><p>O tempo, a avaliação, o plano por escrito e o acompanhamento são os mesmos. Algumas situações pedem exame presencial ou procedimento; nesses casos, combinamos a melhor forma.</p></details>
       <details><summary>Escetamina e ECT são para qualquer depressão?</summary><p>Não. São indicadas em situações específicas, como a depressão resistente ou quadros graves. A indicação sempre passa por uma consulta de avaliação, com revisão de contraindicações.</p></details>
