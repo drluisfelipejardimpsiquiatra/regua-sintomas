@@ -151,12 +151,32 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":
 const TOTAL = STEPS.length;
 
 /* ---------- reconhecimento de voz ---------- */
+// O texto aparece na caixa enquanto a pessoa fala (não espera a "frase concluída",
+// que o iPhone muitas vezes nunca marca). No celular, cada trecho de fala é uma
+// sessão curta que reinicia sozinha; no computador, a escuta é contínua.
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec = null, recAlvo = null, recLigado = false, recBase = "";
+const MOVEL = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+let rec = null, recAlvo = null, recLigado = false, recBase = "", recSessao = "";
+const juntarFala = (base, txt) => {
+  txt = String(txt || "").replace(/\s+/g, " ").trim(); base = String(base || "").replace(/\s+$/, "");
+  if (!txt) return base;
+  if (!base || /[.!?]$/.test(base)) txt = txt.charAt(0).toUpperCase() + txt.slice(1);
+  return (base ? base + " " : "") + txt;
+};
+function botaoMic(on) {
+  document.querySelectorAll(".mic").forEach((b) => { const ativo = on && +b.dataset.mic === recAlvo; b.classList.toggle("on", ativo); b.querySelector(".rotulo").textContent = ativo ? "Parar" : "Falar"; });
+}
+function gravarFala(e) {
+  const txt = juntarFala(recBase, recSessao);
+  S.resp[e] = txt; salvar();
+  const ta = $("q" + e); if (ta && ta.value !== txt) ta.value = txt;
+}
 function pararVoz() {
+  const e = recAlvo;
   recLigado = false;
-  if (rec) { try { rec.stop(); } catch (e) {} }
-  document.querySelectorAll(".mic.on").forEach((b) => { b.classList.remove("on"); b.querySelector(".rotulo").textContent = "Falar"; });
+  if (rec) { try { rec.stop(); } catch (err) {} }
+  if (e != null && recSessao) { recBase = juntarFala(recBase, recSessao); recSessao = ""; gravarFala(e); }
+  botaoMic(false);
   document.querySelectorAll(".ouvindo").forEach((o) => (o.textContent = ""));
 }
 function iniciarVoz(e, btn) {
@@ -164,34 +184,44 @@ function iniciarVoz(e, btn) {
   if (recLigado && recAlvo === e) { pararVoz(); return; }
   pararVoz();
   const ta = $("q" + e), ouv = $("o" + e);
-  recAlvo = e; recLigado = true; recBase = ta.value;
-  btn.classList.add("on"); btn.querySelector(".rotulo").textContent = "Parar";
-  rec = new SR(); rec.lang = "pt-BR"; rec.continuous = true; rec.interimResults = true;
-  rec.onresult = (ev) => {
-    let fin = "", tmp = "";
-    for (let i = ev.resultIndex; i < ev.results.length; i++) {
-      const t = ev.results[i][0].transcript;
-      if (ev.results[i].isFinal) fin += t; else tmp += t;
-    }
-    if (fin) {
-      let base = recBase.replace(/\s+$/, "");
-      let txt = fin.trim();
-      if (!base || /[.!?]$/.test(base)) txt = txt.charAt(0).toUpperCase() + txt.slice(1);
-      recBase = (base ? base + " " : "") + txt;
-      ta.value = recBase; S.resp[e] = ta.value; salvar();
-    }
-    ouv.textContent = tmp ? "Ouvindo: " + tmp : "";
+  recAlvo = e; recLigado = true; recBase = ta.value; recSessao = "";
+  let ouviuAlgo = false, reinicios = 0;
+  const novo = () => {
+    const r = new SR(); r.lang = "pt-BR"; r.continuous = !MOVEL; r.interimResults = true;
+    let nFin = 0; // frases já concluídas nesta sessão (gravadas de vez)
+    r.onresult = (ev) => {
+      if (r !== rec || !recLigado) return;
+      let t = "";
+      for (let i = 0; i < ev.results.length; i++) {
+        const tr = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) { if (i >= nFin) { recBase = juntarFala(recBase, tr); nFin = i + 1; } }
+        else t += " " + tr;
+      }
+      recSessao = t; ouviuAlgo = true; reinicios = 0; gravarFala(e);
+      ouv.textContent = "Ouvindo… pode continuar falando";
+    };
+    r.onerror = (ev) => {
+      if (r !== rec) return;
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
+        ouv.textContent = ouviuAlgo ? "O microfone pausou. Toque em Falar para continuar." : "O microfone não foi liberado. Permita o acesso ao microfone, ou toque no campo e use o microfone do teclado.";
+        recLigado = false;
+      } else if (ev.error === "network") { ouv.textContent = "O reconhecimento de voz precisa de internet. Confira a conexão ou digite."; recLigado = false; }
+      else if (ev.error === "audio-capture") { ouv.textContent = "Não encontrei o microfone. Toque no campo e use o microfone do teclado."; recLigado = false; }
+    };
+    r.onend = () => {
+      if (r !== rec) return;
+      if (recSessao) { recBase = juntarFala(recBase, recSessao); recSessao = ""; gravarFala(e); }
+      if (recLigado && recAlvo === e && ++reinicios <= 8) {
+        try { rec = novo(); rec.start(); return; } catch (err) {}
+      }
+      if (recLigado && reinicios > 8) ouv.textContent = "Parei de ouvir por silêncio. Toque em Falar para continuar.";
+      recLigado = false; botaoMic(false);
+    };
+    return r;
   };
-  rec.onerror = (ev) => {
-    if (ev.error === "not-allowed" || ev.error === "service-not-allowed") { ouv.textContent = "O microfone não foi liberado. Permita o acesso ou digite a resposta."; recLigado = false; }
-    else if (ev.error === "no-speech") { /* segue ouvindo */ }
-    else { ouv.textContent = "Não foi possível ouvir agora. Tente de novo ou digite."; recLigado = false; }
-  };
-  rec.onend = () => {
-    if (recLigado && recAlvo === e) { try { rec.start(); return; } catch (err) {} }
-    btn.classList.remove("on"); btn.querySelector(".rotulo").textContent = "Falar"; ouv.textContent = "";
-  };
-  try { rec.start(); } catch (err) { pararVoz(); }
+  rec = novo();
+  try { rec.start(); botaoMic(true); ouv.textContent = "Ouvindo… pode falar"; }
+  catch (err) { recLigado = false; botaoMic(false); ouv.textContent = "Não consegui ligar o microfone. Toque no campo e use o microfone do teclado."; }
 }
 
 /* ---------- desenho das perguntas ---------- */
@@ -357,7 +387,7 @@ async function enviar() {
 /* ---------- eventos ---------- */
 document.addEventListener("input", (ev) => {
   const t = ev.target;
-  if (t.dataset.e) { S.resp[t.dataset.e] = t.value; if (recLigado && recAlvo == t.dataset.e) recBase = t.value; $("c" + t.dataset.e)?.classList.remove("erro"); salvar(); }
+  if (t.dataset.e) { if (recLigado && recAlvo == t.dataset.e) { recSessao = ""; recBase = t.value; pararVoz(); } S.resp[t.dataset.e] = t.value; $("c" + t.dataset.e)?.classList.remove("erro"); salvar(); }
   if (t.dataset.outro) { S.resp[t.dataset.outro + ".outro"] = t.value; salvar(); }
 });
 document.addEventListener("click", (ev) => {
