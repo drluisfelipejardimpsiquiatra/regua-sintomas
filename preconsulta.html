@@ -107,7 +107,7 @@ const CVV = "Se houver pensamento de se ferir agora, não espere a consulta: lig
 const ROT = {
 adulto: {
   rotulo:"Adulto", icone:"🧑", sub:"18 a 64 anos, respondendo por si",
-  ident:[{id:"nome",label:"Nome completo",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date"},{id:"tel",label:"Celular com DDD",tipo:"tel",obrig:true}],
+  ident:[{id:"nome",label:"Nome completo",obrig:true},{id:"cpf",label:"CPF",tipo:"cpf",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date"},{id:"tel",label:"Celular com DDD",tipo:"tel",obrig:true}],
   areas:["Trabalho / estudos","Relacionamento amoroso","Filhos / família","Sono","Saúde física","Finanças","Amizades / vida social","Autoestima","Lazer e prazer nas coisas"],
   rastreioTitulo:"Nas últimas 2 semanas", rastreioIntro:"O quanto você foi incomodado(a) por cada item abaixo?",
   rastreio:[
@@ -166,7 +166,7 @@ adulto: {
 },
 pia: {
   rotulo:"Criança e adolescente", icone:"🧒", sub:"até 17 anos · respondido pelo responsável",
-  ident:[{id:"nome",label:"Nome completo da criança ou adolescente",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date",obrig:true},
+  ident:[{id:"nome",label:"Nome completo da criança ou adolescente",obrig:true},{id:"cpf",label:"CPF da criança ou adolescente",tipo:"cpf",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date",obrig:true},
          {id:"resp",label:"Seu nome (responsável)",obrig:true},{id:"parent",label:"Parentesco (mãe, pai, avó, outro)",obrig:true},{id:"tel",label:"Celular do responsável com DDD",tipo:"tel",obrig:true}],
   areas:["Escola / aprendizado","Amizades","Convivência em casa","Sono","Alimentação","Brincar e lazer","Autoestima","Saúde física","Esportes e atividades"],
   rastreioTitulo:"Nas últimas 2 semanas", rastreioIntro:"Pensando no seu filho ou filha, o quanto cada item aconteceu?",
@@ -224,7 +224,7 @@ pia: {
 },
 geri: {
   rotulo:"Idoso", icone:"👵", sub:"65 anos ou mais · paciente e/ou cuidador",
-  ident:[{id:"nome",label:"Nome completo de quem vai consultar",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date",obrig:true},
+  ident:[{id:"nome",label:"Nome completo de quem vai consultar",obrig:true},{id:"cpf",label:"CPF de quem vai consultar",tipo:"cpf",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date",obrig:true},
          {id:"quem",label:"Quem está respondendo?",tipo:"select",opcoes:["O próprio paciente","Um familiar ou cuidador","Os dois juntos"],obrig:true},
          {id:"resp",label:"Nome e parentesco do familiar ou cuidador (se houver)"},{id:"tel",label:"Celular para contato com DDD",tipo:"tel",obrig:true}],
   areas:["Memória","Autonomia em casa","Convívio familiar","Sono","Saúde física","Finanças","Vida social","Humor","Sair de casa / dirigir"],
@@ -509,7 +509,9 @@ function render(){
     const v = R.ident || {};
     h = `<h2>${t.titulo}</h2>` + rot.ident.map(c => `<label class="campo" for="f_${c.id}">${c.label}${c.obrig ? " *" : ""}</label>` + (
       c.tipo === "select" ? `<select id="f_${c.id}"><option value=""></option>${c.opcoes.map(o => `<option ${v[c.id]===o?"selected":""}>${o}</option>`).join("")}</select>`
-      : `<input type="${c.tipo || "text"}" id="f_${c.id}" value="${esc(v[c.id])}" ${c.tipo==="tel"?'autocomplete="tel"':""}>`)).join("") + navHtml();
+      : c.tipo === "cpf" ? `<input type="text" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" id="f_${c.id}" value="${esc(v[c.id])}">`
+      : `<input type="${c.tipo || "text"}" id="f_${c.id}" value="${esc(v[c.id])}" ${c.tipo==="tel"?'autocomplete="tel"':""}>`)).join("") +
+      `<p style="font-size:13px;color:var(--suave);margin-top:10px">O CPF serve só para juntar estas respostas ao seu cadastro na clínica, com segurança.</p>` + navHtml();
   }
   else if (t.tipo === "voz") {
     h = `<h2>${t.titulo}${t.opcional ? ' <span style="font-size:14px;color:var(--suave);font-family:Figtree">(opcional)</span>' : ""}</h2>
@@ -565,7 +567,15 @@ function navHtml(){ return `<div class="nav"><button class="btn sec" data-ir="${
 function escalaHtml(nome, val, a, b){
   return `<div class="escala" data-escala="${nome}">${Array.from({length:11},(_,i)=>`<button data-v="${i}" class="${val===i?"on":""}">${i}</button>`).join("")}</div><div class="pontas"><span>${a}</span><span>${b}</span></div>${falarMini("num:"+nome,"🎤 Dizer o número")}`;
 }
+function cpfValido(c){
+  c = String(c || "").replace(/\D/g, "");
+  if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+  for (const n of [9, 10]) { let s = 0; for (let i = 0; i < n; i++) s += +c[i] * (n + 1 - i); if ((s * 10 % 11) % 10 !== +c[n]) return false; }
+  return true;
+}
+const mascaraCpf = v => { const d = v.replace(/\D/g, "").slice(0, 11); return d.replace(/^(\d{3})(\d)/, "$1.$2").replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2"); };
 function ligar(t){
+  const cpfIn = document.getElementById("f_cpf"); if (cpfIn) cpfIn.oninput = () => { cpfIn.value = mascaraCpf(cpfIn.value); };
   tela.querySelectorAll("[data-tipo]").forEach(b => b.onclick = () => { carregar(b.dataset.tipo); salvar(); render(); });
   tela.querySelectorAll("[data-ir]").forEach(b => b.onclick = () => { coletar(t); atual = Math.max(0, +b.dataset.ir); salvar(); render(); });
   const txt = document.getElementById("txt");
@@ -592,6 +602,7 @@ function ligar(t){
       const falta = ROT[tipo].ident.filter(c => c.obrig && !String(R.ident[c.id]||"").trim());
       if (falta.length) { aviso.textContent = "Preencha: " + falta.map(c => c.label).join(", ") + "."; return; }
       if (String(R.ident.tel||"").replace(/\D/g,"").length < 10) { aviso.textContent = "Confira o celular com DDD."; return; }
+      if (!cpfValido(R.ident.cpf)) { aviso.textContent = "Confira o CPF: os números não conferem."; return; }
     }
     if (t.tipo === "voz" && t.obrig && !(R[t.id]||"").trim()) { aviso.textContent = "Esta resposta é importante. Fale ou escreva pelo menos uma frase."; return; }
     atual++; salvar(); render();
@@ -633,7 +644,7 @@ async function enviar(){
   if (!FORM || !CAMPO_PACIENTE || !CAMPO_RESPOSTAS) { msg.textContent = "Página em teste: o envio ainda não está ligado."; return; }
   btn.disabled = true; btn.textContent = "Enviando…";
   const i = R.ident || {}, rot = ROT[tipo];
-  const cab = `[${rot.rotulo}] ${i.nome||""} · nasc. ${dataBR(i.nasc) || "—"} · ${i.tel||""}${i.resp ? " · resp.: " + i.resp : ""}${codigo ? " · código " + codigo : ""}`;
+  const cab = `[${rot.rotulo}] ${i.nome||""} · CPF ${String(i.cpf||"").replace(/\D/g,"") || "—"} · nasc. ${dataBR(i.nasc) || "—"} · ${i.tel||""}${i.resp ? " · resp.: " + i.resp : ""}${codigo ? " · código " + codigo : ""}`;
   const corpo = (riscoSinal() ? "⚠ ATENÇÃO: sinal de risco (autolesão/suicídio) nas respostas.\n\n" : "") +
     `PRÉ-CONSULTA POR VOZ · ${rot.rotulo.toUpperCase()} (texto revisado por quem respondeu)\n` + new Date().toLocaleString("pt-BR") + "\n\n" +
     resumoBlocos().map(b => `## ${b.titulo}\n${b.texto || "—"}`).join("\n\n");
