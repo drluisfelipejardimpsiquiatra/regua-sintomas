@@ -307,7 +307,7 @@ const params = new URLSearchParams(location.search);
 const codigo = (params.get("c") || "").replace(/[^A-Za-z0-9_-]/g,"").slice(0,32);
 let tipo = null, R = {}, atual = 0;
 function ler(k){ try { return JSON.parse(localStorage.getItem(k) || "null"); } catch(e) { return null; } }
-function carregar(t){ tipo = t; const s = ler(CHAVE + t); R = (s && s.R) || {}; atual = Math.max(1, (s && s.atual) || 1); }
+function carregar(t){ tipo = t; const s = ler(CHAVE + t); R = (s && s.R) || {}; if (!R.inicio) R.inicio = Date.now(); atual = Math.max(1, (s && s.atual) || 1); }
 function salvar(){ if (!tipo) return; try { localStorage.setItem(CHAVE + tipo, JSON.stringify({R, atual})); } catch(e) {} }
 const pT = params.get("tipo");
 if (ROT[pT]) carregar(pT);
@@ -701,9 +701,11 @@ async function enviar(){
   if (!FORM || !CAMPO_PACIENTE || !CAMPO_RESPOSTAS) { msg.textContent = "Página em teste: o envio ainda não está ligado."; return; }
   btn.disabled = true; btn.textContent = "Enviando…";
   const i = R.ident || {}, rot = ROT[tipo];
+  const min = R.inicio ? Math.round((Date.now() - R.inicio) / 60000) : null;
+  const tempo = min == null ? "" : min <= 120 ? `${Math.max(1, min)} min` : "em mais de uma sessão";
   const cab = `[${rot.rotulo}] ${i.nome||""} · CPF ${String(i.cpf||"").replace(/\D/g,"") || "—"} · nasc. ${dataBR(i.nasc) || "—"} · ${i.tel||""}${i.resp ? " · resp.: " + i.resp : ""}${codigo ? " · código " + codigo : ""}`;
   const corpo = (riscoSinal() ? "⚠ ATENÇÃO: sinal de risco (autolesão/suicídio) nas respostas.\n\n" : "") +
-    `PRÉ-CONSULTA POR VOZ · ${rot.rotulo.toUpperCase()} (texto revisado por quem respondeu)\n` + new Date().toLocaleString("pt-BR") + "\n\n" +
+    `PRÉ-CONSULTA POR VOZ · ${rot.rotulo.toUpperCase()} (texto revisado por quem respondeu)\n` + new Date().toLocaleString("pt-BR") + (tempo ? `\nTempo de preenchimento: ${tempo}` : "") + "\n\n" +
     resumoBlocos().map(b => `## ${b.titulo}\n${b.texto || "—"}`).join("\n\n");
   const fd = new URLSearchParams(); fd.append(CAMPO_PACIENTE, cab); fd.append(CAMPO_RESPOSTAS, corpo);
   try {
