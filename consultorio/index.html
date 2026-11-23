@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#656635">
 <meta property="og:title" content="Dr. Luis Felipe Jardim · Psiquiatria e Psicoterapia">
 <meta property="og:description" content="Psiquiatria com ciência, escuta e cuidado. On-line e presencial em Torres/RS, Praia Grande/SC e Sombrio/SC.">
-<meta property="og:image" content="https://drluisfelipejardimpsiquiatra.github.io/regua-sintomas/consultorio/dr-luis-felipe-jardim.jpg">
+<meta property="og:image" content="https://drluisfelipejardimpsiquiatra.github.io/regua-sintomas/consultorio/foto-retrato.jpg">
 <meta property="og:url" content="https://drluisfelipejardimpsiquiatra.github.io/regua-sintomas/consultorio/">
 <meta property="og:locale" content="pt_BR">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 110 155'%3E%3Cpath fill='%23E89925' d='M0 0H108V42L97 62 75 77 103 93 110 112V155H3V113L13 93 35 77 8 62 0 42Z'/%3E%3C/svg%3E">
@@ -87,7 +87,7 @@ header.top .in{position:relative}
 .hero h1{font-size:clamp(42px,5.6vw,74px);line-height:1.04;margin:22px 0 24px;max-width:12ch}
 .hero .lede{color:var(--on-dark-soft);font-size:18px;font-weight:300;max-width:46ch}
 .hero-foto{position:relative;overflow:hidden;min-height:420px;margin:0}
-.hero-foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.hero-foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%}
 
 /* barra de agendamento (como a de reservas) */
 .agenda{position:relative;z-index:5;margin-top:-92px}
@@ -169,15 +169,11 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 
 /* on-line */
 .online-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:72px;align-items:center}
-.tela{background:var(--oliva);border-radius:4px;padding:18px;box-shadow:0 24px 60px rgba(43,42,34,.2)}
-.tela .video{aspect-ratio:16/10;background:#2F3D35;position:relative;overflow:hidden}
-.tela .video img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 18%}
-.tela .pip{position:absolute;right:12px;bottom:12px;width:24%;aspect-ratio:4/3;background:var(--salvia);border:2px solid var(--off-white)}
-.tela .ctrl{display:flex;justify-content:center;gap:10px;margin-top:14px}
-.tela .ctrl span{width:30px;height:30px;border-radius:50%;background:rgba(242,241,240,.25)}
-.tela .ctrl span.fim{background:var(--terracota)}
 .lista-fio{list-style:none;padding:0;margin:28px 0 0;border-top:1px solid var(--line)}
 .lista-fio li{padding:13px 0;border-bottom:1px solid var(--line);font-size:15.5px}
+
+.online-foto{margin:0;aspect-ratio:4/5;overflow:hidden;border-radius:4px;max-width:100%}
+.online-foto img{width:100%;height:100%;object-fit:cover;object-position:50% 60%}
 
 /* apps */
 .qrs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin-top:56px}
@@ -197,8 +193,8 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 
 /* sobre */
 .sobre-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:72px;align-items:center}
-.sobre-foto{aspect-ratio:4/5;overflow:hidden;border-radius:4px;max-width:100%}
-.sobre-foto img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.sobre-foto{aspect-ratio:4/3;overflow:hidden;border-radius:4px;max-width:100%}
+.sobre-foto img{width:100%;height:100%;object-fit:cover;object-position:55% 50%}
 .creds{list-style:none;padding:0;margin:28px 0 0;border-top:1px solid var(--line)}
 .creds li{padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
 .regs{margin-top:22px;font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums;line-height:1.8}
@@ -269,8 +265,8 @@ footer b{color:var(--on-dark);font-weight:600}
   .foco .duo{grid-template-columns:1fr}
   .foco .duo div+div{padding-left:0;border-left:0;border-top:1px solid rgba(242,241,240,.25);margin-top:16px}
   .outras,.locais,.ferr-lista,.app-lista{grid-template-columns:1fr}
-  .telas{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .qrs{gap:16px}
+  .telas{grid-template-columns:repeat(2,minmax(0,1fr));padding:22px 16px;gap:16px}
+    .qrs{gap:16px}
   .qr b{font-size:17px}
   .passos>li{grid-template-columns:46px minmax(0,1fr)}
   .passos .n{font-size:24px}
@@ -318,7 +314,7 @@ footer b{color:var(--on-dark);font-weight:600}
       <p class="hero-locais">On-line e presencial · Torres/RS · Praia Grande/SC · Sombrio/SC</p>
     </div>
     <figure class="hero-foto">
-      <img src="dr-luis-felipe-jardim.jpg" alt="Dr. Luis Felipe Jardim, sorrindo, de camisa branca, com os óculos na mão" width="724" height="1104">
+      <img src="foto-retrato.jpg" alt="Dr. Luis Felipe Jardim, sorrindo, de camisa branca, apoiado na mesa do consultório" width="1000" height="1500">
     </figure>
   </div>
 </section>
@@ -461,10 +457,7 @@ footer b{color:var(--on-dark);font-weight:600}
 
 <section class="tom2" id="online" aria-labelledby="oTit">
   <div class="in online-grid">
-    <div class="tela" aria-hidden="true">
-      <div class="video"><img src="dr-luis-felipe-jardim.jpg" alt="" loading="lazy"><span class="pip"></span></div>
-      <div class="ctrl"><span></span><span></span><span class="fim"></span></div>
-    </div>
+    <figure class="online-foto"><img src="foto-online.jpg" alt="Ampulheta sobre a mesa, com um notebook aberto ao fundo" width="900" height="1350" loading="lazy"></figure>
     <div>
       <p class="rot">Consulta on-line</p>
       <h2 class="titulo" id="oTit">A mesma consulta, de onde você estiver</h2>
@@ -530,7 +523,7 @@ footer b{color:var(--on-dark);font-weight:600}
 
 <section class="tom2" id="sobre" aria-labelledby="sTit">
   <div class="in sobre-grid">
-    <div class="sobre-foto"><img src="dr-luis-felipe-jardim.jpg" alt="Retrato do Dr. Luis Felipe Jardim" loading="lazy"></div>
+    <div class="sobre-foto"><img src="foto-sobre.jpg" alt="Dr. Luis Felipe Jardim à mesa de trabalho, com livros de psiquiatria" width="1400" height="933" loading="lazy"></div>
     <div>
       <p class="rot">Sobre</p>
       <h2 class="titulo" id="sTit">Entender a pessoa antes de dar nome ao quadro</h2>
