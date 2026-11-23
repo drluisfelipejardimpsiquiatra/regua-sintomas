@@ -100,6 +100,17 @@ nav.passos .in{display:flex;gap:10px;align-items:center;min-height:70px}
 .fim{text-align:center;display:grid;gap:14px;justify-items:center;padding-top:30px}
 .fim svg{width:30px;height:42px;fill:var(--ambar)}
 .fim h1{font-size:34px}
+.carta{background:var(--branco);border:1px solid var(--line);border-left:5px solid var(--ambar);border-radius:16px;padding:18px 16px 14px}
+.carta .cab{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+.carta img{width:72px;height:72px;border-radius:50%;object-fit:cover;object-position:50% 18%;flex:0 0 auto}
+.carta h2{font-size:27px;color:var(--oliva);line-height:1.15}
+.carta .cab small{display:block;color:var(--soft);font-size:13px;margin-top:2px}
+.carta p{font-size:17px;line-height:1.6;margin:10px 0;padding:2px 6px;border-radius:8px;transition:background .3s}
+.carta p.lendo{background:var(--paper-2)}
+.carta .ass{font-family:var(--f-display);color:var(--oliva);font-size:18px;text-align:right}
+.btnCarta{display:flex;align-items:center;justify-content:center;width:100%;border:0;border-radius:999px;padding:16px;background:var(--verde-floresta);color:#fff;font:700 17px var(--f-body);cursor:pointer;margin:4px 0 6px}
+.btnCarta.on{background:var(--terracota)}
+details.cartaFechada summary{cursor:pointer;color:var(--verde-floresta);font-weight:700;font-size:15px;padding:6px 0}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -149,6 +160,53 @@ const salvar = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); docum
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const TOTAL = STEPS.length;
+
+/* ---------- mensagem de boas-vindas (capa) ---------- */
+// Para usar a gravação na voz do médico, coloque aqui o caminho do arquivo (ex.: "audio/boas-vindas.mp3").
+// Enquanto estiver vazio, a mensagem é lida pela voz do próprio aparelho.
+const AUDIO_CARTA = "";
+const CARTA = [
+ "Querido paciente,",
+ "Antes de tudo, para mim é uma honra e uma responsabilidade contar com a sua confiança para cuidar da sua saúde.",
+ "Antes mesmo da consulta, eu gosto de conhecer o paciente por meio deste material de pré-consulta: um questionário em que você pode responder escrevendo, ou falando as respostas, aqui mesmo, nesta página que criei para isso.",
+ "Peço que você realmente se dedique a ele. Se tiver alguma dificuldade, peça ajuda a um familiar, de preferência alguém que conheça bem o seu caso.",
+ "Tente trazer a sua história da forma mais completa possível: se já consultou com outros profissionais, se tem diagnósticos anteriores, o nome dos remédios que já usou, se tem alguma doença clínica e se fez exames recentes. Contar a sua história de vida também ajuda muito.",
+ "Essas questões também são exploradas na consulta, sim. Mas a maioria dos pacientes que chegam sem esse preparo acaba não trazendo informações que fazem muita diferença na qualidade do atendimento, na precisão do diagnóstico e, com isso, em melhores decisões de tratamento.",
+ "Pode ser cansativo, eu sei. Mas é a base do material que teremos para o seu acompanhamento, tanto na primeira consulta quanto no futuro."];
+const TTS = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+let vozPt = null, cartaId = 0, cartaPos = 0, cartaAudio = null;
+function escolherVoz() { if (!TTS) return; const all = speechSynthesis.getVoices(), vs = all.filter((v) => /^pt(-|_)?BR/i.test(v.lang));
+  vozPt = vs.find((v) => /google|luciana|francisca|natural|online/i.test(v.name)) || vs[0] || all.find((v) => /^pt/i.test(v.lang)) || null; }
+if (TTS) { escolherVoz(); speechSynthesis.onvoiceschanged = escolherVoz; }
+const falarP = (txt) => new Promise((res) => { if (!TTS || !txt) return res(); const u = new SpeechSynthesisUtterance(txt); u.lang = "pt-BR"; if (vozPt) u.voice = vozPt; u.rate = 0.95; u.onend = res; u.onerror = res; speechSynthesis.speak(u); });
+function rotuloCarta() { return cartaPos ? "▶ Continuar ouvindo" : "▶ Ouvir a mensagem"; }
+function pararCarta(guardar) {
+  cartaId++; if (cartaAudio) cartaAudio.pause(); else if (TTS) speechSynthesis.cancel();
+  if (!guardar) cartaPos = 0;
+  document.querySelectorAll(".carta p.lendo").forEach((p) => p.classList.remove("lendo"));
+  const b = $("btnCarta"); if (b) { b.classList.remove("on"); b.textContent = rotuloCarta(); }
+}
+async function tocarCarta(btn) {
+  if (btn.classList.contains("on")) { pararCarta(true); return; }
+  pararVoz(); btn.classList.add("on"); btn.textContent = "⏸ Pausar";
+  if (AUDIO_CARTA) {
+    if (!cartaAudio) { cartaAudio = new Audio(AUDIO_CARTA); cartaAudio.onended = () => pararCarta(); }
+    try { await cartaAudio.play(); } catch (e) { pararCarta(true); }
+    return;
+  }
+  const meu = ++cartaId, ps = [...document.querySelectorAll(".carta p")];
+  for (; cartaPos < ps.length && meu === cartaId; cartaPos++) {
+    ps.forEach((p) => p.classList.remove("lendo")); ps[cartaPos].classList.add("lendo");
+    await falarP(ps[cartaPos].textContent);
+  }
+  if (meu === cartaId) pararCarta();
+}
+function cartaHtml(recolhida) {
+  const c = `<div class="carta"><div class="cab"><img src="foto-retrato.jpg" alt="Dr. Luis Felipe Jardim"><div><h2>Antes de começar</h2><small>Uma mensagem do Dr. Luis Felipe Jardim</small></div></div>
+    ${AUDIO_CARTA || TTS ? `<button type="button" class="btnCarta" id="btnCarta">${rotuloCarta()}</button>` : ""}
+    ${CARTA.map((t) => `<p>${esc(t)}</p>`).join("")}<div class="ass">Dr. Luis Felipe Jardim</div></div>`;
+  return recolhida ? `<details class="cartaFechada"><summary>Rever a mensagem do Dr. Luis Felipe</summary>${c}</details>` : c;
+}
 
 /* ---------- reconhecimento de voz ---------- */
 // O texto aparece na caixa enquanto a pessoa fala (não espera a "frase concluída",
@@ -267,6 +325,7 @@ function capa() {
   const tem = Object.keys(S.resp).length > 0;
   $("nav").hidden = true; $("progresso").style.width = "0"; $("contador").textContent = "Pré-consulta";
   $("tela").innerHTML = `<section class="capa">
+    ${cartaHtml(tem)}
     <p class="rot">Antes da sua primeira consulta</p>
     <h1>Conte a sua história do seu jeito</h1>
     <p class="nota" style="font-size:16px">Estas perguntas me ajudam a chegar à consulta já conhecendo o que você vive. Assim aproveitamos melhor o nosso tempo juntos.</p>
@@ -286,6 +345,7 @@ function capa() {
     ${tem ? '<button class="btn sec" type="button" id="recomecar" style="justify-self:start">Apagar respostas e recomeçar</button>' : ""}
     <p class="crise">Em crise, não espere a consulta: ligue <b>188</b> (CVV, 24 horas) ou <b>192</b> (SAMU), ou procure o pronto-atendimento mais próximo.</p>
   </section>`;
+  const bc = $("btnCarta"); if (bc) bc.onclick = () => tocarCarta(bc);
   $("email").addEventListener("input", (ev) => { S.email = ev.target.value.trim(); salvar(); });
   $("comecar").onclick = () => {
     const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(S.email);
@@ -296,7 +356,7 @@ function capa() {
   const r = $("recomecar"); if (r) r.onclick = () => { S = { etapa: -1, resp: {}, pularMulher: false, email: S.email }; salvar(); capa(); };
 }
 function ir(n) {
-  pararVoz();
+  pararVoz(); pararCarta();
   if (n === MULHER && S.pularMulher === true && n !== S.etapa) { /* mostra mesmo assim, com a opção marcada */ }
   S.etapa = n; salvar();
   if (n >= TOTAL) return revisao();

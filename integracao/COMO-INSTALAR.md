@@ -1,5 +1,9 @@
 # Pré-consulta → prontuário do V Saúde: como instalar
 
+> **Atenção: ainda não instalar.** Este programa foi escrito para a página de pré-consulta antiga (`preconsulta.html`, apagada).
+> Precisa ser adaptado à versão oficial (`consultorio/pre-consulta.html`), que envia para a planilha do
+> "Questionário de pré-consulta – versão 10/2026".
+
 Faça isto uma vez, no computador (no celular o editor do Google não funciona bem). Leva uns 10 minutos.
 
 ## Antes de começar
