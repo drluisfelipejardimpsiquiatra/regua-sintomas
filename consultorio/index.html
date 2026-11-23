@@ -118,8 +118,6 @@ header.top .in{position:relative}
 .passos ul{margin:0;padding:0;list-style:none;display:grid;gap:7px;color:var(--soft);font-size:15.5px}
 .passos ul li{padding-left:16px;position:relative}
 .passos ul li::before{content:"";position:absolute;left:0;top:.7em;width:5px;height:5px;border-radius:50%;background:var(--oliva-dourado)}
-.passos .leva{margin-top:12px;font-size:14px}
-.passos .leva i{font-style:normal;color:var(--cafe);font-weight:600}
 .citacao{margin-top:34px;padding-left:18px;border-left:1px solid var(--oliva-dourado);color:var(--soft);font-size:15px;max-width:44ch}
 
 /* régua */
@@ -219,15 +217,6 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .telas img{width:100%;height:auto;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.25)}
 .telas figcaption{font:600 10px/1.3 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--on-dark-soft);text-align:center}
 
-/* palestras */
-.pal-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:72px;align-items:center}
-.pal-acts{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
-.pal-acts .btn.lin{color:var(--cafe);border-color:var(--cafe)}
-.pal-lista{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
-.pal-lista li{padding:15px 0;border-bottom:1px solid var(--line);display:grid;gap:2px}
-.pal-lista b{font:500 20px/1.2 var(--f-display)}
-.pal-lista span{font-size:14px;color:var(--soft)}
-
 /* onde */
 .locais{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px;margin-top:56px}
 .locais div{display:grid;gap:6px;align-content:start;border-top:1px solid var(--line);padding-top:18px}
@@ -267,7 +256,7 @@ footer b{color:var(--on-dark);font-weight:600}
   .agenda{margin-top:-60px}
   .agenda form{grid-template-columns:1fr 1fr}
   .agenda .btn{grid-column:1/-1}
-  .dividido,.medir-grid,.online-grid,.sobre-grid,.ferr,.focos,.pal-grid,.app-txt{grid-template-columns:1fr;gap:48px}
+  .dividido,.medir-grid,.online-grid,.sobre-grid,.ferr,.focos,.app-txt{grid-template-columns:1fr;gap:48px}
   .outras,.qrs,.locais{grid-template-columns:repeat(2,minmax(0,1fr))}
   .numeros .in{grid-template-columns:1fr;row-gap:22px}
   footer .in{grid-template-columns:1fr;gap:28px}
@@ -304,7 +293,6 @@ footer b{color:var(--on-dark);font-weight:600}
       <a href="#areas">Áreas</a>
       <a href="neuromodulacao.html">Neuromodulação</a>
       <a href="#online">On-line</a>
-      <a href="#palestras">Palestras</a>
       <a href="#apps">Apps</a>
       <a href="#duvidas">Dúvidas</a>
     </nav>
@@ -313,7 +301,6 @@ footer b{color:var(--on-dark);font-weight:600}
       <a href="#areas">Áreas</a>
       <a href="neuromodulacao.html">Neuromodulação</a>
       <a href="#online">On-line</a>
-      <a href="#palestras">Palestras</a>
       <a href="#apps">Apps</a>
       <a href="#duvidas">Dúvidas</a>
     </nav></details>
@@ -361,7 +348,7 @@ footer b{color:var(--on-dark);font-weight:600}
     <div>
       <p class="rot">Como é o acompanhamento</p>
       <h2 class="titulo" id="jTit">Um mesmo médico do começo ao fim</h2>
-      <p class="lede">Cada etapa deixa algo concreto com você: um registro, um plano, um gráfico. Você enxerga o caminho que está fazendo, sem depender só da memória de cada consulta.</p>
+      <p class="lede">Cada etapa tem um propósito claro, e o que é combinado fica registrado. Você enxerga o caminho que está fazendo, sem depender só da memória de cada consulta.</p>
       <p class="citacao">Psiquiatria leva tempo. O acompanhamento existe para que esse tempo seja bem usado, com combinados claros e um médico que conhece a sua história.</p>
     </div>
     <ol class="passos">
@@ -371,16 +358,14 @@ footer b{color:var(--on-dark);font-weight:600}
           <li>Mensagem de boas-vindas com o que esperar do primeiro encontro.</li>
           <li>Questionário pré-consulta no celular e um espaço para contar a sua história em áudio, do seu jeito.</li>
           <li>O primeiro encontro começa do ponto em que você está, e não do zero.</li>
-        </ul>
-        <p class="leva"><i>Você leva</i> · o guia de boas-vindas</p></div></li>
+        </ul></div></li>
       <li><span class="n">02</span><div>
         <h3>Na consulta</h3>
         <ul>
           <li>Avaliação longa, sem pressa para dar nomes: história de vida, temperamento, sono, corpo e tratamentos já feitos.</li>
           <li>Uma leitura que junta o que você vive, o que se sabe sobre o cérebro e o que cada remédio pode, e não pode, fazer.</li>
           <li>Devolutiva com o plano construído junto com você.</li>
-        </ul>
-        <p class="leva"><i>Você leva</i> · o plano de tratamento por escrito</p></div></li>
+        </ul></div></li>
       <li><span class="n">03</span><div>
         <h3>Entre as consultas</h3>
         <ul>
@@ -388,8 +373,7 @@ footer b{color:var(--on-dark);font-weight:600}
           <li>Material sobre a sua medicação: para que serve, quando esperar efeito, o que é normal sentir.</li>
           <li>Revisões periódicas com o gráfico da sua evolução.</li>
           <li>Receitas renovadas com antecedência e um canal de mensagens com horário definido.</li>
-        </ul>
-        <p class="leva"><i>Você leva</i> · o registro do seu percurso</p></div></li>
+        </ul></div></li>
     </ol>
   </div>
 </section>
@@ -498,7 +482,7 @@ footer b{color:var(--on-dark);font-weight:600}
 <section id="apps" aria-labelledby="pTit">
   <div class="in">
     <div class="centro">
-      <p class="rot">Apps e contato</p>
+      <p class="rot">App e ferramentas</p>
       <h2 class="titulo" id="pTit">O consultório também cabe no seu celular</h2>
     </div>
     <div class="app-grid" style="margin-top:48px">
@@ -535,12 +519,10 @@ footer b{color:var(--on-dark);font-weight:600}
         <p class="lede" style="font-size:16px">Chegam por link pessoal depois da primeira consulta, conforme o seu tratamento. O que você registra vai só para o seu médico.</p>
       </div>
       <ul class="ferr-lista">
-        <li><b>Régua de sintomas</b><span>Humor, ansiedade, pânico e pensamentos repetitivos, em um minuto.</span></li>
-        <li><b>Diário do sono</b><span>Respondido de manhã, sobre a noite que passou.</span></li>
+        <li><b>Régua de sintomas e diário do sono</b><span>Humor, ansiedade, pânico, pensamentos repetitivos e sono, em um minuto.</span></li>
         <li><b>Monitor de peso</b><span>Registro semanal com gráfico, fome, adesão e efeitos.</span></li>
         <li><b>Guia dos medicamentos</b><span>Como funciona o seu remédio, em linguagem simples.</span></li>
         <li><b>Renovação de receitas</b><span>Pedido organizado antes de o remédio acabar.</span></li>
-        <li><b>App oficial</b><span>Agendamento, receitas, exames e lembretes do tratamento.</span></li>
       </ul>
     </div>
   </div>
@@ -559,31 +541,10 @@ footer b{color:var(--on-dark);font-weight:600}
         <li>Formação em neuromodulação pelo Instituto Castro Santos (Brasília/DF)</li>
         <li>Responsável técnico pela neuromodulação do Hospital Nossa Senhora de Fátima</li>
         <li>Apresenta o <a href="https://portal93news.com.br/" target="_blank" rel="noopener">Psiquiatria em Pauta</a>, toda terça-feira às 8h15, na 93 FM</li>
-        <li>Palestrante e autor de materiais para escolas, como o e-book <a href="https://drive.google.com/file/d/1FsnJ3BkMG1dUfkMRlLcsTgVjUZSeIxLB/view?usp=sharing" target="_blank" rel="noopener">Entre estar cansado e estar doente</a></li>
+        <li>Palestrante em saúde mental para empresas, cooperativas e escolas, e autor do e-book <a href="https://drive.google.com/file/d/1FsnJ3BkMG1dUfkMRlLcsTgVjUZSeIxLB/view?usp=sharing" target="_blank" rel="noopener">Entre estar cansado e estar doente</a></li>
       </ul>
       <p class="regs">CREMESC 12767 · RQE Psiquiatria 22739 · RQE Psicoterapia 24818<br>CREMERS 27789 · RQE Psiquiatria 40903 · RQE Psicoterapia 43409</p>
     </div>
-  </div>
-</section>
-
-<section id="palestras" aria-labelledby="plTit">
-  <div class="in pal-grid">
-    <div>
-      <p class="rot">Palestras</p>
-      <h2 class="titulo" id="plTit">Saúde mental explicada para o seu público</h2>
-      <p class="lede">Palestras para empresas, cooperativas, escolas e campanhas de saúde, com base científica, linguagem clara e exemplos da realidade de quem está na plateia. Escolha um dos temas já apresentados ou peça uma palestra personalizada com o tema que você quiser. Presencial ou on-line.</p>
-      <div class="pal-acts">
-        <a class="btn pri" href="palestras.html#contratar">Contrate sua palestra</a>
-        <a class="btn lin" href="palestras.html">Confira o portfólio</a>
-      </div>
-    </div>
-    <ul class="pal-lista" aria-label="Alguns temas">
-      <li><b>Entre estar cansado e estar doente</b><span>A mente de quem educa · Três Cachoeiras/RS</span></li>
-      <li><b>Homem também cuida de si</b><span>Saúde mental masculina · Novembro Azul</span></li>
-      <li><b>Nem frescura, nem só hormônio</b><span>Saúde mental da mulher</span></li>
-      <li><b>Saúde mental no agro</b><span>Cooperativas, cooperados e lideranças</span></li>
-      <li><b>O poder do não no trabalho</b><span>Limites, riscos psicossociais e a NR-1</span></li>
-    </ul>
   </div>
 </section>
 
