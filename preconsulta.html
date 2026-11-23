@@ -81,6 +81,18 @@ textarea.gravando{border-color:var(--terracota);box-shadow:0 0 0 3px rgba(195,98
 .ouvir.on{background:var(--verde);color:#fff}
 .ouvirMini{border:0;background:none;font-size:16px;padding:0 6px 0 0;cursor:pointer;vertical-align:-1px}
 .ouvirMini.on{filter:drop-shadow(0 0 3px var(--verde))}
+.carta{background:#fff;border:1px solid var(--linha);border-left:5px solid var(--ambar);border-radius:16px;padding:18px 16px 14px;margin:0 0 18px}
+.carta .cab{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.carta img{width:72px;height:72px;border-radius:50%;object-fit:cover;object-position:50% 18%;flex:0 0 auto;border:3px solid var(--creme)}
+.carta h2{font-size:27px;margin:0;line-height:1.15}
+.carta .cab small{display:block;color:var(--suave);font-size:13px;margin-top:2px}
+.carta p{font-size:17px;line-height:1.6;margin:10px 0;padding:2px 6px;border-radius:8px;transition:background .3s}
+.carta p.lendo{background:#f3ecd6}
+.carta .ass{font-family:Marcellus,Optima,serif;color:var(--oliva);font-size:18px;text-align:right}
+.btnCarta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:999px;padding:16px;background:var(--verde);color:#fff;font:700 17px Figtree,system-ui,sans-serif;cursor:pointer;margin:4px 0 6px}
+.btnCarta.on{background:var(--terracota)}
+details.cartaFechada{margin:0 0 16px}
+details.cartaFechada summary{cursor:pointer;color:var(--verde);font-weight:700;font-size:15px;padding:6px 0}
 .rodape{color:rgba(255,255,255,.8);font-size:12px;text-align:center;margin-top:16px;line-height:1.5}
 </style>
 </head>
@@ -102,6 +114,19 @@ const CHAVE = "preconsulta-voz-v2-";
 
 const FREQ_CURTO = ["Nada","Muito leve","Leve","Moderado","Grave"];
 const CVV = "Se houver pensamento de se ferir agora, não espere a consulta: ligue <b>188</b> (CVV, 24 h, gratuito), procure o pronto-atendimento mais próximo ou ligue <b>192</b> (SAMU), e avise a clínica.";
+
+// ====== MENSAGEM DE BOAS-VINDAS (cabeçalho da primeira tela) ======
+// Para usar a gravação na voz do próprio médico, coloque aqui o caminho do arquivo (ex.: "audio/boas-vindas.mp3").
+// Enquanto estiver vazio, a mensagem é lida pela voz do próprio aparelho.
+const AUDIO_CARTA = "";
+const CARTA = [
+ "Querido paciente,",
+ "Antes de tudo, para mim é uma honra e uma responsabilidade contar com a sua confiança para cuidar da sua saúde.",
+ "Antes mesmo da consulta, eu gosto de conhecer o paciente por meio deste material de pré-consulta: um questionário em que você pode responder escrevendo, ou ouvindo cada pergunta e respondendo por voz, aqui mesmo, nesta página que criei para isso.",
+ "Peço que você realmente se dedique a ele. Se tiver alguma dificuldade, peça ajuda a um familiar, de preferência alguém que conheça bem o seu caso.",
+ "Tente trazer a sua história da forma mais completa possível: se já consultou com outros profissionais, se tem diagnósticos anteriores, o nome dos remédios que já usou, se tem alguma doença clínica e se fez exames recentes. Contar a sua história de vida também ajuda muito.",
+ "Essas questões também são exploradas na consulta, sim. Mas a maioria dos pacientes que chegam sem esse preparo acaba não trazendo informações que fazem muita diferença na qualidade do atendimento, na precisão do diagnóstico e, com isso, em melhores decisões de tratamento.",
+ "Pode ser cansativo, eu sei. Mas é a base do material que teremos para o seu acompanhamento, tanto na primeira consulta quanto no futuro."];
 
 // ====== ROTEIROS ======
 const ROT = {
@@ -370,7 +395,7 @@ function utter(txt){ const u = new SpeechSynthesisUtterance(txt); u.lang = "pt-B
 function falar(partes, btn){
   if (!TTS) return;
   if (falandoBtn === btn) { pararFala(); return; }
-  pararFala(); pararVoz(); pararConversa();
+  pararFala(); pararVoz(); pararConversa(); pararCarta(true);
   falandoBtn = btn; btn.classList.add("on"); btn.innerHTML = btn.classList.contains("ouvirMini") ? "■" : "■ Parar";
   const lista = partes.filter(Boolean);
   lista.forEach((txt, k) => { const u = utter(txt); if (k === lista.length - 1) u.onend = () => { if (falandoBtn === btn) pararFala(); }; speechSynthesis.speak(u); });
@@ -378,6 +403,32 @@ function falar(partes, btn){
 const falarP = txt => new Promise(res => { if (!TTS || !txt) return res(); const u = utter(txt); u.onend = res; u.onerror = res; speechSynthesis.speak(u); });
 const limpo = h => String(h).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 function btnOuvir(id){ return TTS ? `<button class="ouvir" id="${id}" data-rotulo="🔊 Ouvir">🔊 Ouvir</button>` : ""; }
+
+// ====== LEITURA DA MENSAGEM (destaca o parágrafo que está sendo lido) ======
+let cartaId = 0, cartaPos = 0, cartaAudio = null;
+const ROT_CARTA = "▶ Ouvir a mensagem";
+function pararCarta(guardar){
+  cartaId++; if (cartaAudio) cartaAudio.pause(); else if (TTS) speechSynthesis.cancel();
+  if (!guardar) cartaPos = 0;
+  document.querySelectorAll(".carta p.lendo").forEach(p => p.classList.remove("lendo"));
+  const b = document.getElementById("btnCarta"); if (b) { b.classList.remove("on"); b.textContent = cartaPos ? "▶ Continuar ouvindo" : ROT_CARTA; }
+}
+async function tocarCarta(btn){
+  if (btn.classList.contains("on")) { pararCarta(true); return; }
+  pararVoz(); pararFala(); pararConversa();
+  btn.classList.add("on"); btn.textContent = "⏸ Pausar";
+  if (AUDIO_CARTA) {
+    if (!cartaAudio) { cartaAudio = new Audio(AUDIO_CARTA); cartaAudio.onended = () => { cartaPos = 0; pararCarta(); }; }
+    try { await cartaAudio.play(); } catch(e) { pararCarta(true); }
+    return;
+  }
+  const meu = ++cartaId, ps = [...document.querySelectorAll(".carta p")];
+  for (; cartaPos < ps.length && meu === cartaId; cartaPos++) {
+    ps.forEach(p => p.classList.remove("lendo")); ps[cartaPos].classList.add("lendo");
+    await falarP(ps[cartaPos].textContent);
+  }
+  if (meu === cartaId) { cartaPos = 0; pararCarta(); }
+}
 
 // ====== RESPONDER FALANDO (perguntas de toque) ======
 let conversaId = 0, escutaRec = null;
@@ -467,7 +518,7 @@ const falarMini = (acao, rotulo) => SR ? `<div><button class="falarMini" data-ac
 // ====== TEXTO PARA OUVIR ======
 function textoParaOuvir(t){
   const rot = tipo && ROT[tipo];
-  if (t.tipo === "inicio") return ["Olá, que bom ter você aqui.", "Falta pouco para a consulta. Estas perguntas ajudam a entender a história com calma e a aproveitar melhor o nosso tempo juntos.",
+  if (t.tipo === "inicio") return [
     "Primeiro, escolha para quem é a consulta: adulto, criança e adolescente, ou idoso.",
     "Você pode responder falando. Toque no microfone, fale à vontade, e o texto vai aparecendo na tela. Depois é só conferir e corrigir.",
     "Sobre a privacidade: a transcrição usa o reconhecimento de voz do seu celular. O áudio não é gravado nem guardado. Só o texto que você revisar e enviar chega ao médico, sob sigilo médico.",
@@ -484,16 +535,21 @@ function textoParaOuvir(t){
 // ====== TELAS ======
 const tela = document.getElementById("tela");
 function render(){
-  pararVoz(); pararFala(); pararConversa();
+  pararVoz(); pararFala(); pararConversa(); if (typeof pararCarta === "function") { cartaId++; if (cartaAudio) cartaAudio.pause(); cartaPos = 0; }
   const L = TELAS(), t = L[atual] || L[0], rot = tipo && ROT[tipo];
   document.getElementById("prog").style.width = tipo ? (atual/(L.length-1)*100)+"%" : "0";
   document.getElementById("passo").textContent = atual === 0 ? "" : `${rot.rotulo} · ${atual} de ${L.length-1}`;
   let h = "";
   if (t.tipo === "inicio") {
     const tem = k => { const s = ler(CHAVE + k); return s && s.R && Object.keys(s.R).length; };
-    h = `<h2>Olá, que bom ter você aqui</h2>
-    <p>Falta pouco para a consulta. Estas perguntas ajudam a entender a história com calma e a aproveitar melhor o nosso tempo juntos.</p>
-    <p><b>Para quem é a consulta?</b></p>
+    const jaComecou = Object.keys(ROT).some(tem);
+    const podeOuvir = AUDIO_CARTA || TTS;
+    const carta = `<div class="carta"><div class="cab"><img src="consultorio/foto-retrato.jpg" alt="Dr. Luis Felipe Jardim"><div><h2>Antes de começar</h2><small>Uma mensagem do Dr. Luis Felipe Jardim</small></div></div>
+      ${podeOuvir ? `<button class="btnCarta" id="btnCarta">${ROT_CARTA}</button>` : ""}
+      ${CARTA.map(t => `<p>${esc(t)}</p>`).join("")}
+      <div class="ass">Dr. Luis Felipe Jardim</div></div>`;
+    h = (jaComecou ? `<details class="cartaFechada"><summary>Rever a mensagem do Dr. Luis Felipe</summary>${carta}</details>` : carta) + `
+    <p style="display:flex;align-items:center;justify-content:space-between;gap:10px"><b>Para quem é a consulta?</b>${btnOuvir("ouvir")}</p>
     <div class="roteiros">${Object.entries(ROT).map(([k,r]) => `<button data-tipo="${k}"><span class="ic">${r.icone}</span><span><b>${r.rotulo}</b><small>${r.sub}</small>${tem(k) ? "<em>Continuar de onde parou</em>" : ""}</span></button>`).join("")}</div>
     <p><b>Você pode responder falando.</b> Toque no 🎤, fale à vontade, e o texto aparece na tela enquanto você fala. Depois é só conferir e corrigir.</p>
     ${TTS ? `<p><b>Prefere ouvir?</b> Em cada tela, toque em <b>🔊 Ouvir</b> e a pergunta é lida em voz alta.</p>` : ""}
@@ -557,7 +613,7 @@ function render(){
     <div class="nav"><button class="btn sec" data-ir="${atual-1}">Voltar</button><button class="btn prim" id="enviar">Enviar ao médico</button></div>
     <p id="msgEnvio" style="font-size:14px;color:var(--cafe)"></p>`;
   }
-  tela.innerHTML = (TTS ? `<div class="ouvirTopo">${btnOuvir("ouvir")}</div>` : "") + h;
+  tela.innerHTML = (TTS && t.tipo !== "inicio" ? `<div class="ouvirTopo">${btnOuvir("ouvir")}</div>` : "") + h;
   const bo = document.getElementById("ouvir"); if (bo) bo.onclick = () => falar(textoParaOuvir(t), bo);
   tela.querySelectorAll("[data-ouvir-item]").forEach(b => b.onclick = () => { const i = +b.dataset.ouvirItem; falar([rot.rastreio[i] + "?", i === rot.risco ? limpo(CVV) : ""], b); });
   ligar(t);
@@ -576,6 +632,7 @@ function cpfValido(c){
 const mascaraCpf = v => { const d = v.replace(/\D/g, "").slice(0, 11); return d.replace(/^(\d{3})(\d)/, "$1.$2").replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2"); };
 function ligar(t){
   const cpfIn = document.getElementById("f_cpf"); if (cpfIn) cpfIn.oninput = () => { cpfIn.value = mascaraCpf(cpfIn.value); };
+  const bc = document.getElementById("btnCarta"); if (bc) bc.onclick = () => tocarCarta(bc);
   tela.querySelectorAll("[data-tipo]").forEach(b => b.onclick = () => { carregar(b.dataset.tipo); salvar(); render(); });
   tela.querySelectorAll("[data-ir]").forEach(b => b.onclick = () => { coletar(t); atual = Math.max(0, +b.dataset.ir); salvar(); render(); });
   const txt = document.getElementById("txt");
