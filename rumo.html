@@ -133,7 +133,7 @@ ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
 <div class="wrap">
   <header><h1>Rumo Livre</h1><p id="saud">Cada teste negativo vale R$ 25 no seu cofrinho. Cada semana livre é sua.</p></header>
 
-  <div class="card err" id="err"><h2>Link incompleto</h2><p>Este link não tem o seu código pessoal. Use o link que o consultório enviou pelo WhatsApp.</p></div>
+  <div class="card" id="demo" hidden><h2>Exemplo do app</h2><p class="sub" style="font-size:14px">Este endereço está sem o código pessoal, então nada é enviado ao médico. Se você é paciente, abra o link que o consultório mandou pelo WhatsApp. Se ele não abrir, peça um novo à secretária: <a href="https://wa.me/5548992092831" target="_blank" rel="noopener"><b>(48) 99209-2831</b></a>.</p></div>
 
   <div id="app">
     <section class="card" aria-label="Meu placar">
@@ -297,9 +297,11 @@ const MARCOS = [[1, "1ª semana"], [2, "2 semanas"], [4, "1 mês"], [8, "2 meses
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const q = new URLSearchParams(location.search);
-const cod = (q.get("c") || "").trim();
+// O código pode chegar estragado por apps de mensagem (&amp;, link cortado, código no #): procura em todo o endereço.
+const cod = (() => { const m = decodeURIComponent(location.href).match(/[?&#;](?:amp;)?c=([A-Za-z0-9]{6,16})(?![A-Za-z0-9])/); return m ? m[1].toUpperCase() : ""; })();
+const DEMO = !cod;
 const CFG = {
-  subs: (q.get("s") || "coc,thc,alc").split(",").filter((k) => SUBST[k]),
+  subs: (q.get("s") || q.get("amp;s") || "coc,thc,alc").split(/[,.\-\s]+/).filter((k) => SUBST[k]),
   valor: Math.min(Math.max(+q.get("v") || 25, 1), 1000),
   precoG: Math.min(Math.max(+q.get("g") || 50, 1), 2000),
   modo: q.get("m") === "e" ? "e" : "f",
@@ -508,6 +510,7 @@ function grupo(id, alvo, multi) {
 grupo("quem", "quem"); grupo("md", "md"); grupo("apoio", "apoio", true); grupo("gat", "gat", true);
 
 async function enviar(partes) {
+  if (DEMO) throw new Error("sem código");
   const fd = new URLSearchParams(); fd.set(E_COD, cod); fd.set(E_RESP, ["v1", ...partes, "ts=" + Date.now()].join(";"));
   await fetch(FORM, { method: "POST", mode: "no-cors", body: fd });
 }
@@ -758,8 +761,8 @@ document.addEventListener("click", (e) => { if (e.target.closest("#bola")) respi
 $("bSOS").onclick = sos;
 
 /* ---------- início ---------- */
-if (!/^[A-Za-z0-9]{6,16}$/.test(cod)) { $("app").hidden = true; $("err").style.display = "block"; $("sosbar").hidden = true; }
-else {
+if (DEMO) { $("demo").hidden = false; const b = $("send"); b.disabled = true; b.textContent = "Abra pelo seu link pessoal para enviar"; }
+{
   $("saud").textContent = `Cada teste negativo vale ${real(CFG.valor)}${CFG.modo === "e" ? " (ou mais, se vierem seguidos)" : ""} no seu cofrinho. Teste na segunda e na quinta. Cada semana livre é sua.`;
   montaForm(); carregaPlano(); desenha(); desenhaProvas(); atualizaGoogle();
   if (CFG.foto) $("fotoSub").textContent = "Obrigatório: o negativo só entra no cofrinho com a foto da fita.";
