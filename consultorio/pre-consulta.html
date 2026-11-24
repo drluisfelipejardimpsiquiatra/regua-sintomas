@@ -399,7 +399,28 @@ function cartaHtml(recolhida) {
 // que o iPhone muitas vezes nunca marca). No celular, cada trecho de fala é uma
 // sessão curta que reinicia sozinha; no computador, a escuta é contínua.
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const MOVEL = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+const IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+const ANDROID = /Android/i.test(navigator.userAgent);
+const DEBUG_VOZ = /[?&]debug/.test(location.search);
+const MSG_TECLADO = IOS ? "Não estou recebendo a sua voz. Toque na caixa de texto e use o 🎤 do teclado do iPhone (ao lado da barra de espaço)."
+  : "Não estou recebendo a sua voz. Toque na caixa de texto e use o 🎤 do teclado do celular.";
+// Junta os resultados de uma sessão. Alguns aparelhos (iPhone) repetem o texto acumulado
+// em cada resultado; outros mandam trechos separados. Aqui funciona nos dois casos.
+function textoSessao(results) {
+  let acc = "";
+  for (let i = 0; i < results.length; i++) {
+    const t = String(results[i][0].transcript || "").trim(); if (!t) continue;
+    const a = acc.trim().toLowerCase(), tl = t.toLowerCase();
+    if (!a || tl.startsWith(a)) acc = t; else if (!a.endsWith(tl)) acc += " " + t;
+  }
+  return acc;
+}
+function logVoz(e, msg) {
+  if (!DEBUG_VOZ) return;
+  let d = $("dbg" + e); const c = $("c" + e);
+  if (!d && c) { d = document.createElement("pre"); d.id = "dbg" + e; d.style.cssText = "font:11px/1.35 monospace;white-space:pre-wrap;background:#f1efe8;padding:6px;border-radius:6px;margin-top:8px;max-height:220px;overflow:auto"; c.appendChild(d); }
+  if (d) d.textContent += (performance.now() / 1000).toFixed(1) + "s " + msg + "\n";
+}
 let rec = null, recAlvo = null, recLigado = false, recBase = "", recSessao = "";
 const juntarFala = (base, txt) => {
   txt = String(txt || "").replace(/\s+/g, " ").trim(); base = String(base || "").replace(/\s+$/, "");
@@ -429,43 +450,47 @@ function iniciarVoz(e, btn) {
   pararVoz();
   const ta = $("q" + e), ouv = $("o" + e);
   recAlvo = e; recLigado = true; recBase = ta.value; recSessao = "";
-  let ouviuAlgo = false, reinicios = 0;
+  let ouviuAlgo = false, reinicios = 0, vigia = null;
+  logVoz(e, "UA: " + navigator.userAgent.slice(0, 90));
   const novo = () => {
-    const r = new SR(); r.lang = "pt-BR"; r.continuous = !MOVEL; r.interimResults = true;
-    let nFin = 0; // frases já concluídas nesta sessão (gravadas de vez)
+    // iPhone e computador: escuta contínua. Android: trechos curtos que reiniciam (evita texto duplicado).
+    const r = new SR(); r.lang = "pt-BR"; r.continuous = !ANDROID; r.interimResults = true;
+    logVoz(e, "nova sessão (contínua=" + r.continuous + ")");
+    ["audiostart", "soundstart", "speechstart", "speechend", "audioend"].forEach((n) => { r["on" + n] = () => logVoz(e, n); });
     r.onresult = (ev) => {
       if (r !== rec || !recLigado) return;
-      let t = "";
-      for (let i = 0; i < ev.results.length; i++) {
-        const tr = ev.results[i][0].transcript;
-        if (ev.results[i].isFinal) { if (i >= nFin) { recBase = juntarFala(recBase, tr); nFin = i + 1; } }
-        else t += " " + tr;
-      }
-      recSessao = t; ouviuAlgo = true; reinicios = 0; gravarFala(e);
+      const t = textoSessao(ev.results);
+      logVoz(e, `resultado n=${ev.results.length} idx=${ev.resultIndex} final=${ev.results[ev.results.length - 1].isFinal} "${t.slice(-60)}"`);
+      recSessao = t; ouviuAlgo = true; reinicios = 0; clearTimeout(vigia); gravarFala(e);
       ouv.textContent = "Ouvindo… pode continuar falando";
     };
     r.onerror = (ev) => {
+      logVoz(e, "erro: " + ev.error + (ev.message ? " " + ev.message : ""));
       if (r !== rec) return;
       if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
-        ouv.textContent = ouviuAlgo ? "O microfone pausou. Toque em Falar para continuar." : "O microfone não foi liberado. Permita o acesso ao microfone, ou toque no campo e use o microfone do teclado.";
+        ouv.textContent = ouviuAlgo ? "O microfone pausou. Toque em Falar para continuar."
+          : IOS ? "O iPhone não liberou o reconhecimento de voz. Confira em Ajustes → Geral → Teclado → Ativar Ditado, ou use o 🎤 do teclado." : "O microfone não foi liberado. Permita o acesso ao microfone, ou use o 🎤 do teclado.";
         recLigado = false;
       } else if (ev.error === "network") { ouv.textContent = "O reconhecimento de voz precisa de internet. Confira a conexão ou digite."; recLigado = false; }
-      else if (ev.error === "audio-capture") { ouv.textContent = "Não encontrei o microfone. Toque no campo e use o microfone do teclado."; recLigado = false; }
+      else if (ev.error === "audio-capture") { ouv.textContent = MSG_TECLADO; recLigado = false; }
     };
     r.onend = () => {
+      logVoz(e, "fim da sessão");
       if (r !== rec) return;
       if (recSessao) { recBase = juntarFala(recBase, recSessao); recSessao = ""; gravarFala(e); }
       if (recLigado && recAlvo === e && ++reinicios <= 8) {
-        try { rec = novo(); rec.start(); return; } catch (err) {}
+        try { rec = novo(); rec.start(); return; } catch (err) { logVoz(e, "reinício falhou: " + err.message); }
       }
-      if (recLigado && reinicios > 8) ouv.textContent = "Parei de ouvir por silêncio. Toque em Falar para continuar.";
-      recLigado = false; botaoMic(false);
+      if (recLigado && reinicios > 8) ouv.textContent = ouviuAlgo ? "Parei de ouvir por silêncio. Toque em Falar para continuar." : MSG_TECLADO;
+      recLigado = false; botaoMic(false); clearTimeout(vigia);
     };
     return r;
   };
   rec = novo();
-  try { rec.start(); botaoMic(true); ouv.textContent = "Ouvindo… pode falar"; }
-  catch (err) { recLigado = false; botaoMic(false); ouv.textContent = "Não consegui ligar o microfone. Toque no campo e use o microfone do teclado."; }
+  try { rec.start(); botaoMic(true); ouv.textContent = "Ouvindo… pode falar"; logVoz(e, "start ok"); }
+  catch (err) { recLigado = false; botaoMic(false); ouv.textContent = MSG_TECLADO; logVoz(e, "start falhou: " + err.message); return; }
+  // Se em 8 segundos nada chegar, mostra o caminho alternativo (sem desligar a escuta).
+  vigia = setTimeout(() => { if (recLigado && recAlvo === e && !ouviuAlgo) ouv.textContent = MSG_TECLADO; }, 8000);
 }
 
 /* ---------- desenho das perguntas ---------- */
