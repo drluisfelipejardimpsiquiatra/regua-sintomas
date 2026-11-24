@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Rumo Livre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Marcellus&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="marca/marca.css?v=2">
+<link rel="icon" href="marca/simbolo.svg" type="image/svg+xml">
+<meta name="theme-color" content="#656635">
+<style>
+/* Rumo Livre · página do paciente. Tema Oliva da marca (marca.css). Uma coluna: placar → cofrinho → semanas → teste/régua → plano. Botão de ajuda fixo embaixo. */
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);-webkit-font-smoothing:antialiased;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:560px;margin:0 auto;padding-block:14px 30px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);font-weight:500;margin:0;text-wrap:balance}
+header h1{font-size:30px;line-height:1.15;color:var(--on-bg);margin-top:8px}
+header p{margin:6px 0 0;color:var(--on-bg-soft);line-height:1.45;font-size:15px}
+.card{background:var(--card);border-radius:18px;padding:16px;margin:12px 0;box-shadow:var(--shadow-card)}
+.card h2{font-size:20px;margin-bottom:4px}
+.sub{font-size:13px;color:var(--soft);line-height:1.45}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+/* placar */
+.placar{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pl{background:var(--brand-soft);border-radius:14px;padding:12px;text-align:center}
+.pl b{display:block;font:800 40px/1 var(--f-body);color:var(--ok);font-variant-numeric:tabular-nums}
+.pl span{font-size:12px;color:var(--soft);font-weight:600}
+.pl.alt b{color:var(--brand)}
+/* cofrinho */
+.cofre{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center}
+.cofre svg{width:120px;height:auto;display:block}
+.saldo{font:800 34px/1 var(--f-body);color:var(--ink);font-variant-numeric:tabular-nums}
+.barra{height:12px;border-radius:8px;background:var(--track);overflow:hidden;margin-top:8px}
+.barra i{display:block;height:100%;background:var(--accent);border-radius:8px;transition:width .8s}
+.premio{font-weight:700;margin-top:8px;font-size:15px}
+/* semanas */
+.semanas{display:flex;gap:5px;overflow-x:auto;padding:8px 2px 4px;scroll-snap-type:x proximity}
+.sem{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;scroll-snap-align:end}
+.sem .t{width:22px;height:22px;border-radius:6px;background:var(--track)}
+.sem .t.neg{background:var(--ok)}.sem .t.pos{background:var(--bad)}.sem .t.inv{background:var(--neu)}.sem .t.falta{background:transparent;border:2px dashed var(--neu)}.sem .t.hoje{background:transparent;border:2px solid var(--accent)}
+.sem small{font-size:10px;color:var(--soft);font-variant-numeric:tabular-nums}
+.sem.livre small{color:var(--ok);font-weight:800}
+.leg{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--soft);margin-top:6px}
+.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.marcos{display:flex;gap:8px;overflow-x:auto;padding:8px 0 2px}
+.marco{flex:0 0 auto;width:74px;text-align:center;font-size:11px;color:var(--soft);font-weight:700}
+.marco .m{width:52px;height:52px;margin:0 auto 4px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 15px var(--f-body);background:var(--track);color:var(--soft);border:2px dashed var(--line)}
+.marco.on .m{background:var(--accent);color:var(--on-accent);border:2px solid var(--accent)}
+.marco.on{color:var(--ink)}
+/* teste */
+.dia{display:inline-block;font:700 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--on-accent);background:var(--accent);border-radius:999px;padding:4px 10px}
+.subst{border-top:1px solid var(--line);padding:10px 0}
+.subst:first-of-type{border-top:0}
+.subst .nm{font-weight:700}
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.tri button,.opts button{border:2px solid var(--line);background:var(--field);color:var(--ink);border-radius:12px;padding:10px 6px;font:700 14px var(--f-body);cursor:pointer}
+.tri button.on[data-r="n"]{background:var(--ok);border-color:var(--ok);color:var(--ok-ink)}
+.tri button.on[data-r="p"]{background:var(--bad);border-color:var(--bad);color:var(--bad-ink)}
+.tri button.on[data-r="i"]{background:var(--neu);border-color:var(--neu);color:var(--neu-ink)}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.opts button{flex:1 1 auto}
+.opts.chips button{flex:0 1 auto;padding:8px 12px}
+.opts button.on{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+.ajuda{background:var(--brand-soft);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;margin:8px 0}
+.lnk{background:none;border:0;color:var(--brand);font:700 14px var(--f-body);text-decoration:underline;cursor:pointer;padding:4px 0}
+/* régua */
+.item{padding:12px 0;border-top:1px solid var(--line)}
+.lbl{font-weight:700;font-size:16px}
+.val{min-width:44px;padding:0 10px;height:34px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;white-space:nowrap}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;margin:8px 0 0;touch-action:pan-y}
+input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:6px;background:linear-gradient(90deg,var(--fill) var(--p),var(--track) var(--p))}
+input[type=range]::-moz-range-track{height:10px;border-radius:6px;background:linear-gradient(90deg,var(--fill) var(--p),var(--track) var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:var(--card);border:3px solid var(--fill);margin-top:-10px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--card);border:3px solid var(--fill)}
+.ends{display:flex;justify-content:space-between;font-size:12px;color:var(--soft);font-weight:700;padding:0 4px}
+.alert{background:var(--alert-bg);border:1px solid var(--alert-line);color:var(--alert-ink);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:14px;line-height:1.45}
+textarea,input[type=text],input[type=tel],input[type=number],input[type=date]{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:16px var(--f-body);background:var(--field);color:var(--ink)}
+textarea{min-height:70px}
+label.f{display:block;font-weight:700;font-size:14px;margin:12px 0 4px}
+.pri{width:100%;border:0;border-radius:999px;padding:16px;font:800 17px var(--f-body);background:var(--accent);color:var(--on-accent);box-shadow:var(--shadow-card);cursor:pointer;margin-top:12px}
+.pri:disabled{opacity:.55}
+.sec{width:100%;border:2px solid var(--line);border-radius:999px;padding:12px;font:700 15px var(--f-body);background:var(--field);color:var(--ink);cursor:pointer;margin-top:8px}
+.note{font-size:13px;color:var(--on-bg-soft);line-height:1.45;margin-top:14px;text-align:center}
+details summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:"+";font:700 24px var(--f-body);color:var(--brand)}
+details[open] summary::after{content:"–"}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+footer{margin-top:24px;text-align:center;font-size:12px;color:var(--on-bg-soft);line-height:1.5}
+.err{display:none}
+/* botão de ajuda */
+.sosbar{position:fixed;left:0;right:0;bottom:0;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(transparent,rgba(43,42,34,.35) 40%);z-index:15}
+.sosbar button{display:block;width:100%;max-width:528px;margin:0 auto;border:0;border-radius:999px;padding:15px;font:800 17px var(--f-body);background:var(--bad);color:var(--bad-ink);box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer}
+.ov{position:fixed;inset:0;background:var(--bg);overflow:auto;z-index:30;padding:calc(14px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(30px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.ov .in{max-width:560px;margin:0 auto}
+.ov h1{color:var(--on-bg);font-size:28px}
+.ov .x{background:var(--card);border:0;border-radius:999px;width:42px;height:42px;font:800 18px var(--f-body);color:var(--ink);cursor:pointer}
+.tres{display:grid;gap:10px;margin-top:14px}
+.tres button{text-align:left;border:0;border-radius:16px;padding:16px;background:var(--card);color:var(--ink);cursor:pointer;box-shadow:var(--shadow-card)}
+.tres button b{display:block;font:800 18px var(--f-body)}
+.tres button span{font-size:14px;color:var(--soft)}
+.tres button.perigo{background:var(--bad);color:var(--bad-ink)}
+.tres button.perigo span{color:var(--bad-ink)}
+ol.passos{padding-left:22px;margin:8px 0;line-height:1.5}
+ol.passos li{margin:8px 0}
+ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
+.onda{display:flex;flex-direction:column;align-items:center;padding:8px 0}
+.bola{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 40% 35%,var(--salvia),var(--verde-floresta));display:flex;align-items:center;justify-content:center;color:var(--off-white);font:800 18px var(--f-body);text-align:center;transform:scale(.7);transition:transform 4s ease-in-out}
+.relogio{font:800 32px var(--f-body);font-variant-numeric:tabular-nums;margin-top:10px}
+.tel{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tel a{flex:1 1 140px;text-align:center;text-decoration:none;border-radius:14px;padding:14px;font:800 18px var(--f-body);background:var(--bad);color:var(--bad-ink)}
+.tel a.sv{background:var(--ok);color:var(--ok-ink)}
+.pessoa{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.pessoa a{font-weight:800;color:var(--brand)}
+.foto{display:flex;gap:12px;align-items:center;margin-top:12px;padding:12px;border:2px dashed var(--line);border-radius:14px}
+.foto label{flex:1;cursor:pointer;font-weight:800;color:var(--brand)}
+.foto img{width:64px;height:64px;object-fit:cover;border-radius:10px;display:block}
+.foto input{position:absolute;opacity:0;width:1px;height:1px}
+.provas{display:flex;gap:6px;overflow-x:auto;padding:6px 0}
+.provas figure{margin:0;flex:0 0 auto;text-align:center;font-size:10px;color:var(--soft)}
+.provas img{width:54px;height:54px;object-fit:cover;border-radius:8px;display:block;border:2px solid var(--ok)}
+.sem .t.semfoto{background:var(--neu)}
+.festa{position:fixed;inset:0;pointer-events:none;z-index:40}
+.done h2{color:var(--ok)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="marca-faixa"><svg class="simbolo" viewBox="0 0 110 155" aria-hidden="true"><path d="M0 0H108V42L97 62 75 77 103 93 110 112V155H3V113L13 93 35 77 8 62 0 42Z"/></svg><p class="nome">Dr. Luis Felipe Jardim</p><div class="cargo">Psiquiatria · Psicoterapia</div></div>
+<div class="wrap">
+  <header><h1>Rumo Livre</h1><p id="saud">Cada teste negativo vale R$ 25 no seu cofrinho. Cada semana livre é sua.</p></header>
+
+  <div class="card err" id="err"><h2>Link incompleto</h2><p>Este link não tem o seu código pessoal. Use o link que o consultório enviou pelo WhatsApp.</p></div>
+
+  <div id="app">
+    <section class="card" aria-label="Meu placar">
+      <div class="placar">
+        <div class="pl"><b id="kSem">0</b><span>semanas livres seguidas</span></div>
+        <div class="pl alt"><b id="kDias">—</b><span id="kDiasL">dias sem usar</span></div>
+      </div>
+      <div class="sub" id="kFrase" style="margin-top:10px;text-align:center"></div>
+    </section>
+
+    <section class="card" aria-label="Meu cofrinho">
+      <div class="cofre">
+        <svg viewBox="0 0 120 140" id="pote" role="img" aria-label="Cofrinho"></svg>
+        <div style="min-width:0">
+          <div class="sub">No meu cofrinho</div>
+          <div class="saldo" id="kSaldo">R$ 0</div>
+          <div class="premio" id="kPremio"></div>
+          <div class="barra" id="kBarraBox"><i id="kBarra" style="width:0"></i></div>
+          <div class="sub" id="kFalta" style="margin-top:6px"></div>
+        </div>
+      </div>
+      <div class="sub" id="kGasto" style="margin-top:10px"></div>
+      <button class="lnk" id="bPremio">Escolher meu prêmio</button>
+    </section>
+
+    <section class="card" aria-label="Quanto a cocaína custa" id="cCusto" hidden>
+      <h2>Quanto a cocaína custa</h2>
+      <div class="sub" id="custoSub"></div>
+      <div id="custoVazio" class="ajuda" hidden>Para ver a sua conta, preencha em <button class="lnk" id="bCustoPlano" style="padding:0">Meu plano</button> quantos gramas você usava por dia de uso e quantos dias por semana.</div>
+      <div id="custoBox">
+        <div class="placar" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+          <div class="pl"><b id="cPerda" style="font-size:19px;white-space:nowrap;color:var(--bad-text)">—</b><span>se continuasse usando</span></div>
+          <div class="pl"><b id="cGasto" style="font-size:19px;white-space:nowrap;color:var(--bad-text)">—</b><span>gastei nos lapsos</span></div>
+          <div class="pl"><b id="cGanho" style="font-size:19px;white-space:nowrap">—</b><span>ganhei</span></div>
+        </div>
+        <div id="custoGraf" style="margin-top:10px"></div>
+        <div class="leg"><span><i style="border-top:3px dashed var(--bad);height:0;border-radius:0;width:16px"></i>se continuasse usando</span><span><i style="background:var(--bad)"></i>gastei nos lapsos</span><span><i style="background:var(--ok)"></i>ganhei: o que não gastei + cofrinho</span></div>
+        <div class="ajuda" id="custoFrase" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Minhas semanas">
+      <div class="row"><h2>Minhas semanas</h2><span class="sub" id="kTot"></span></div>
+      <div class="sub">Cada coluna é uma semana: segunda em cima, quinta embaixo.</div>
+      <div class="semanas" id="semanas"></div>
+      <div class="leg"><span><i style="background:var(--ok)"></i>negativo</span><span><i style="background:var(--bad)"></i>positivo</span><span><i style="border:2px dashed var(--neu)"></i>sem teste</span><span><i style="border:2px solid var(--accent)"></i>hoje</span></div>
+      <div id="provasBox" hidden><h3 style="font-size:16px;margin-top:14px">Minhas provas</h3><div class="sub">Fotos dos seus testes negativos, guardadas neste celular.</div><div class="provas" id="provas"></div></div>
+      <h3 style="font-size:16px;margin-top:14px">Marcos</h3>
+      <div class="marcos" id="marcos"></div>
+    </section>
+
+    <div id="form">
+      <section class="card" id="cTeste">
+        <div class="row"><h2>Teste de hoje</h2><span class="dia" id="diaTag">dia de teste</span></div>
+        <div class="sub" id="testeSub"></div>
+        <div id="testeBox">
+          <div class="ajuda"><b>Como ler a fita:</b> duas linhas, mesmo que a de teste (T) esteja bem fraquinha = <b>negativo</b>. Só a linha de controle (C) = <b>positivo</b>. Nenhuma linha C = <b>inválido</b>: repita com outra fita.<span id="ajAlc"></span></div>
+          <label class="f" for="tData">Data do teste</label>
+          <input type="date" id="tData">
+          <div id="substs"></div>
+          <button type="button" class="lnk" id="bTudoNeg">Marcar tudo como negativo</button>
+          <label class="f">Quem viu o teste?</label>
+          <div class="opts" id="quem"><button type="button" data-v="s">Fiz sozinho(a)</button><button type="button" data-v="f">Alguém da família viu</button><button type="button" data-v="c">Fiz na clínica</button></div>
+        </div>
+        <div class="foto" id="fotoBox"><img id="fotoPrev" alt="Foto do teste" hidden><label for="fotoIn" id="fotoLbl">📷 Tirar foto do teste<span class="sub" style="display:block;font-weight:500" id="fotoSub">Fotografe a fita com as linhas à mostra. A foto é o registro do seu resultado.</span></label><input type="file" id="fotoIn" accept="image/*" capture="environment"></div>
+        <button type="button" class="lnk" id="bSemTeste">Hoje não fiz teste, só quero responder a régua</button>
+      </section>
+
+      <section class="card">
+        <h2>Régua da semana</h2>
+        <div class="sub">Arraste cada bolinha pensando nos dias desde o último registro. Mais para a direita = mais forte. Não existe resposta certa: a sinceridade é o que ajuda.</div>
+        <div id="itens"></div>
+        <div class="item"><div class="lbl">Remédios do tratamento</div>
+          <div class="opts" id="md"><button type="button" data-v="s">Tomei certinho</button><button type="button" data-v="p">Esqueci alguns</button><button type="button" data-v="n">Parei</button><button type="button" data-v="x">Não uso</button></div></div>
+        <div class="item"><div class="lbl">O que me ajudou</div><div class="sub">Marque o que fez nesses dias.</div>
+          <div class="opts chips" id="apoio"></div></div>
+        <div class="item"><div class="lbl">O que me deu vontade</div><div class="sub">Gatilhos que apareceram. Se nenhum, deixe em branco.</div>
+          <div class="opts chips" id="gat"></div></div>
+        <div class="item"><label class="lbl" for="obs">Quer contar algo ao Dr. Luis Felipe? <span class="sub">(opcional)</span></label><textarea id="obs" maxlength="500" placeholder="Escreva aqui, se quiser"></textarea></div>
+      </section>
+
+      <button class="pri" id="send">Enviar para o Dr. Luis Felipe</button>
+      <p class="note">Suas respostas vão só para o seu médico. Teste positivo não é castigo: é informação para ajustar o tratamento.</p>
+    </div>
+
+    <section class="card done" id="done" hidden>
+      <h2 id="dTit">Recebido!</h2>
+      <p id="dTxt"></p>
+      <button class="sec" id="bNovo">Fazer outro registro</button>
+    </section>
+
+    <section class="card">
+      <details id="lemb">
+        <summary><h2>Lembrete no celular</h2></summary>
+        <div class="sub">Um alarme discreto toda segunda e quinta, na agenda do seu celular. Aparece só “Rotina de cuidado”, sem falar de teste.</div>
+        <label class="f" for="lHora">Horário</label>
+        <input type="time" id="lHora" value="07:30">
+        <a class="pri" id="lGoogle" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">Adicionar na agenda do Google (Android)</a>
+        <button class="sec" id="lIcs">Adicionar no calendário do iPhone</button>
+      </details>
+    </section>
+
+    <section class="card">
+      <details id="plano">
+        <summary><h2>Meu plano</h2></summary>
+        <div class="sub">Fica guardado só neste celular. Aparece quando você tocar em “Preciso de ajuda agora”.</div>
+        <label class="f" for="pDesde">Estou sem usar desde</label>
+        <input type="date" id="pDesde">
+        <label class="f" for="pMot">Meus motivos para continuar <span class="sub">(um por linha)</span></label>
+        <textarea id="pMot" placeholder="Ex.: estar presente para minha filha&#10;voltar a trabalhar&#10;ter dinheiro no fim do mês"></textarea>
+        <label class="f">Pessoas para chamar quando a vontade apertar</label>
+        <div class="g2"><input type="text" id="pN1" placeholder="Nome"><input type="tel" id="pT1" placeholder="Telefone"></div>
+        <div class="g2" style="margin-top:6px"><input type="text" id="pN2" placeholder="Nome"><input type="tel" id="pT2" placeholder="Telefone"></div>
+        <div class="g2" style="margin-top:6px"><input type="text" id="pN3" placeholder="Nome"><input type="tel" id="pT3" placeholder="Telefone"></div>
+        <div id="pCocBox">
+          <label class="f">Como era o meu uso de cocaína</label>
+          <div class="g2"><div><label class="f" for="pGr" style="margin-top:0">Gramas por dia de uso</label><input type="number" id="pGr" inputmode="decimal" min="0" max="100" step="0.5" placeholder="ex.: 2"></div>
+          <div><label class="f" for="pDs" style="margin-top:0">Dias de uso por semana</label><input type="number" id="pDs" inputmode="numeric" min="0" max="7" step="1" placeholder="ex.: 3"></div></div>
+          <label class="f" for="pPg">Preço do grama (R$)</label>
+          <input type="number" id="pPg" inputmode="numeric" min="1" max="2000" step="5">
+        </div>
+        <label class="f" for="pGasto">Quanto eu gastava por semana com o uso <span class="sub">(R$, aproximado<span id="pGastoAuto"></span>)</span></label>
+        <input type="number" id="pGasto" inputmode="numeric" min="0" max="20000" step="10">
+        <div class="g2"><div><label class="f" for="pPremio">Meu prêmio</label><input type="text" id="pPremio" maxlength="40" placeholder="Ex.: tênis novo"></div>
+        <div><label class="f" for="pValor">Custa (R$)</label><input type="number" id="pValor" inputmode="numeric" min="0" max="100000" step="10"></div></div>
+        <button class="sec" id="bSalvaPlano">Salvar meu plano</button>
+        <button class="lnk" id="bUsei">Já comprei meu prêmio (tirar do cofrinho)</button>
+        <div id="retBox" hidden><div class="g2"><input type="number" id="retVal" inputmode="numeric" placeholder="Valor (R$)"><input type="text" id="retObs" maxlength="40" placeholder="O que comprei"></div><button class="sec" id="bRet">Registrar a compra</button></div>
+      </details>
+    </section>
+  </div>
+
+  <footer>Dr. Luis Felipe Jardim · Médico psiquiatra e psicoterapeuta<br>CRM-SC 12767 · RQE 22739<br>Em emergência: 192 (SAMU) · 188 (CVV, 24 h)</footer>
+</div>
+
+<div class="sosbar" id="sosbar"><button id="bSOS">Preciso de ajuda agora</button></div>
+<div id="ov"></div>
+<canvas class="festa" id="festa" aria-hidden="true"></canvas>
+
+<script>
+const FORM = "https://docs.google.com/forms/d/e/1FAIpQLSe9mXjLDkPk8fOvcG7DD49wKGn_biyGz3wDrZLVA17B8jdd2g/formResponse";
+const E_COD = "entry.1044444738", E_RESP = "entry.364211632";
+// Endereço do Apps Script que guarda as fotos no Google Drive do médico (integracao/rumo-fotos.gs). Vazio: a foto fica só no celular.
+const FOTO_URL = "";
+const ZAP_CONSULTORIO = "5548992092831", ZAP_TXT = "(48) 99209-2831";
+const SUBST = { coc: "Cocaína / crack", thc: "Maconha", amp: "Anfetamina", met: "Metanfetamina", bzo: "Calmantes (benzodiazepínicos)", opi: "Opioides / morfina", mdma: "Ecstasy (MDMA)", alc: "Álcool (fita de saliva)" };
+const APOIO = { na: "NA / AA", ter: "Terapia", caps: "CAPS AD", gru: "Grupo / igreja", esp: "Exercício", fam: "Conversei com a família", trab: "Trabalho / estudo" };
+const GAT = { fome: "Fome", raiva: "Raiva", sol: "Solidão", cans: "Cansaço", din: "Dinheiro na mão", festa: "Festa / bebida", pes: "Pessoas que usam", tedio: "Tédio", briga: "Briga", dor: "Dor", fds: "Sexta / fim de semana", tris: "Tristeza", out: "Outro" };
+// Régua inspirada no Brief Addiction Monitor (BAM): uso, fatores de risco e fatores de proteção. Não é a versão oficial.
+const ITENS = [
+  ["fi", "Vontade de usar (fissura)", "a mais forte que senti nesses dias"],
+  ["us", "Dias em que usei", "desde o último registro", { max: 7, fmt: (v) => (v >= 7 ? "7 ou mais" : String(v)), rot: ["nenhum", "7 ou mais"], cor: (v) => (v === 0 ? 0 : v <= 1 ? 5 : 9) }],
+  ["so", "Sono ruim"], ["hu", "Tristeza / desânimo"], ["an", "Ansiedade / irritação"],
+  ["sr", "Estive perto do risco", "lugares, pessoas, dinheiro ou bebida ligados ao uso"],
+  ["cf", "Brigas ou estresse", "em casa ou no trabalho"],
+  ["co", "Confiança de que vou continuar sem usar", "", { ini: 5, inv: true, rot: ["nenhuma", "total"] }],
+  ["pm", "Pensei em morrer ou em me machucar", "", { risco: true }],
+];
+const MARCOS = [[1, "1ª semana"], [2, "2 semanas"], [4, "1 mês"], [8, "2 meses"], [12, "90 dias"], [26, "6 meses"], [52, "1 ano"]];
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const q = new URLSearchParams(location.search);
+const cod = (q.get("c") || "").trim();
+const CFG = {
+  subs: (q.get("s") || "coc,thc,alc").split(",").filter((k) => SUBST[k]),
+  valor: Math.min(Math.max(+q.get("v") || 25, 1), 1000),
+  precoG: Math.min(Math.max(+q.get("g") || 50, 1), 2000),
+  modo: q.get("m") === "e" ? "e" : "f",
+  inicio: /^\d{4}-\d\d-\d\d$/.test(q.get("i") || "") ? q.get("i") : null,
+  foto: q.get("f") === "1",
+};
+if (!CFG.subs.length) CFG.subs = ["coc"];
+const KEY = "rumo:" + cod;
+const iso = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const dataDe = (s) => { const [a, m, d] = s.split("-").map(Number); return new Date(a, m - 1, d); };
+const somaDias = (s, n) => { const d = dataDe(s); d.setDate(d.getDate() + n); return iso(d); };
+const hoje = () => iso(new Date());
+const dBR = (s) => s.slice(8, 10) + "/" + s.slice(5, 7);
+const real = (n) => "R$ " + Math.round(n).toLocaleString("pt-BR");
+const ehDiaTeste = (s) => { const w = dataDe(s).getDay(); return w === 1 || w === 4; };
+// segunda ou quinta mais recente (o "horário" de teste ao qual o registro pertence)
+const slotDe = (s) => { const w = dataDe(s).getDay(); return somaDias(s, -(w >= 4 ? w - 4 : w >= 1 ? w - 1 : 3)); };
+const segDe = (s) => { const w = dataDe(s).getDay(); return somaDias(s, -(w === 0 ? 6 : w - 1)); };
+
+function ler() { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { return {}; } }
+function gravar() { try { localStorage.setItem(KEY, JSON.stringify(H)); } catch (e) {} }
+let H = ler(); H.regs = H.regs || []; H.ret = H.ret || []; H.plano = H.plano || {};
+
+/* ---------- manejo de contingências (mesma regra do painel do médico) ---------- */
+function resultado(res) { const v = Object.values(res || {}); if (!v.length) return null; if (v.includes("p")) return "pos"; if (v.includes("i")) return "inv"; return v.every((x) => x === "n") ? "neg" : null; }
+function calcula() {
+  const resReg = (r) => { const x = resultado(r.res); return x === "neg" && CFG.foto && !r.foto ? "semfoto" : x; };
+  const testes = H.regs.filter((r) => r.res && resultado(r.res));
+  const ini = [CFG.inicio, ...testes.map((r) => slotDe(r.d))].filter(Boolean).sort()[0];
+  const out = { slots: [], semanas: [], saldo: 0, ganho: 0, seq: 0, negTot: 0 };
+  if (!ini) return out;
+  const porSlot = {};
+  testes.forEach((r) => { const s = slotDe(r.d), x = resReg(r), a = porSlot[s]; porSlot[s] = a === "pos" || x === "pos" ? "pos" : a === "neg" || x === "neg" ? "neg" : x; });
+  const h = hoje(); let s = slotDe(ini);
+  let nivel = 0, nivelAnt = 0, negDesdeReset = 0;
+  while (s <= h) {
+    let st = porSlot[s] || (s === slotDe(h) ? "hoje" : "falta");
+    let val = 0;
+    if (st === "neg") {
+      if (CFG.modo === "e") { val = Math.min(CFG.valor * (1 + 0.1 * nivel), CFG.valor * 2); nivel++; negDesdeReset++; if (negDesdeReset === 3 && nivelAnt > nivel) nivel = nivelAnt; }
+      else val = CFG.valor;
+      out.ganho += val; out.negTot++;
+    } else if (st !== "hoje") { if (nivel > 0) nivelAnt = nivel; nivel = 0; negDesdeReset = 0; }
+    out.slots.push({ d: s, st, val });
+    s = somaDias(s, dataDe(s).getDay() === 1 ? 3 : 4);
+  }
+  // semanas (segunda a domingo)
+  const ws = {};
+  out.slots.forEach((x) => (ws[segDe(x.d)] = ws[segDe(x.d)] || []).push(x));
+  out.semanas = Object.keys(ws).sort().map((w) => {
+    const sl = ws[w], sts = sl.map((x) => x.st), fechada = somaDias(w, 6) < h;
+    let st = sts.includes("pos") ? "pos" : sl.length === 2 && sts.every((x) => x === "neg") ? "livre" : !fechada && sts.every((x) => x === "neg" || x === "hoje") ? "andamento" : sts.includes("neg") ? "parcial" : "falta";
+    if (!fechada && st === "parcial" && !sts.includes("falta") && !sts.includes("inv")) st = "andamento";
+    return { w, sl, st, fechada };
+  });
+  // semanas livres seguidas: as fechadas mais a atual, se ainda está toda negativa
+  let seq = 0;
+  for (let i = out.semanas.length - 1; i >= 0; i--) {
+    const x = out.semanas[i];
+    if (!x.fechada && x.st === "andamento") continue;
+    if (x.st === "livre") seq++; else break;
+  }
+  out.seq = seq;
+  out.saldo = out.ganho - H.ret.reduce((a, r) => a + (+r.val || 0), 0);
+  out.proxValor = CFG.modo === "e" ? Math.min(CFG.valor * (1 + 0.1 * nivel), CFG.valor * 2) : CFG.valor;
+  return out;
+}
+
+/* ---------- desenho ---------- */
+function pote(saldo, meta) {
+  const p = meta ? Math.max(0, Math.min(saldo / meta, 1)) : Math.min(saldo / 600, 1);
+  const top = 40, base = 128, h = (base - top) * p, y = base - h;
+  let moedas = ""; const n = Math.min(Math.floor(saldo / 25), 24);
+  for (let i = 0; i < n; i++) { const cx = 30 + (i % 4) * 20 + (Math.floor(i / 4) % 2) * 10, cy = base - 8 - Math.floor(i / 4) * 9; if (cy > y - 2) moedas += `<ellipse cx="${cx}" cy="${cy}" rx="9" ry="4" fill="var(--ambar)" stroke="var(--cafe)" stroke-width="1"/>`; }
+  return `<defs><clipPath id="vidro"><path d="M22 40 Q16 44 16 56 V122 Q16 132 28 132 H92 Q104 132 104 122 V56 Q104 44 98 40 Z"/></clipPath></defs>
+  <rect x="30" y="20" width="60" height="14" rx="4" fill="var(--oliva-dourado)"/><rect x="50" y="24" width="20" height="4" rx="2" fill="var(--cafe)"/>
+  <g clip-path="url(#vidro)"><rect x="0" y="${y}" width="120" height="${h + 10}" fill="var(--ambar)" opacity=".28"/>${moedas}</g>
+  <path d="M22 40 Q16 44 16 56 V122 Q16 132 28 132 H92 Q104 132 104 122 V56 Q104 44 98 40 Z" fill="none" stroke="var(--oliva)" stroke-width="3"/>
+  <path d="M26 58 V110" stroke="var(--off-white)" stroke-width="4" stroke-linecap="round" opacity=".7"/>`;
+}
+function desenha() {
+  const C = calcula(), P = H.plano;
+  $("kSem").textContent = C.seq;
+  if (P.desde) { const n = Math.max(0, Math.round((dataDe(hoje()) - dataDe(P.desde)) / 864e5)); $("kDias").textContent = n; $("kDiasL").textContent = n === 1 ? "dia sem usar" : "dias sem usar"; }
+  else { $("kDias").textContent = C.negTot; $("kDiasL").textContent = "testes negativos"; }
+  const prox = MARCOS.find(([w]) => w > C.seq);
+  $("kFrase").textContent = C.seq === 0 && !C.negTot ? "O primeiro teste negativo já conta. Comece pela próxima segunda ou quinta." : prox ? `Faltam ${prox[0] - C.seq} semana${prox[0] - C.seq > 1 ? "s" : ""} para o marco “${prox[1]}”.` : "Mais de um ano. Você mudou a sua história.";
+  $("kSaldo").textContent = real(Math.max(C.saldo, 0));
+  const meta = +P.valor || 0;
+  $("kPremio").textContent = P.premio ? "Meu prêmio: " + P.premio + (meta ? " · " + real(meta) : "") : "";
+  $("kBarraBox").hidden = !meta; $("kBarra").style.width = (meta ? Math.min(C.saldo / meta * 100, 100) : 0) + "%";
+  $("kFalta").textContent = meta ? (C.saldo >= meta ? "Você já pode comprar o seu prêmio. Celebre!" : `Faltam ${real(meta - C.saldo)}: cerca de ${Math.ceil((meta - C.saldo) / C.proxValor)} testes negativos.`) : `Cada teste negativo: +${real(C.proxValor)}${CFG.modo === "e" ? " (o valor sobe a cada negativo seguido)" : ""}.`;
+  $("bPremio").textContent = P.premio ? "Mudar meu prêmio" : "Escolher meu prêmio";
+  const K = custo(C), gastoSem = P.gasto || (K ? K.base : 0);
+  if (gastoSem && P.desde) { const sem = (dataDe(hoje()) - dataDe(P.desde)) / 6048e5; if (sem > 0) $("kGasto").innerHTML = `Além do cofrinho, você deixou de gastar cerca de <b>${real(sem * gastoSem)}</b> com o uso.`; } else $("kGasto").textContent = "";
+  desenhaCusto(K, C);
+  $("pote").innerHTML = pote(Math.max(C.saldo, 0), meta);
+  // semanas
+  const box = $("semanas");
+  box.innerHTML = C.semanas.length ? C.semanas.map((x) => {
+    const cel = (dia) => { const sl = x.sl.find((y) => dataDe(y.d).getDay() === dia); return `<div class="t ${sl ? sl.st : ""}" title="${sl ? dBR(sl.d) : ""}"></div>`; };
+    return `<div class="sem${x.st === "livre" ? " livre" : ""}">${cel(1)}${cel(4)}<small>${dBR(x.w)}</small></div>`;
+  }).join("") : `<div class="sub">Suas semanas aparecem aqui a partir do primeiro teste.</div>`;
+  box.scrollLeft = box.scrollWidth;
+  const livres = C.semanas.filter((x) => x.st === "livre").length;
+  $("kTot").textContent = C.semanas.length ? `${livres} de ${C.semanas.filter((x) => x.fechada).length} livres` : "";
+  const melhor = Math.max(C.seq, H.melhor || 0); if (melhor !== H.melhor) { H.melhor = melhor; gravar(); }
+  $("marcos").innerHTML = MARCOS.map(([w, n]) => `<div class="marco${melhor >= w ? " on" : ""}"><div class="m">${w < 52 ? w + "s" : "1a"}</div>${n}</div>`).join("");
+  return C;
+}
+
+/* ---------- custo da cocaína: perda x ganho ---------- */
+function custo(C) {
+  const P = H.plano, g = +P.gr || 0, ds = Math.min(+P.ds || 0, 7), pg = +P.pg || CFG.precoG;
+  if (!(g > 0 && ds > 0) || !C.semanas.length) return null;
+  const base = g * ds * pg, h = hoje();
+  let proj = 0, gasto = 0, evit = 0, cof = 0;
+  const pts = [{ w: C.semanas[0].w, proj: 0, gasto: 0, ganho: 0 }];
+  C.semanas.forEach((x) => {
+    const fim = somaDias(x.w, 6), frac = fim < h ? 1 : Math.min(7, (dataDe(h) - dataDe(x.w)) / 864e5 + 1) / 7;
+    let dias = Math.min(H.regs.filter((r) => segDe(r.d) === x.w).reduce((a, r) => a + (+(r.v && r.v.us) || 0), 0), 7);
+    if (!dias && x.sl.some((s) => s.st === "pos")) dias = 1;
+    const sem = base * frac, gastoSem = dias * g * pg;
+    proj += sem; gasto += gastoSem; evit += Math.max(0, sem - gastoSem); cof += x.sl.reduce((a, s) => a + (s.val || 0), 0);
+    pts.push({ w: somaDias(x.w, 7), proj, gasto, ganho: evit + cof });
+  });
+  return { base, pg, g, proj, gasto, evit, cof, ganho: evit + cof, gramas: evit / pg, pts };
+}
+function desenhaCusto(K, C) {
+  const mostra = CFG.subs.includes("coc") || (+H.plano.gr > 0);
+  $("cCusto").hidden = !mostra; if (!mostra) return;
+  const pg = +H.plano.pg || CFG.precoG;
+  $("custoSub").textContent = `Com o grama a ${real(pg)}. A linha tracejada mostra quanto você gastaria se continuasse usando como antes; o verde é o que ficou com você.`;
+  $("custoVazio").hidden = !!K; $("custoBox").hidden = !K;
+  if (!C.semanas.length && !K) { $("custoVazio").hidden = false; $("custoVazio").innerHTML = "O gráfico aparece a partir do primeiro teste. Enquanto isso, preencha em “Meu plano” como era o seu uso de cocaína."; return; }
+  if (!K) return;
+  $("cPerda").textContent = real(K.proj); $("cGasto").textContent = real(K.gasto); $("cGanho").textContent = real(K.ganho);
+  const pts = K.pts, W = 520, Hh = 210, pl = 50, pr = 14, pt = 14, pb = 26;
+  const max = Math.max(K.proj, K.ganho, K.gasto, 100), passo = Math.pow(10, Math.floor(Math.log10(max))) * (max / Math.pow(10, Math.floor(Math.log10(max))) > 5 ? 2 : max / Math.pow(10, Math.floor(Math.log10(max))) > 2 ? 1 : 0.5);
+  const top = Math.ceil(max / passo) * passo;
+  const x = (i) => pl + i / Math.max(pts.length - 1, 1) * (W - pl - pr), y = (v) => pt + (1 - v / top) * (Hh - pt - pb);
+  let g = "";
+  for (let v = 0; v <= top + 0.1; v += passo) g += `<line x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl - 6}" y="${y(v) + 4}" text-anchor="end">${v >= 1000 ? (v / 1000).toLocaleString("pt-BR") + " mil" : v}</text>`;
+  const caminho = (k) => pts.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + "," + y(p[k]).toFixed(1)).join("");
+  const area = (k, cor) => `<path d="${caminho(k)}L${x(pts.length - 1)},${y(0)}L${x(0)},${y(0)}Z" fill="var(--${cor})" opacity=".14"/>`;
+  g += area("ganho", "ok") + area("gasto", "bad");
+  g += `<path d="${caminho("proj")}" fill="none" stroke="var(--bad)" stroke-width="2.5" stroke-dasharray="6 5"/>`;
+  g += `<path d="${caminho("gasto")}" fill="none" stroke="var(--bad)" stroke-width="3"/><path d="${caminho("ganho")}" fill="none" stroke="var(--ok)" stroke-width="3.5"/>`;
+  const u = pts.length - 1;
+  g += `<circle cx="${x(u)}" cy="${y(K.ganho)}" r="5" fill="var(--ok)"/><circle cx="${x(u)}" cy="${y(K.proj)}" r="4" fill="var(--bad)"/>`;
+  const n = Math.min(pts.length, 5);
+  [...new Set(Array.from({ length: n }, (_, i) => Math.round(i * u / Math.max(n - 1, 1))))].forEach((i) => (g += `<text x="${x(i)}" y="${Hh - 8}" text-anchor="${i === u && u ? "end" : i === 0 ? "start" : "middle"}">${dBR(pts[i].w)}</text>`));
+  $("custoGraf").innerHTML = `<svg viewBox="0 0 ${W} ${Hh}" style="width:100%;height:auto;display:block" role="img" aria-label="Gráfico: quanto a cocaína custaria e quanto você ganhou">${g}</svg>`;
+  const ano = K.base * 52, gr = K.gramas;
+  $("custoFrase").innerHTML = `Usando como antes, a cocaína custaria <b>${real(K.base)} por semana</b> e <b>${real(ano)} em um ano</b>. ` +
+    (gr >= 1 ? `Até agora, cerca de <b>${Math.round(gr).toLocaleString("pt-BR")} gramas</b> deixaram de entrar no seu corpo. ` : "") +
+    (K.ganho > K.proj ? "Somando o cofrinho, os seus ganhos já passaram do que a cocaína teria custado." : `Cada semana livre põe ${real(K.base)} de volta no seu bolso, mais o cofrinho.`);
+}
+$("bCustoPlano").onclick = () => { $("plano").open = true; $("pGr").focus(); $("plano").scrollIntoView({ behavior: "smooth" }); };
+
+/* ---------- formulário ---------- */
+const sel = { res: {}, quem: null, md: null, apoio: new Set(), gat: new Set(), semTeste: false };
+const V = {};
+const cfgItem = (it) => Object.assign({ min: 0, max: 10, ini: 0 }, it[3] || {});
+const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function corDe(it, v) { const c = cfgItem(it); const n = c.cor ? c.cor(v) : c.inv ? 10 - v : v / c.max * 10; return n <= 3 ? "ok" : n <= 6 ? "mid" : "bad"; }
+function montaForm() {
+  const h = hoje(), dia = ehDiaTeste(h);
+  $("diaTag").hidden = !dia;
+  $("testeSub").textContent = dia ? "Hoje é dia de teste. Faça com a primeira urina da manhã, se der." : `Os testes são na segunda e na quinta. Próximo: ${proximoTeste()}. Se esqueceu de registrar o último, registre abaixo.`;
+  $("tData").value = dia ? h : slotDe(h); $("tData").max = h; $("tData").min = somaDias(h, -6);
+  $("ajAlc").innerHTML = CFG.subs.includes("alc") ? " <b>Álcool (saliva):</b> mudou de cor = positivo." : "";
+  $("substs").innerHTML = CFG.subs.map((k) => `<div class="subst"><div class="nm">${SUBST[k]}</div><div class="tri" data-s="${k}"><button type="button" data-r="n">Negativo</button><button type="button" data-r="p">Positivo</button><button type="button" data-r="i">Inválido</button></div></div>`).join("");
+  $("itens").innerHTML = ITENS.map((it) => {
+    const [k, l, s] = it, c = cfgItem(it), r = c.rot || ["nada", "muito forte"]; V[k] = c.ini;
+    return `<div class="item"><div class="row"><div><div class="lbl">${l}</div>${s ? `<div class="sub">${s}</div>` : ""}</div><div class="val" id="v_${k}"></div></div>
+    <input type="range" min="${c.min}" max="${c.max}" step="1" value="${c.ini}" id="r_${k}" aria-label="${l}"><div class="ends"><span>${r[0]}</span><span>${r[1]}</span></div>
+    ${c.risco ? `<div class="alert" id="alPm" hidden><b>Obrigado por contar.</b> O Dr. Luis Felipe vai ver isso. Se esses pensamentos estiverem fortes agora, não espere: ligue <b>188</b> (CVV, 24 h) ou <b>192</b> (SAMU), ou vá ao pronto-socorro, e chame alguém de confiança para ficar com você.</div>` : ""}
+    ${k === "fi" ? `<div class="alert" id="alFi" hidden>Vontade forte é sinal para usar o seu plano. Toque em <b>Preciso de ajuda agora</b>, lá embaixo, para atravessar a onda.</div>` : ""}</div>`;
+  }).join("");
+  $("apoio").innerHTML = Object.entries(APOIO).map(([k, v]) => `<button type="button" data-v="${k}">${v}</button>`).join("");
+  $("gat").innerHTML = Object.entries(GAT).map(([k, v]) => `<button type="button" data-v="${k}">${v}</button>`).join("");
+  upd();
+}
+function proximoTeste() { let d = somaDias(hoje(), 1); while (!ehDiaTeste(d)) d = somaDias(d, 1); return ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][dataDe(d).getDay()] + ", " + dBR(d); }
+function upd() {
+  ITENS.forEach((it) => {
+    const k = it[0], c = cfgItem(it), r = $("r_" + k), v = +r.value; V[k] = v;
+    const cl = corDe(it, v), col = cssVar("--" + cl);
+    r.style.setProperty("--p", (v - c.min) / (c.max - c.min) * 100 + "%"); r.style.setProperty("--fill", col);
+    const b = $("v_" + k); b.textContent = c.fmt ? c.fmt(v) : v; b.style.background = col; b.style.color = cssVar("--" + cl + "-ink");
+  });
+  $("alPm").hidden = !(V.pm > 0); $("alFi").hidden = !(V.fi >= 7);
+}
+$("itens").addEventListener("input", upd);
+$("substs").addEventListener("click", (e) => { const b = e.target.closest("button[data-r]"); if (!b) return; const s = b.parentElement.dataset.s; sel.res[s] = b.dataset.r; b.parentElement.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); });
+$("bTudoNeg").onclick = () => { CFG.subs.forEach((s) => (sel.res[s] = "n")); document.querySelectorAll(".tri button").forEach((x) => x.classList.toggle("on", x.dataset.r === "n")); };
+$("bSemTeste").onclick = () => { sel.semTeste = !sel.semTeste; $("testeBox").hidden = sel.semTeste; $("bSemTeste").textContent = sel.semTeste ? "Fiz teste: quero registrar o resultado" : "Hoje não fiz teste, só quero responder a régua"; };
+function grupo(id, alvo, multi) {
+  $(id).addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-v]"); if (!b) return;
+    if (multi) { const s = sel[alvo]; s.has(b.dataset.v) ? s.delete(b.dataset.v) : s.add(b.dataset.v); b.classList.toggle("on", s.has(b.dataset.v)); }
+    else { sel[alvo] = sel[alvo] === b.dataset.v ? null : b.dataset.v; $(id).querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.v === sel[alvo])); }
+  });
+}
+grupo("quem", "quem"); grupo("md", "md"); grupo("apoio", "apoio", true); grupo("gat", "gat", true);
+
+async function enviar(partes) {
+  const fd = new URLSearchParams(); fd.set(E_COD, cod); fd.set(E_RESP, ["v1", ...partes, "ts=" + Date.now()].join(";"));
+  await fetch(FORM, { method: "POST", mode: "no-cors", body: fd });
+}
+const limpa = (s, n) => encodeURIComponent(String(s || "").trim().replace(/[\n\r]+/g, " ").slice(0, n));
+
+$("send").onclick = async () => {
+  const comTeste = !sel.semTeste;
+  const d = $("tData").value;
+  if (comTeste) {
+    const falta = CFG.subs.find((s) => !sel.res[s]);
+    if (falta) { alert("Marque o resultado de: " + SUBST[falta]); $("cTeste").scrollIntoView({ behavior: "smooth" }); return; }
+    if (!d || d > hoje() || d < somaDias(hoje(), -6)) { alert("Confira a data do teste (até 6 dias atrás)."); return; }
+  }
+  const partes = ["e=dq", "d=" + (comTeste ? d : hoje())];
+  if (comTeste) { partes.push("t=" + CFG.subs.map((s) => s + "." + sel.res[s]).join(",")); if (sel.quem) partes.push("q=" + sel.quem); }
+  ITENS.forEach((it) => partes.push(it[0] + "=" + V[it[0]]));
+  if (sel.md) partes.push("md=" + sel.md);
+  if (sel.apoio.size) partes.push("ap=" + [...sel.apoio].join(","));
+  if (sel.gat.size) partes.push("gt=" + [...sel.gat].join(","));
+  const obs = $("obs").value.trim(); if (obs) partes.push("obs=" + limpa(obs, 500));
+  const btn = $("send"); btn.disabled = true; btn.textContent = "Enviando…";
+  try {
+    const antes = calcula();
+    let fotoOk = false;
+    if (comTeste && FOTO.grande) { btn.textContent = "Enviando a foto…"; fotoOk = await enviaFoto(d); partes.push(fotoOk ? "ft=1" : "ft=2"); btn.textContent = "Enviando…"; }
+    await enviar(partes);
+    const reg = { d: comTeste ? d : hoje(), ts: Date.now(), v: { ...V } };
+    if (comTeste) { reg.res = { ...sel.res }; if (FOTO.grande) reg.foto = true; if (FOTO.mini) guardaMini(reg.d, FOTO.mini, resultado(reg.res)); }
+    H.regs.push(reg); gravar();
+    const depois = desenha();
+    celebra(comTeste ? resultado(reg.res) : null, antes, depois);
+  } catch (e) { btn.disabled = false; btn.textContent = "Tentar enviar de novo"; alert("Não foi possível enviar. Confira a internet e tente de novo."); }
+};
+function celebra(res, antes, depois) {
+  $("form").hidden = true; $("done").hidden = false;
+  const ganhou = depois.ganho - antes.ganho, novoMarco = MARCOS.find(([w]) => antes.seq < w && depois.seq >= w);
+  if (res === "neg" && !(CFG.foto && !(H.regs[H.regs.length - 1] || {}).foto)) {
+    $("dTit").textContent = novoMarco ? `Marco alcançado: ${novoMarco[1]}!` : `+${real(ganhou)} no cofrinho!`;
+    $("dTxt").innerHTML = `Teste negativo. Coloque <b>${real(ganhou)}</b> na sua caixinha agora: esse dinheiro é a prova do seu esforço. Saldo: <b>${real(depois.saldo)}</b>.${depois.seq ? ` Você está com ${depois.seq} semana${depois.seq > 1 ? "s" : ""} livre${depois.seq > 1 ? "s" : ""} seguida${depois.seq > 1 ? "s" : ""}.` : ""}`;
+    festa(novoMarco ? 220 : 120);
+  } else if (res === "pos") {
+    $("dTit").textContent = "Obrigado pela sinceridade";
+    $("dTxt").innerHTML = `Um teste positivo não apaga as ${depois.negTot} vitórias que você já teve. Hoje não entra dinheiro na caixinha, mas o que você juntou continua seu. O próximo teste é uma nova chance. Se quiser, toque em <b>Preciso de ajuda agora → Usei</b> para ver o que fazer nas próximas horas.`;
+  } else if (res === "neg" && CFG.foto && !(H.regs[H.regs.length - 1] || {}).foto) {
+    $("dTit").textContent = "Falta a foto";
+    $("dTxt").innerHTML = "Seu resultado foi registrado, mas para entrar no cofrinho o teste precisa da foto. Toque em <b>Fazer outro registro</b>, tire a foto da mesma fita e envie de novo.";
+  } else if (res === "inv") {
+    $("dTit").textContent = "Teste inválido";
+    $("dTxt").textContent = "A fita não funcionou. Repita com outra fita e registre de novo.";
+  } else {
+    $("dTit").textContent = "Recebido, obrigado!";
+    $("dTxt").textContent = `Sua régua foi enviada ao Dr. Luis Felipe. Próximo teste: ${proximoTeste()}.`;
+  }
+  scrollTo({ top: $("done").offsetTop - 20, behavior: "smooth" });
+}
+$("bNovo").onclick = () => location.reload();
+
+/* ---------- foto do teste ---------- */
+const FOTO = { grande: null, mini: null };
+function reduz(file, lado, q) {
+  return new Promise((ok, falha) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => { const k = Math.min(1, lado / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", q)); };
+    img.onerror = () => { URL.revokeObjectURL(url); falha(new Error("imagem")); };
+    img.src = url;
+  });
+}
+$("fotoIn").onchange = async (e) => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  try {
+    FOTO.grande = await reduz(f, 1280, 0.72); FOTO.mini = await reduz(f, 160, 0.6);
+    $("fotoPrev").src = FOTO.mini; $("fotoPrev").hidden = false;
+    $("fotoLbl").firstChild.textContent = "📷 Foto pronta (toque para tirar outra)";
+    $("fotoSub").textContent = FOTO_URL ? "Ela vai junto com o resultado para o Dr. Luis Felipe." : "Ela fica guardada neste celular como prova do seu resultado.";
+  } catch (err) { alert("Não foi possível abrir a foto. Tente de novo."); }
+};
+async function enviaFoto(d) {
+  if (!FOTO_URL) return false;
+  try {
+    const r = await fetch(FOTO_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ c: cod, d, ts: Date.now(), img: FOTO.grande.split(",")[1] }) });
+    const j = await r.json().catch(() => ({})); return !!j.ok;
+  } catch (e) { return false; }
+}
+function guardaMini(d, mini, res) {
+  if (res !== "neg") return;
+  H.provas = (H.provas || []).concat({ d, img: mini }).slice(-40); gravar();
+}
+function desenhaProvas() {
+  const ps = (H.provas || []).slice().reverse();
+  $("provasBox").hidden = !ps.length;
+  $("provas").innerHTML = ps.map((x) => `<figure><img src="${x.img.startsWith("data:image/jpeg") ? x.img : ""}" alt="Teste de ${dBR(x.d)}"><figcaption>${dBR(x.d)}</figcaption></figure>`).join("");
+}
+
+/* ---------- lembrete na agenda do celular (discreto) ---------- */
+function proxSegQui() { let d = hoje(); while (!ehDiaTeste(d)) d = somaDias(d, 1); return d; }
+function lembreteDados() {
+  const [h, m] = ($("lHora").value || "07:30").split(":"), d = proxSegQui().replace(/-/g, ""), ini = d + "T" + h + m + "00";
+  const fimMin = (+h * 60 + +m + 10), fim = d + "T" + String(Math.floor(fimMin / 60) % 24).padStart(2, "0") + String(fimMin % 60).padStart(2, "0") + "00";
+  return { ini, fim, titulo: "Rotina de cuidado", txt: "Registro de hoje: " + location.href.split("#")[0] };
+}
+function atualizaGoogle() {
+  const x = lembreteDados();
+  $("lGoogle").href = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(x.titulo) + "&details=" + encodeURIComponent(x.txt) + "&dates=" + x.ini + "/" + x.fim + "&ctz=America/Sao_Paulo&recur=" + encodeURIComponent("RRULE:FREQ=WEEKLY;BYDAY=MO,TH");
+}
+$("lHora").oninput = atualizaGoogle;
+$("lIcs").onclick = () => {
+  const x = lembreteDados();
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Consultorio//Rotina//PT", "BEGIN:VEVENT", "UID:rotina-" + cod + "@consultorio", "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
+    "DTSTART;TZID=America/Sao_Paulo:" + x.ini, "DTEND;TZID=America/Sao_Paulo:" + x.fim, "RRULE:FREQ=WEEKLY;BYDAY=MO,TH", "SUMMARY:" + x.titulo, "DESCRIPTION:" + x.txt,
+    "BEGIN:VALARM", "TRIGGER:PT0M", "ACTION:DISPLAY", "DESCRIPTION:" + x.titulo, "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" })); a.download = "rotina.ics"; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+};
+
+/* ---------- confete ---------- */
+function festa(n) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = $("festa"), ctx = cv.getContext("2d"), W = (cv.width = innerWidth), Hh = (cv.height = innerHeight);
+  const cores = ["#E89925", "#38584B", "#A3B2A4", "#C3622D", "#F2F1F0", "#88764F"];
+  const ps = Array.from({ length: n }, () => ({ x: W / 2 + (Math.random() - 0.5) * 80, y: Hh * 0.35, vx: (Math.random() - 0.5) * 12, vy: -Math.random() * 14 - 4, r: Math.random() * 6 + 4, c: cores[Math.floor(Math.random() * cores.length)], a: Math.random() * 6, moeda: Math.random() < 0.25 }));
+  let t = 0;
+  (function f() {
+    ctx.clearRect(0, 0, W, Hh); t++;
+    ps.forEach((p) => { p.vy += 0.35; p.x += p.vx; p.y += p.vy; p.a += 0.2; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a);
+      if (p.moeda) { ctx.fillStyle = "#E89925"; ctx.beginPath(); ctx.ellipse(0, 0, p.r * 1.4, p.r * 1.4 * Math.abs(Math.cos(p.a)), 0, 0, 7); ctx.fill(); ctx.strokeStyle = "#83462D"; ctx.stroke(); }
+      else { ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); } ctx.restore(); });
+    if (t < 160) requestAnimationFrame(f); else ctx.clearRect(0, 0, W, Hh);
+  })();
+}
+
+/* ---------- meu plano ---------- */
+function carregaPlano() {
+  const P = H.plano;
+  $("pDesde").value = P.desde || ""; $("pDesde").max = hoje(); $("pMot").value = P.motivos || "";
+  [1, 2, 3].forEach((i) => { const x = (P.pessoas || [])[i - 1] || {}; $("pN" + i).value = x.n || ""; $("pT" + i).value = x.t || ""; });
+  $("pGr").value = P.gr || ""; $("pDs").value = P.ds || ""; $("pPg").value = P.pg || CFG.precoG; $("pCocBox").hidden = !CFG.subs.includes("coc");
+  $("pGasto").value = P.gasto || ""; $("pPremio").value = P.premio || ""; $("pValor").value = P.valor || "";
+}
+$("bSalvaPlano").onclick = () => {
+  const d = $("pDesde").value;
+  H.plano = { desde: d && d <= hoje() ? d : "", motivos: $("pMot").value.trim().slice(0, 600),
+    pessoas: [1, 2, 3].map((i) => ({ n: $("pN" + i).value.trim().slice(0, 40), t: $("pT" + i).value.trim().slice(0, 20) })).filter((x) => x.n || x.t),
+    gr: Math.min(Math.max(0, +String($("pGr").value).replace(",", ".") || 0), 100), ds: Math.min(Math.max(0, Math.round(+$("pDs").value || 0)), 7), pg: Math.min(Math.max(1, +$("pPg").value || CFG.precoG), 2000),
+    gasto: Math.max(0, +$("pGasto").value || 0), premio: $("pPremio").value.trim().slice(0, 40), valor: Math.max(0, +$("pValor").value || 0) };
+  gravar(); desenha(); $("bSalvaPlano").textContent = "Plano salvo ✓"; setTimeout(() => ($("bSalvaPlano").textContent = "Salvar meu plano"), 2000);
+};
+$("bPremio").onclick = () => { $("plano").open = true; $("pPremio").focus(); $("plano").scrollIntoView({ behavior: "smooth" }); };
+$("bUsei").onclick = () => { $("retBox").hidden = !$("retBox").hidden; };
+$("bRet").onclick = async () => {
+  const v = +$("retVal").value; if (!(v > 0)) { alert("Informe o valor."); return; }
+  const o = $("retObs").value.trim();
+  try { await enviar(["e=dqret", "val=" + Math.round(v), o ? "obs=" + limpa(o, 40) : "obs="]); } catch (e) {}
+  H.ret.push({ ts: Date.now(), val: Math.round(v), obs: o.slice(0, 40) }); gravar(); desenha(); $("retBox").hidden = true; festa(160);
+};
+
+/* ---------- ajuda agora ---------- */
+const telLink = (t) => { let d = String(t || "").replace(/\D/g, ""); return d ? "tel:" + d : ""; };
+function pessoasHTML() {
+  const ps = H.plano.pessoas || [];
+  return ps.length ? ps.map((p) => `<div class="pessoa"><span>${esc(p.n || "Contato")}</span>${p.t ? `<a href="${telLink(p.t)}">${esc(p.t)}</a>` : ""}</div>`).join("") : `<div class="sub">Você ainda não cadastrou pessoas no seu plano. Faça isso em “Meu plano”, com calma, quando estiver bem.</div>`;
+}
+function abre(html) { $("ov").innerHTML = `<div class="ov" role="dialog" aria-modal="true"><div class="in">${html}</div></div>`; $("sosbar").hidden = true; document.body.style.overflow = "hidden"; }
+function fecha() { clearInterval(timer); $("ov").innerHTML = ""; $("sosbar").hidden = false; document.body.style.overflow = ""; }
+let timer = null;
+const topo = (t) => `<div class="row"><h1>${t}</h1><button class="x" data-a="fechar" aria-label="Fechar">✕</button></div>`;
+const avisar = (tipo) => `<div class="card"><h2>Avisar o Dr. Luis Felipe</h2><div class="sub">Ele recebe e vê quando abrir o painel. Não é atendimento imediato.</div>
+  <textarea id="sosObs" maxlength="300" placeholder="Se quiser, conte o que está acontecendo"></textarea>
+  <button class="pri" data-a="avisa" data-t="${tipo}">Enviar aviso</button>
+  <div class="sub" style="margin-top:10px">Ou fale com o consultório pelo WhatsApp: <a href="https://wa.me/${ZAP_CONSULTORIO}" target="_blank" rel="noopener"><b>${ZAP_TXT}</b></a></div></div>`;
+function sos() {
+  abre(`${topo("Estou aqui com você")}
+  <p style="color:var(--on-bg-soft);line-height:1.5">Escolha o que está acontecendo agora.</p>
+  <div class="tres">
+    <button data-a="fissura"><b>Estou com muita vontade de usar</b><span>Vamos atravessar essa onda juntos.</span></button>
+    <button data-a="lapso"><b>Usei</b><span>O que fazer nas próximas horas.</span></button>
+    <button data-a="perigo" class="perigo"><b>Estou passando mal ou em perigo</b><span>Sinais de emergência e telefones.</span></button>
+  </div>`);
+}
+function fissura() {
+  const C = calcula(), mot = (H.plano.motivos || "").split("\n").map((s) => s.trim()).filter(Boolean);
+  abre(`${topo("A vontade é uma onda")}
+  <div class="card"><p style="margin-top:0">Ela sobe, chega no pico e desce. Quase sempre passa em <b>15 a 30 minutos</b>, mesmo sem usar. Você não precisa vencer a vontade: só precisa atravessá-la.</p>
+  <div class="onda"><div class="bola" id="bola">Toque para começar</div><div class="relogio" id="rel">15:00</div><div class="sub" id="respTxt">Respire junto com a bola: puxe o ar quando ela cresce, solte devagar quando ela diminui.</div></div></div>
+  <div class="card"><h2>Enquanto isso</h2><ol class="passos">
+    <li><b>Saia de perto</b> do lugar, das pessoas e do dinheiro ou cartão.</li>
+    <li><b>Chame alguém</b> do seu plano:${pessoasHTML()}</li>
+    <li><b>Cuide do corpo:</b> coma alguma coisa, beba água, tome um banho. Fome, raiva, solidão e cansaço aumentam a vontade.</li>
+    <li><b>Lembre por que você parou:</b>${mot.length ? `<ul class="lista">${mot.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>` : ` escreva seus motivos em “Meu plano” quando estiver bem.`}</li>
+    <li><b>Olhe o que você já construiu:</b> ${real(Math.max(C.saldo, 0))} no cofrinho e ${C.seq} semana${C.seq === 1 ? "" : "s"} livre${C.seq === 1 ? "" : "s"} seguida${C.seq === 1 ? "" : "s"}.</li>
+  </ol></div>
+  ${avisar("fi")}`);
+}
+function lapso() {
+  abre(`${topo("Usar uma vez não apaga o caminho")}
+  <div class="card"><p style="margin-top:0">O que você faz nas próximas horas conta mais do que o que aconteceu. Culpa e vergonha empurram para usar mais; cuidado e sinceridade ajudam a parar.</p>
+  <ol class="passos">
+    <li><b>Pare agora</b> e saia do lugar e de perto das pessoas com quem usou.</li>
+    <li><b>Não fique sozinho(a).</b> Chame alguém do seu plano:${pessoasHTML()}</li>
+    <li><b>Não dirija</b> e não misture com álcool ou calmantes.</li>
+    <li><b>Cuidado com a quantidade:</b> depois de dias sem usar, o corpo perde a tolerância. A mesma quantidade de antes pode causar overdose.</li>
+    <li><b>Seja sincero(a) no próximo teste.</b> Positivo não é castigo: é informação para ajustar o tratamento. O que está no cofrinho continua seu.</li>
+  </ol>
+  <button class="sec" data-a="recomeca">Recomeçar a contagem de dias a partir de hoje</button></div>
+  ${avisar("la")}`);
+}
+function perigo() {
+  abre(`${topo("Emergência")}
+  <div class="tel"><a href="tel:192">Ligar 192 · SAMU</a><a href="tel:188" class="sv">Ligar 188 · CVV</a></div>
+  <div class="card"><h2>Ligue 192 ou vá ao pronto-socorro se houver</h2><ul class="lista">
+    <li>dor ou aperto no peito, falta de ar, desmaio ou convulsão;</li>
+    <li>respiração muito lenta, lábios roxos, pessoa que não acorda (sinais de overdose);</li>
+    <li>febre alta com agitação, confusão ou coração disparado;</li>
+    <li>na falta do álcool ou de calmantes: tremor forte, suor, confusão, ver ou ouvir coisas que não existem;</li>
+    <li>pensamentos de se matar fortes agora: ligue 188 (CVV, 24 h) ou 192 e não fique sozinho(a).</li>
+  </ul>
+  <div class="alert"><b>Importante:</b> quem bebe muito todos os dias ou usa calmantes (clonazepam, diazepam, alprazolam…) há muito tempo não deve parar de uma vez sem orientação médica. A parada brusca pode causar convulsão.</div></div>
+  ${avisar("pe")}`);
+}
+function respira() {
+  const bola = $("bola"); if (!bola || timer) return;
+  let seg = 900, fase = 0; bola.textContent = "Puxe o ar";
+  const ciclo = () => { fase = (fase + 1) % 2; bola.style.transform = fase ? "scale(1)" : "scale(.7)"; bola.textContent = fase ? "Puxe o ar" : "Solte devagar"; };
+  ciclo();
+  let t = 0;
+  timer = setInterval(() => {
+    seg--; t++; const r = $("rel"); if (!r) { clearInterval(timer); timer = null; return; }
+    r.textContent = String(Math.floor(seg / 60)).padStart(2, "0") + ":" + String(seg % 60).padStart(2, "0");
+    if (t % 5 === 0) ciclo();
+    if (seg <= 0) { clearInterval(timer); timer = null; bola.textContent = "Você atravessou"; $("respTxt").textContent = "Quinze minutos. Como está a vontade agora? Se ainda estiver forte, comece de novo e chame alguém."; festa(80); }
+  }, 1000);
+}
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-a]"); if (!b) return;
+  const a = b.dataset.a;
+  if (a === "fechar") fecha();
+  else if (a === "fissura") fissura();
+  else if (a === "lapso") lapso();
+  else if (a === "perigo") perigo();
+  else if (a === "recomeca") { H.plano.desde = hoje(); gravar(); desenha(); b.textContent = "Contagem recomeçada hoje. Cada dia conta."; b.disabled = true; }
+  else if (a === "avisa") {
+    b.disabled = true; b.textContent = "Enviando…";
+    try { await enviar(["e=dqsos", "t=" + b.dataset.t, "fi=" + (V.fi ?? ""), "obs=" + limpa($("sosObs").value, 300)]); b.textContent = "Aviso enviado"; }
+    catch (err) { b.disabled = false; b.textContent = "Não enviou: tente o WhatsApp"; }
+  }
+});
+document.addEventListener("click", (e) => { if (e.target.closest("#bola")) respira(); });
+$("bSOS").onclick = sos;
+
+/* ---------- início ---------- */
+if (!/^[A-Za-z0-9]{6,16}$/.test(cod)) { $("app").hidden = true; $("err").style.display = "block"; $("sosbar").hidden = true; }
+else {
+  $("saud").textContent = `Cada teste negativo vale ${real(CFG.valor)}${CFG.modo === "e" ? " (ou mais, se vierem seguidos)" : ""} no seu cofrinho. Teste na segunda e na quinta. Cada semana livre é sua.`;
+  montaForm(); carregaPlano(); desenha(); desenhaProvas(); atualizaGoogle();
+  if (CFG.foto) $("fotoSub").textContent = "Obrigatório: o negativo só entra no cofrinho com a foto da fita.";
+}
+</script>
+</body>
+</html>
