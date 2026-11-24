@@ -27,7 +27,7 @@ header p{margin:6px 0 0;color:var(--on-bg-soft);line-height:1.45;font-size:15px}
 .placar{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pl{background:var(--brand-soft);border-radius:14px;padding:12px;text-align:center}
 .pl b{display:block;font:800 40px/1 var(--f-body);color:var(--ok);font-variant-numeric:tabular-nums}
-.pl span{font-size:13px;color:var(--soft);font-weight:600}
+.pl span{font-size:12px;color:var(--soft);font-weight:600}
 .pl.alt b{color:var(--brand)}
 /* cofrinho */
 .cofre{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center}
@@ -151,6 +151,22 @@ ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
       <button class="lnk" id="bPremio">Escolher meu prêmio</button>
     </section>
 
+    <section class="card" aria-label="Quanto a cocaína custa" id="cCusto" hidden>
+      <h2>Quanto a cocaína custa</h2>
+      <div class="sub" id="custoSub"></div>
+      <div id="custoVazio" class="ajuda" hidden>Para ver a sua conta, preencha em <button class="lnk" id="bCustoPlano" style="padding:0">Meu plano</button> quantos gramas você usava por dia de uso e quantos dias por semana.</div>
+      <div id="custoBox">
+        <div class="placar" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+          <div class="pl"><b id="cPerda" style="font-size:19px;white-space:nowrap;color:var(--bad-text)">—</b><span>se continuasse usando</span></div>
+          <div class="pl"><b id="cGasto" style="font-size:19px;white-space:nowrap;color:var(--bad-text)">—</b><span>gastei nos lapsos</span></div>
+          <div class="pl"><b id="cGanho" style="font-size:19px;white-space:nowrap">—</b><span>ganhei</span></div>
+        </div>
+        <div id="custoGraf" style="margin-top:10px"></div>
+        <div class="leg"><span><i style="border-top:3px dashed var(--bad);height:0;border-radius:0;width:16px"></i>se continuasse usando</span><span><i style="background:var(--bad)"></i>gastei nos lapsos</span><span><i style="background:var(--ok)"></i>ganhei: o que não gastei + cofrinho</span></div>
+        <div class="ajuda" id="custoFrase" style="margin-top:10px"></div>
+      </div>
+    </section>
+
     <section class="card" aria-label="Minhas semanas">
       <div class="row"><h2>Minhas semanas</h2><span class="sub" id="kTot"></span></div>
       <div class="sub">Cada coluna é uma semana: segunda em cima, quinta embaixo.</div>
@@ -211,7 +227,14 @@ ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
         <div class="g2"><input type="text" id="pN1" placeholder="Nome"><input type="tel" id="pT1" placeholder="Telefone"></div>
         <div class="g2" style="margin-top:6px"><input type="text" id="pN2" placeholder="Nome"><input type="tel" id="pT2" placeholder="Telefone"></div>
         <div class="g2" style="margin-top:6px"><input type="text" id="pN3" placeholder="Nome"><input type="tel" id="pT3" placeholder="Telefone"></div>
-        <label class="f" for="pGasto">Quanto eu gastava por semana com o uso <span class="sub">(R$, aproximado)</span></label>
+        <div id="pCocBox">
+          <label class="f">Como era o meu uso de cocaína</label>
+          <div class="g2"><div><label class="f" for="pGr" style="margin-top:0">Gramas por dia de uso</label><input type="number" id="pGr" inputmode="decimal" min="0" max="100" step="0.5" placeholder="ex.: 2"></div>
+          <div><label class="f" for="pDs" style="margin-top:0">Dias de uso por semana</label><input type="number" id="pDs" inputmode="numeric" min="0" max="7" step="1" placeholder="ex.: 3"></div></div>
+          <label class="f" for="pPg">Preço do grama (R$)</label>
+          <input type="number" id="pPg" inputmode="numeric" min="1" max="2000" step="5">
+        </div>
+        <label class="f" for="pGasto">Quanto eu gastava por semana com o uso <span class="sub">(R$, aproximado<span id="pGastoAuto"></span>)</span></label>
         <input type="number" id="pGasto" inputmode="numeric" min="0" max="20000" step="10">
         <div class="g2"><div><label class="f" for="pPremio">Meu prêmio</label><input type="text" id="pPremio" maxlength="40" placeholder="Ex.: tênis novo"></div>
         <div><label class="f" for="pValor">Custa (R$)</label><input type="number" id="pValor" inputmode="numeric" min="0" max="100000" step="10"></div></div>
@@ -255,6 +278,7 @@ const cod = (q.get("c") || "").trim();
 const CFG = {
   subs: (q.get("s") || "coc,thc,alc").split(",").filter((k) => SUBST[k]),
   valor: Math.min(Math.max(+q.get("v") || 25, 1), 1000),
+  precoG: Math.min(Math.max(+q.get("g") || 50, 1), 2000),
   modo: q.get("m") === "e" ? "e" : "f",
   inicio: /^\d{4}-\d\d-\d\d$/.test(q.get("i") || "") ? q.get("i") : null,
 };
@@ -344,7 +368,9 @@ function desenha() {
   $("kBarraBox").hidden = !meta; $("kBarra").style.width = (meta ? Math.min(C.saldo / meta * 100, 100) : 0) + "%";
   $("kFalta").textContent = meta ? (C.saldo >= meta ? "Você já pode comprar o seu prêmio. Celebre!" : `Faltam ${real(meta - C.saldo)}: cerca de ${Math.ceil((meta - C.saldo) / C.proxValor)} testes negativos.`) : `Cada teste negativo: +${real(C.proxValor)}${CFG.modo === "e" ? " (o valor sobe a cada negativo seguido)" : ""}.`;
   $("bPremio").textContent = P.premio ? "Mudar meu prêmio" : "Escolher meu prêmio";
-  if (P.gasto && P.desde) { const sem = (dataDe(hoje()) - dataDe(P.desde)) / 6048e5; if (sem > 0) $("kGasto").innerHTML = `Além do cofrinho, você deixou de gastar cerca de <b>${real(sem * P.gasto)}</b> com o uso.`; } else $("kGasto").textContent = "";
+  const K = custo(C), gastoSem = P.gasto || (K ? K.base : 0);
+  if (gastoSem && P.desde) { const sem = (dataDe(hoje()) - dataDe(P.desde)) / 6048e5; if (sem > 0) $("kGasto").innerHTML = `Além do cofrinho, você deixou de gastar cerca de <b>${real(sem * gastoSem)}</b> com o uso.`; } else $("kGasto").textContent = "";
+  desenhaCusto(K, C);
   $("pote").innerHTML = pote(Math.max(C.saldo, 0), meta);
   // semanas
   const box = $("semanas");
@@ -359,6 +385,55 @@ function desenha() {
   $("marcos").innerHTML = MARCOS.map(([w, n]) => `<div class="marco${melhor >= w ? " on" : ""}"><div class="m">${w < 52 ? w + "s" : "1a"}</div>${n}</div>`).join("");
   return C;
 }
+
+/* ---------- custo da cocaína: perda x ganho ---------- */
+function custo(C) {
+  const P = H.plano, g = +P.gr || 0, ds = Math.min(+P.ds || 0, 7), pg = +P.pg || CFG.precoG;
+  if (!(g > 0 && ds > 0) || !C.semanas.length) return null;
+  const base = g * ds * pg, h = hoje();
+  let proj = 0, gasto = 0, evit = 0, cof = 0;
+  const pts = [{ w: C.semanas[0].w, proj: 0, gasto: 0, ganho: 0 }];
+  C.semanas.forEach((x) => {
+    const fim = somaDias(x.w, 6), frac = fim < h ? 1 : Math.min(7, (dataDe(h) - dataDe(x.w)) / 864e5 + 1) / 7;
+    let dias = Math.min(H.regs.filter((r) => segDe(r.d) === x.w).reduce((a, r) => a + (+(r.v && r.v.us) || 0), 0), 7);
+    if (!dias && x.sl.some((s) => s.st === "pos")) dias = 1;
+    const sem = base * frac, gastoSem = dias * g * pg;
+    proj += sem; gasto += gastoSem; evit += Math.max(0, sem - gastoSem); cof += x.sl.reduce((a, s) => a + (s.val || 0), 0);
+    pts.push({ w: somaDias(x.w, 7), proj, gasto, ganho: evit + cof });
+  });
+  return { base, pg, g, proj, gasto, evit, cof, ganho: evit + cof, gramas: evit / pg, pts };
+}
+function desenhaCusto(K, C) {
+  const mostra = CFG.subs.includes("coc") || (+H.plano.gr > 0);
+  $("cCusto").hidden = !mostra; if (!mostra) return;
+  const pg = +H.plano.pg || CFG.precoG;
+  $("custoSub").textContent = `Com o grama a ${real(pg)}. A linha tracejada mostra quanto você gastaria se continuasse usando como antes; o verde é o que ficou com você.`;
+  $("custoVazio").hidden = !!K; $("custoBox").hidden = !K;
+  if (!C.semanas.length && !K) { $("custoVazio").hidden = false; $("custoVazio").innerHTML = "O gráfico aparece a partir do primeiro teste. Enquanto isso, preencha em “Meu plano” como era o seu uso de cocaína."; return; }
+  if (!K) return;
+  $("cPerda").textContent = real(K.proj); $("cGasto").textContent = real(K.gasto); $("cGanho").textContent = real(K.ganho);
+  const pts = K.pts, W = 520, Hh = 210, pl = 50, pr = 14, pt = 14, pb = 26;
+  const max = Math.max(K.proj, K.ganho, K.gasto, 100), passo = Math.pow(10, Math.floor(Math.log10(max))) * (max / Math.pow(10, Math.floor(Math.log10(max))) > 5 ? 2 : max / Math.pow(10, Math.floor(Math.log10(max))) > 2 ? 1 : 0.5);
+  const top = Math.ceil(max / passo) * passo;
+  const x = (i) => pl + i / Math.max(pts.length - 1, 1) * (W - pl - pr), y = (v) => pt + (1 - v / top) * (Hh - pt - pb);
+  let g = "";
+  for (let v = 0; v <= top + 0.1; v += passo) g += `<line x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl - 6}" y="${y(v) + 4}" text-anchor="end">${v >= 1000 ? (v / 1000).toLocaleString("pt-BR") + " mil" : v}</text>`;
+  const caminho = (k) => pts.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + "," + y(p[k]).toFixed(1)).join("");
+  const area = (k, cor) => `<path d="${caminho(k)}L${x(pts.length - 1)},${y(0)}L${x(0)},${y(0)}Z" fill="var(--${cor})" opacity=".14"/>`;
+  g += area("ganho", "ok") + area("gasto", "bad");
+  g += `<path d="${caminho("proj")}" fill="none" stroke="var(--bad)" stroke-width="2.5" stroke-dasharray="6 5"/>`;
+  g += `<path d="${caminho("gasto")}" fill="none" stroke="var(--bad)" stroke-width="3"/><path d="${caminho("ganho")}" fill="none" stroke="var(--ok)" stroke-width="3.5"/>`;
+  const u = pts.length - 1;
+  g += `<circle cx="${x(u)}" cy="${y(K.ganho)}" r="5" fill="var(--ok)"/><circle cx="${x(u)}" cy="${y(K.proj)}" r="4" fill="var(--bad)"/>`;
+  const n = Math.min(pts.length, 5);
+  [...new Set(Array.from({ length: n }, (_, i) => Math.round(i * u / Math.max(n - 1, 1))))].forEach((i) => (g += `<text x="${x(i)}" y="${Hh - 8}" text-anchor="${i === u && u ? "end" : i === 0 ? "start" : "middle"}">${dBR(pts[i].w)}</text>`));
+  $("custoGraf").innerHTML = `<svg viewBox="0 0 ${W} ${Hh}" style="width:100%;height:auto;display:block" role="img" aria-label="Gráfico: quanto a cocaína custaria e quanto você ganhou">${g}</svg>`;
+  const ano = K.base * 52, gr = K.gramas;
+  $("custoFrase").innerHTML = `Usando como antes, a cocaína custaria <b>${real(K.base)} por semana</b> e <b>${real(ano)} em um ano</b>. ` +
+    (gr >= 1 ? `Até agora, cerca de <b>${Math.round(gr).toLocaleString("pt-BR")} gramas</b> deixaram de entrar no seu corpo. ` : "") +
+    (K.ganho > K.proj ? "Somando o cofrinho, os seus ganhos já passaram do que a cocaína teria custado." : `Cada semana livre põe ${real(K.base)} de volta no seu bolso, mais o cofrinho.`);
+}
+$("bCustoPlano").onclick = () => { $("plano").open = true; $("pGr").focus(); $("plano").scrollIntoView({ behavior: "smooth" }); };
 
 /* ---------- formulário ---------- */
 const sel = { res: {}, quem: null, md: null, apoio: new Set(), gat: new Set(), semTeste: false };
@@ -481,12 +556,14 @@ function carregaPlano() {
   const P = H.plano;
   $("pDesde").value = P.desde || ""; $("pDesde").max = hoje(); $("pMot").value = P.motivos || "";
   [1, 2, 3].forEach((i) => { const x = (P.pessoas || [])[i - 1] || {}; $("pN" + i).value = x.n || ""; $("pT" + i).value = x.t || ""; });
+  $("pGr").value = P.gr || ""; $("pDs").value = P.ds || ""; $("pPg").value = P.pg || CFG.precoG; $("pCocBox").hidden = !CFG.subs.includes("coc");
   $("pGasto").value = P.gasto || ""; $("pPremio").value = P.premio || ""; $("pValor").value = P.valor || "";
 }
 $("bSalvaPlano").onclick = () => {
   const d = $("pDesde").value;
   H.plano = { desde: d && d <= hoje() ? d : "", motivos: $("pMot").value.trim().slice(0, 600),
     pessoas: [1, 2, 3].map((i) => ({ n: $("pN" + i).value.trim().slice(0, 40), t: $("pT" + i).value.trim().slice(0, 20) })).filter((x) => x.n || x.t),
+    gr: Math.min(Math.max(0, +String($("pGr").value).replace(",", ".") || 0), 100), ds: Math.min(Math.max(0, Math.round(+$("pDs").value || 0)), 7), pg: Math.min(Math.max(1, +$("pPg").value || CFG.precoG), 2000),
     gasto: Math.max(0, +$("pGasto").value || 0), premio: $("pPremio").value.trim().slice(0, 40), valor: Math.max(0, +$("pValor").value || 0) };
   gravar(); desenha(); $("bSalvaPlano").textContent = "Plano salvo ✓"; setTimeout(() => ($("bSalvaPlano").textContent = "Salvar meu plano"), 2000);
 };
