@@ -111,6 +111,17 @@ nav.passos .in{display:flex;gap:10px;align-items:center;min-height:70px}
 .btnCarta{display:flex;align-items:center;justify-content:center;width:100%;border:0;border-radius:999px;padding:16px;background:var(--verde-floresta);color:#fff;font:700 17px var(--f-body);cursor:pointer;margin:4px 0 6px}
 .btnCarta.on{background:var(--terracota)}
 details.cartaFechada summary{cursor:pointer;color:var(--verde-floresta);font-weight:700;font-size:15px;padding:6px 0}
+.roteiros{display:grid;gap:10px}
+.roteiros button{display:flex;align-items:center;gap:14px;text-align:left;border:2px solid var(--line);background:var(--branco);border-radius:14px;padding:14px 16px;cursor:pointer;font:inherit;color:var(--ink)}
+.roteiros button[aria-pressed="true"]{border-color:var(--verde-floresta);box-shadow:0 0 0 2px var(--verde-floresta) inset}
+.roteiros .ic{font-size:30px;flex:0 0 auto}
+.roteiros b{display:block;font-size:17px}
+.roteiros small{color:var(--soft);font-size:13px}
+.roteiros em{display:block;color:var(--verde-floresta);font-size:12px;font-style:normal;font-weight:700;margin-top:2px}
+.q-lista{font-size:14px;color:var(--soft);margin:6px 0 0;padding-left:18px}
+.q-lista li{margin:2px 0}
+.ouvirQ{border:0;background:none;font-size:17px;padding:0 6px 0 0;cursor:pointer;vertical-align:-1px}
+.ouvirQ.on{filter:drop-shadow(0 0 3px var(--verde-floresta))}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -134,7 +145,7 @@ details.cartaFechada summary{cursor:pointer;color:var(--verde-floresta);font-wei
 <script>
 const FORM = "https://docs.google.com/forms/d/e/1FAIpQLScyon1qzOMYwW0VNZXbu9wwTN9pITyvQAT5T6E3sF90pMqKDw/formResponse";
 const FBZX = "5146609488467519053";
-const STEPS = [{"n":"Sobre você","q":[{"e":451530768,"t":"text","q":"Identificação (Nome do Paciente):","d":"","o":[],"x":false,"r":true},{"e":1356641035,"t":"date","q":"Data de nascimento:","d":"","o":[],"x":false,"r":false},{"e":271042664,"t":"text","q":"Telefone celular, com DDD","d":"","o":[],"x":false,"r":true},{"e":1350752512,"t":"para","q":"Endereço completo com CEP","d":"","o":[],"x":false,"r":true},{"e":302491566,"t":"text","q":"CPF","d":"","o":[],"x":false,"r":true},{"e":1749698482,"t":"text","q":"Informações gerais: Local de Nascimento:","d":"","o":[],"x":false,"r":true},{"e":127539307,"t":"text","q":"Em que cidade mora? Com quem você mora? É casado (a) ? Por favor escreva PARENTESCO, NOME e IDADE . (possuem alguma doença )","d":"","o":[],"x":false,"r":true},{"e":604230856,"t":"text","q":"Qual sua escolaridade?","d":"","o":[],"x":false,"r":true},{"e":182584738,"t":"text","q":"Qual a sua ocupação? Se desempregado, qual foi sua ultima ocupação?","d":"","o":[],"x":false,"r":true},{"e":1348612752,"t":"text","q":"Você pratica alguma religião? Se sim, qual?","d":"","o":[],"x":false,"r":true},{"e":1603215475,"t":"text","q":"Saúde atual Peso: kg. Altura : mts","d":"","o":[],"x":false,"r":false}]},{"n":"O que te traz","q":[{"e":1997737708,"t":"para","q":"Por favor descreva o principal motivo da sua procura a este serviço hoje:","d":"","o":[],"x":false,"r":true},{"e":873348109,"t":"para","q":"Há quanto tempo isso acontece? O que você já tentou para resolver (tratamentos, mudanças, ajuda de alguém)?","d":"","o":[],"x":false,"r":false},{"e":2047008911,"t":"check","q":"Em quais áreas da sua vida isso tem causado prejuízo? (marque todas que se aplicam)","d":"","o":["Trabalho / estudos","Relacionamento amoroso","Filhos / família","Sono","Saúde física","Finanças","Amizades / vida social","Autoestima / como me vejo","Lazer e prazer nas coisas"],"x":true,"r":false},{"e":216020722,"t":"scale","q":"De 0 a 10, quanto isso tem atrapalhado sua vida hoje?","d":"","o":["0","1","2","3","4","5","6","7","8","9","10"],"x":false,"r":false},{"e":203594453,"t":"para","q":"Se nada mudar nos próximos 6 meses, o que você imagina que pode acontecer na sua vida?","d":"","o":[],"x":false,"r":false}]},{"n":"Como você tem estado","q":[{"e":619830437,"t":"radio","q":"Durante as DUAS (2) SEMANAS, o quanto você foi perturbado(a) pelos seguintes problemas? Pouco interesse ou prazer em fazer as coisas?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":176402463,"t":"radio","q":"Sentiu-se desanimado, deprimido ou sem esperança?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":2034619305,"t":"radio","q":"Sentiu-se mais irritado, mal-humorado ou zangado do que o usual?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1974304128,"t":"radio","q":"Dormiu menos do que o usual, mas ainda tem muita energia?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1032344579,"t":"radio","q":"Iniciou muito mais projetos do que o usual ou fez coisas mais arriscadas que o habitual?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":2008117834,"t":"radio","q":"Sentiu-se nervoso, ansioso, assustado, preocupado ou tenso?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1160640667,"t":"radio","q":"Sentiu pânico ou se sentiu amedrontado?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":308567697,"t":"radio","q":"Evitou situações que o deixam ansioso?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":2138224143,"t":"radio","q":"Dores e sofrimento sem explicação (p.ex., cabeça, costas, articulações, abdome, pernas)?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1617292777,"t":"radio","q":"Sentimento de que suas doenças não estão sendo levadas suficientemente a sério?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":770691408,"t":"radio","q":"Pensamentos de ferir a si mesmo?","d":"Se você está pensando nisso agora, não espere a consulta: ligue 188 (CVV, 24h, gratuito), procure o pronto-atendimento mais próximo ou ligue 192 (SAMU), e avise a clínica.","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":200482829,"t":"radio","q":"Ouviu coisas que outras pessoas não ouviam, como vozes, mesmo quando não havia ninguém por perto?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1342179326,"t":"radio","q":"Sentiu que alguém podia ouvir seus pensamentos ou que você podia ouvir o que outra pessoa estava pensando?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":2079394672,"t":"radio","q":"Problemas com o sono?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":302869374,"t":"radio","q":"Problemas com a memória (p. ex., aprender informações novas) ou com localização (p.ex., encontrar o caminho para casa)?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":427434786,"t":"radio","q":"Pensamentos, impulsos ou imagens desagradáveis que entram repetidamente na sua cabeça?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1324651983,"t":"radio","q":"Sentiu-se compelido a realizar certos comportamentos ou atos mentais repetidamente?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":997108414,"t":"radio","q":"Sentiu-se desligado ou distante de si mesmo, do seu corpo, do ambiente físico ao seu redor ou de suas lembranças?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":359170440,"t":"radio","q":"Sentiu-se sem saber quem você realmente é ou o que você quer da vida?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":312506575,"t":"radio","q":"Não se sentiu próximo a outras pessoas ou desfrutou das relações com elas?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false}]},{"n":"Hábitos de vida","q":[{"e":1371486331,"t":"text","q":"Que horas você DEITA para dormir e que horas você DESPERTA.","d":"","o":[],"x":false,"r":false},{"e":1691699175,"t":"text","q":"Tem alguma queixa em relação ao seu sono? Qual?","d":"","o":[],"x":false,"r":false},{"e":24621429,"t":"text","q":"O que você faz para se divertir e relaxar?","d":"","o":[],"x":false,"r":false},{"e":1714911479,"t":"text","q":"Você pratica atividade física? Se sim, por favor diga QUAL atividade e QUANTAS vezes na semana.","d":"","o":[],"x":false,"r":false},{"e":654173994,"t":"check","q":"Marque os alimentos que fazem parte da sua alimentação habitual (> 3 vezes na semana).","d":"","o":["Doces","Frituras","Sorvetes","Farinha branca (massas, pão francês)","Leite","Bolachas","Frutas","Saladas","Sementes Oleaginosas"],"x":true,"r":false},{"e":225877486,"t":"para","q":"Você tem algum desconforto após (até 24h) comer certos tipos de alimentos, tal como fadiga, dor muscular... Se sim, quais alimentos?","d":"","o":[],"x":false,"r":false},{"e":1688305565,"t":"para","q":"O que você acha que está CERTO na sua alimentação?","d":"","o":[],"x":false,"r":false},{"e":1925910349,"t":"para","q":"O que você acha que está ERRADO na sua alimentação?","d":"","o":[],"x":false,"r":false},{"e":999793265,"t":"radio","q":"Com que frequência você evacua?","d":"","o":["Mais de 3 x/dia.","1-3 x/dia","4-6x/sem","2-3x/sem","1 ou menos x/sem"],"x":false,"r":false},{"e":221589374,"t":"text","q":"Número de bebidas cafeinadas por dia?","d":"","o":[],"x":false,"r":false},{"e":1821318994,"t":"radio","q":"Fuma tabaco?","d":"","o":["Nunca","Fumei mas parei","Fumo de vez em quando/diariamente"],"x":false,"r":false},{"e":82235050,"t":"text","q":"Número de drinques com álcool por SEMANA:","d":"","o":[],"x":false,"r":false},{"e":1881228463,"t":"para","q":"Por favor liste o NOME de outras drogas (maconha, cocaína, ecstasy...) que já fez uso passado ou atual. Quando usou pela ultima vez?","d":"","o":[],"x":false,"r":false},{"e":963833577,"t":"para","q":"Lista todas as medicações (incluindo vitaminas e suplementos) que você está usando ATUALMENTE, informando o NOME, DOSE, DATA de início e MOTIVO de uso.","d":"","o":[],"x":false,"r":false}]},{"n":"Infância e saúde mental","q":[{"e":1536613843,"t":"radio","q":"Minha infância foi:","d":"","o":["Feliz","Média","Triste","Traumática"],"x":false,"r":false},{"e":1002887916,"t":"para","q":"Por favor descreva EVENTOS estressantes da sua infância (conflitos paternos, mortes na família, mudanças constantes, dificuldades de aprendizado, problemas em neurodesenvolvimento (qualquer forma de abuso)","d":"","o":[],"x":false,"r":false},{"e":1625014655,"t":"para","q":"Como você descreveria seu pai? como foi a relação com ele?","d":"","o":[],"x":false,"r":false},{"e":252894706,"t":"para","q":"Como você descreveria sua mãe? como foi a relação com ela?","d":"","o":[],"x":false,"r":false},{"e":2021603520,"t":"para","q":"Me descreva como você e as pessoas próximas te percebem ( \"jeito de ser\")","d":"","o":[],"x":false,"r":false},{"e":1996698874,"t":"para","q":"Por favor descreva sua experiência prévia com profissionais de saúde mental (psiquiatra, psicólogo), listando QUAL profissional, MOTIVO da procura e ANO.","d":"","o":[],"x":false,"r":false},{"e":1210749787,"t":"para","q":"Por favor liste as medicações psiquiátricas que você já usou (e não usa mais), escrevendo o NOME, MOTIVO de uso e se AJUDOU ou não.","d":"","o":[],"x":false,"r":false},{"e":2018249347,"t":"para","q":"Você já recebeu algum diagnóstico de doença psiquiátrica de um médico? Qual?","d":"","o":[],"x":false,"r":false},{"e":239768435,"t":"para","q":"Você já teve alguma tentativa de suicídio? Se sim, quando e como foi?","d":"","o":[],"x":false,"r":false},{"e":640561601,"t":"para","q":"Você já precisou ser internado por razões emocionais ou psiquiátricas? Se sim, QUANDO e O QUE aconteceu?","d":"","o":[],"x":false,"r":false}]},{"n":"Saúde geral","q":[{"e":285256979,"t":"para","q":"Por favor, liste todos os problemas de saúde que os médicos já te diagnosticaram.","d":"","o":[],"x":false,"r":false},{"e":480319475,"t":"para","q":"Por favor liste as cirurgias que já foi submetido, escrevendo o NOME da cirurgia, ANO de realização e RESULTADO (se resolveu o problema).","d":"","o":[],"x":false,"r":false},{"e":174602724,"t":"para","q":"Por favor liste qualquer hospitalização (excluindo parto, doença mental ou cirurgia), escrevendo o MOTIVO da internação e ANO.","d":"","o":[],"x":false,"r":false},{"e":2038065491,"t":"para","q":"Lista as medicações e alimentos que você é alérgico.","d":"","o":[],"x":false,"r":false},{"e":692794642,"t":"radio","q":"Você já sofreu alguma convulsão ou bateu a cabeça tão forte que veio a perder a consciência?","d":"","o":["Sim","Não"],"x":false,"r":false},{"e":1716106957,"t":"para","q":"Se sim para a pergunta anterior, conte um pouco ?","d":"","o":[],"x":false,"r":false}]},{"n":"Trabalho e relações","q":[{"e":1762214597,"t":"para","q":"Para me ajudar a entender melhor sua ocupação, por favor escreva o TÍTULO, FUNÇÕES E RESPONSABILIDADES. Desde quando trabalha nesse emprego?","d":"","o":[],"x":false,"r":false},{"e":148143070,"t":"radio","q":"O estresse no meu trabalho é :","d":"","o":["Inexistente","Suportável","Grande","Insuportável"],"x":false,"r":false},{"e":1631993732,"t":"radio","q":"Se você está em um relacionamento, o quão feliz você está?","d":"","o":["Muito feliz","um pouco feliz","Um pouco infeliz","Muito infeliz"],"x":false,"r":false},{"e":875333959,"t":"radio","q":"\"Eu tenho amigos suficientes e fontes de suporte (pessoas que possam te ajudar)\"","d":"","o":["Verdadeiro","Falso","Não sei ao certo"],"x":false,"r":false}]},{"n":"Saúde da mulher","q":[{"e":596326575,"t":"radio","q":"Você está grávida?","d":"","o":["Sim","Não"],"x":false,"r":false},{"e":862558830,"t":"radio","q":"Você está amamentando?","d":"","o":["Sim","Não"],"x":false,"r":false},{"e":189833407,"t":"date","q":"Data da sua Última menstruação","d":"","o":[],"x":false,"r":false},{"e":1260288060,"t":"text","q":"Número de gestações","d":"","o":[],"x":false,"r":false},{"e":1424595934,"t":"text","q":"Número de filhos vivos","d":"","o":[],"x":false,"r":false},{"e":1501269804,"t":"para","q":"Por favor descreva qualquer PROBLEMA EMOCIONAL que você tenha experimentado enquanto fez uso de pílulas anticoncepcionais hormonais (estrógeno e progesterona) ou antes da sua MENSTRUAÇÃO.","d":"","o":[],"x":false,"r":false},{"e":263385892,"t":"text","q":"Você usa algum método contraceptivo? Se sim, qual?","d":"","o":[],"x":false,"r":false}]},{"n":"Família","q":[{"e":1803911536,"t":"check","q":"Por favor marque as alternativas correspondentes aos sintomas/doenças PSIQUIÁTRICAS que algum parente de sangue já teve.","d":"","o":["Depressão","Depressão pós-parto","Ansiedade","TOC (Transtorno Obsessivo Compulsivo)","Problemas com Álcool e drogas","Esquizofrenia","Transtorno Bipolar","Sensibilidade a alterações hormonais","tentativas de suicídio"],"x":false,"r":false},{"e":1622432190,"t":"para","q":"Se marcou qualquer item, por favor especifique QUAIS parentes e o NOME da doença.","d":"","o":[],"x":false,"r":false}]},{"n":"Para fechar","q":[{"e":290672287,"t":"para","q":"O que você espera de um bom atendimento médico?","d":"","o":[],"x":false,"r":false},{"e":958491368,"t":"para","q":"Se o tratamento der certo, o que estaria diferente na sua vida daqui a 3 meses?","d":"","o":[],"x":false,"r":false},{"e":380135455,"t":"scale","q":"De 0 a 10, quão importante é para você resolver isso AGORA?","d":"","o":["0","1","2","3","4","5","6","7","8","9","10"],"x":false,"r":false},{"e":438179701,"t":"scale","q":"E de 0 a 10, quão confiante você está de que consegue fazer essa mudança com ajuda?","d":"","o":["0","1","2","3","4","5","6","7","8","9","10"],"x":false,"r":false},{"e":1996437984,"t":"check","q":"O que poderia dificultar seu acompanhamento? (marque todas que se aplicam)","d":"","o":["Distância / deslocamento até o consultório","Horários / rotina de trabalho","Custo do tratamento","Medo ou receio de tomar medicação","Experiências ruins com tratamentos anteriores","Esquecer as datas das consultas","Falta de apoio de família / parceiro(a)","Nada deve atrapalhar"],"x":true,"r":false}]}];
+const STEPS_ADULTO = [{"n":"Sobre você","q":[{"e":451530768,"t":"text","q":"Identificação (Nome do Paciente):","d":"","o":[],"x":false,"r":true},{"e":1356641035,"t":"date","q":"Data de nascimento:","d":"","o":[],"x":false,"r":false},{"e":271042664,"t":"text","q":"Telefone celular, com DDD","d":"","o":[],"x":false,"r":true},{"e":1350752512,"t":"para","q":"Endereço completo com CEP","d":"","o":[],"x":false,"r":true},{"e":302491566,"t":"text","q":"CPF","d":"","o":[],"x":false,"r":true},{"e":1749698482,"t":"text","q":"Informações gerais: Local de Nascimento:","d":"","o":[],"x":false,"r":true},{"e":127539307,"t":"text","q":"Em que cidade mora? Com quem você mora? É casado (a) ? Por favor escreva PARENTESCO, NOME e IDADE . (possuem alguma doença )","d":"","o":[],"x":false,"r":true},{"e":604230856,"t":"text","q":"Qual sua escolaridade?","d":"","o":[],"x":false,"r":true},{"e":182584738,"t":"text","q":"Qual a sua ocupação? Se desempregado, qual foi sua ultima ocupação?","d":"","o":[],"x":false,"r":true},{"e":1348612752,"t":"text","q":"Você pratica alguma religião? Se sim, qual?","d":"","o":[],"x":false,"r":true},{"e":1603215475,"t":"text","q":"Saúde atual Peso: kg. Altura : mts","d":"","o":[],"x":false,"r":false}]},{"n":"O que te traz","q":[{"e":1997737708,"t":"para","q":"Por favor descreva o principal motivo da sua procura a este serviço hoje:","d":"","o":[],"x":false,"r":true},{"e":873348109,"t":"para","q":"Há quanto tempo isso acontece? O que você já tentou para resolver (tratamentos, mudanças, ajuda de alguém)?","d":"","o":[],"x":false,"r":false},{"e":2047008911,"t":"check","q":"Em quais áreas da sua vida isso tem causado prejuízo? (marque todas que se aplicam)","d":"","o":["Trabalho / estudos","Relacionamento amoroso","Filhos / família","Sono","Saúde física","Finanças","Amizades / vida social","Autoestima / como me vejo","Lazer e prazer nas coisas"],"x":true,"r":false},{"e":216020722,"t":"scale","q":"De 0 a 10, quanto isso tem atrapalhado sua vida hoje?","d":"","o":["0","1","2","3","4","5","6","7","8","9","10"],"x":false,"r":false},{"e":203594453,"t":"para","q":"Se nada mudar nos próximos 6 meses, o que você imagina que pode acontecer na sua vida?","d":"","o":[],"x":false,"r":false}]},{"n":"Como você tem estado","q":[{"e":619830437,"t":"radio","q":"Durante as DUAS (2) SEMANAS, o quanto você foi perturbado(a) pelos seguintes problemas? Pouco interesse ou prazer em fazer as coisas?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":176402463,"t":"radio","q":"Sentiu-se desanimado, deprimido ou sem esperança?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":2034619305,"t":"radio","q":"Sentiu-se mais irritado, mal-humorado ou zangado do que o usual?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1974304128,"t":"radio","q":"Dormiu menos do que o usual, mas ainda tem muita energia?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1032344579,"t":"radio","q":"Iniciou muito mais projetos do que o usual ou fez coisas mais arriscadas que o habitual?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":2008117834,"t":"radio","q":"Sentiu-se nervoso, ansioso, assustado, preocupado ou tenso?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1160640667,"t":"radio","q":"Sentiu pânico ou se sentiu amedrontado?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":308567697,"t":"radio","q":"Evitou situações que o deixam ansioso?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":2138224143,"t":"radio","q":"Dores e sofrimento sem explicação (p.ex., cabeça, costas, articulações, abdome, pernas)?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1617292777,"t":"radio","q":"Sentimento de que suas doenças não estão sendo levadas suficientemente a sério?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":770691408,"t":"radio","q":"Pensamentos de ferir a si mesmo?","d":"Se você está pensando nisso agora, não espere a consulta: ligue 188 (CVV, 24h, gratuito), procure o pronto-atendimento mais próximo ou ligue 192 (SAMU), e avise a clínica.","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":200482829,"t":"radio","q":"Ouviu coisas que outras pessoas não ouviam, como vozes, mesmo quando não havia ninguém por perto?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1342179326,"t":"radio","q":"Sentiu que alguém podia ouvir seus pensamentos ou que você podia ouvir o que outra pessoa estava pensando?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":2079394672,"t":"radio","q":"Problemas com o sono?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":302869374,"t":"radio","q":"Problemas com a memória (p. ex., aprender informações novas) ou com localização (p.ex., encontrar o caminho para casa)?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":427434786,"t":"radio","q":"Pensamentos, impulsos ou imagens desagradáveis que entram repetidamente na sua cabeça?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":1324651983,"t":"radio","q":"Sentiu-se compelido a realizar certos comportamentos ou atos mentais repetidamente?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":997108414,"t":"radio","q":"Sentiu-se desligado ou distante de si mesmo, do seu corpo, do ambiente físico ao seu redor ou de suas lembranças?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":359170440,"t":"radio","q":"Sentiu-se sem saber quem você realmente é ou o que você quer da vida?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false},{"e":312506575,"t":"radio","q":"Não se sentiu próximo a outras pessoas ou desfrutou das relações com elas?","d":"","o":["Nada ( de modo algum)","Muito leve ( raramente ou menos de 1 ou 2 dias )","Leve ( vários dias)","Moderado (mais da metade dos dias )","Grave ( quase todos os dias)"],"x":false,"r":false}]},{"n":"Hábitos de vida","q":[{"e":1371486331,"t":"text","q":"Que horas você DEITA para dormir e que horas você DESPERTA.","d":"","o":[],"x":false,"r":false},{"e":1691699175,"t":"text","q":"Tem alguma queixa em relação ao seu sono? Qual?","d":"","o":[],"x":false,"r":false},{"e":24621429,"t":"text","q":"O que você faz para se divertir e relaxar?","d":"","o":[],"x":false,"r":false},{"e":1714911479,"t":"text","q":"Você pratica atividade física? Se sim, por favor diga QUAL atividade e QUANTAS vezes na semana.","d":"","o":[],"x":false,"r":false},{"e":654173994,"t":"check","q":"Marque os alimentos que fazem parte da sua alimentação habitual (> 3 vezes na semana).","d":"","o":["Doces","Frituras","Sorvetes","Farinha branca (massas, pão francês)","Leite","Bolachas","Frutas","Saladas","Sementes Oleaginosas"],"x":true,"r":false},{"e":225877486,"t":"para","q":"Você tem algum desconforto após (até 24h) comer certos tipos de alimentos, tal como fadiga, dor muscular... Se sim, quais alimentos?","d":"","o":[],"x":false,"r":false},{"e":1688305565,"t":"para","q":"O que você acha que está CERTO na sua alimentação?","d":"","o":[],"x":false,"r":false},{"e":1925910349,"t":"para","q":"O que você acha que está ERRADO na sua alimentação?","d":"","o":[],"x":false,"r":false},{"e":999793265,"t":"radio","q":"Com que frequência você evacua?","d":"","o":["Mais de 3 x/dia.","1-3 x/dia","4-6x/sem","2-3x/sem","1 ou menos x/sem"],"x":false,"r":false},{"e":221589374,"t":"text","q":"Número de bebidas cafeinadas por dia?","d":"","o":[],"x":false,"r":false},{"e":1821318994,"t":"radio","q":"Fuma tabaco?","d":"","o":["Nunca","Fumei mas parei","Fumo de vez em quando/diariamente"],"x":false,"r":false},{"e":82235050,"t":"text","q":"Número de drinques com álcool por SEMANA:","d":"","o":[],"x":false,"r":false},{"e":1881228463,"t":"para","q":"Por favor liste o NOME de outras drogas (maconha, cocaína, ecstasy...) que já fez uso passado ou atual. Quando usou pela ultima vez?","d":"","o":[],"x":false,"r":false},{"e":963833577,"t":"para","q":"Lista todas as medicações (incluindo vitaminas e suplementos) que você está usando ATUALMENTE, informando o NOME, DOSE, DATA de início e MOTIVO de uso.","d":"","o":[],"x":false,"r":false}]},{"n":"Infância e saúde mental","q":[{"e":1536613843,"t":"radio","q":"Minha infância foi:","d":"","o":["Feliz","Média","Triste","Traumática"],"x":false,"r":false},{"e":1002887916,"t":"para","q":"Por favor descreva EVENTOS estressantes da sua infância (conflitos paternos, mortes na família, mudanças constantes, dificuldades de aprendizado, problemas em neurodesenvolvimento (qualquer forma de abuso)","d":"","o":[],"x":false,"r":false},{"e":1625014655,"t":"para","q":"Como você descreveria seu pai? como foi a relação com ele?","d":"","o":[],"x":false,"r":false},{"e":252894706,"t":"para","q":"Como você descreveria sua mãe? como foi a relação com ela?","d":"","o":[],"x":false,"r":false},{"e":2021603520,"t":"para","q":"Me descreva como você e as pessoas próximas te percebem ( \"jeito de ser\")","d":"","o":[],"x":false,"r":false},{"e":1996698874,"t":"para","q":"Por favor descreva sua experiência prévia com profissionais de saúde mental (psiquiatra, psicólogo), listando QUAL profissional, MOTIVO da procura e ANO.","d":"","o":[],"x":false,"r":false},{"e":1210749787,"t":"para","q":"Por favor liste as medicações psiquiátricas que você já usou (e não usa mais), escrevendo o NOME, MOTIVO de uso e se AJUDOU ou não.","d":"","o":[],"x":false,"r":false},{"e":2018249347,"t":"para","q":"Você já recebeu algum diagnóstico de doença psiquiátrica de um médico? Qual?","d":"","o":[],"x":false,"r":false},{"e":239768435,"t":"para","q":"Você já teve alguma tentativa de suicídio? Se sim, quando e como foi?","d":"","o":[],"x":false,"r":false},{"e":640561601,"t":"para","q":"Você já precisou ser internado por razões emocionais ou psiquiátricas? Se sim, QUANDO e O QUE aconteceu?","d":"","o":[],"x":false,"r":false}]},{"n":"Saúde geral","q":[{"e":285256979,"t":"para","q":"Por favor, liste todos os problemas de saúde que os médicos já te diagnosticaram.","d":"","o":[],"x":false,"r":false},{"e":480319475,"t":"para","q":"Por favor liste as cirurgias que já foi submetido, escrevendo o NOME da cirurgia, ANO de realização e RESULTADO (se resolveu o problema).","d":"","o":[],"x":false,"r":false},{"e":174602724,"t":"para","q":"Por favor liste qualquer hospitalização (excluindo parto, doença mental ou cirurgia), escrevendo o MOTIVO da internação e ANO.","d":"","o":[],"x":false,"r":false},{"e":2038065491,"t":"para","q":"Lista as medicações e alimentos que você é alérgico.","d":"","o":[],"x":false,"r":false},{"e":692794642,"t":"radio","q":"Você já sofreu alguma convulsão ou bateu a cabeça tão forte que veio a perder a consciência?","d":"","o":["Sim","Não"],"x":false,"r":false},{"e":1716106957,"t":"para","q":"Se sim para a pergunta anterior, conte um pouco ?","d":"","o":[],"x":false,"r":false}]},{"n":"Trabalho e relações","q":[{"e":1762214597,"t":"para","q":"Para me ajudar a entender melhor sua ocupação, por favor escreva o TÍTULO, FUNÇÕES E RESPONSABILIDADES. Desde quando trabalha nesse emprego?","d":"","o":[],"x":false,"r":false},{"e":148143070,"t":"radio","q":"O estresse no meu trabalho é :","d":"","o":["Inexistente","Suportável","Grande","Insuportável"],"x":false,"r":false},{"e":1631993732,"t":"radio","q":"Se você está em um relacionamento, o quão feliz você está?","d":"","o":["Muito feliz","um pouco feliz","Um pouco infeliz","Muito infeliz"],"x":false,"r":false},{"e":875333959,"t":"radio","q":"\"Eu tenho amigos suficientes e fontes de suporte (pessoas que possam te ajudar)\"","d":"","o":["Verdadeiro","Falso","Não sei ao certo"],"x":false,"r":false}]},{"n":"Saúde da mulher","q":[{"e":596326575,"t":"radio","q":"Você está grávida?","d":"","o":["Sim","Não"],"x":false,"r":false},{"e":862558830,"t":"radio","q":"Você está amamentando?","d":"","o":["Sim","Não"],"x":false,"r":false},{"e":189833407,"t":"date","q":"Data da sua Última menstruação","d":"","o":[],"x":false,"r":false},{"e":1260288060,"t":"text","q":"Número de gestações","d":"","o":[],"x":false,"r":false},{"e":1424595934,"t":"text","q":"Número de filhos vivos","d":"","o":[],"x":false,"r":false},{"e":1501269804,"t":"para","q":"Por favor descreva qualquer PROBLEMA EMOCIONAL que você tenha experimentado enquanto fez uso de pílulas anticoncepcionais hormonais (estrógeno e progesterona) ou antes da sua MENSTRUAÇÃO.","d":"","o":[],"x":false,"r":false},{"e":263385892,"t":"text","q":"Você usa algum método contraceptivo? Se sim, qual?","d":"","o":[],"x":false,"r":false}]},{"n":"Família","q":[{"e":1803911536,"t":"check","q":"Por favor marque as alternativas correspondentes aos sintomas/doenças PSIQUIÁTRICAS que algum parente de sangue já teve.","d":"","o":["Depressão","Depressão pós-parto","Ansiedade","TOC (Transtorno Obsessivo Compulsivo)","Problemas com Álcool e drogas","Esquizofrenia","Transtorno Bipolar","Sensibilidade a alterações hormonais","tentativas de suicídio"],"x":false,"r":false},{"e":1622432190,"t":"para","q":"Se marcou qualquer item, por favor especifique QUAIS parentes e o NOME da doença.","d":"","o":[],"x":false,"r":false}]},{"n":"Para fechar","q":[{"e":290672287,"t":"para","q":"O que você espera de um bom atendimento médico?","d":"","o":[],"x":false,"r":false},{"e":958491368,"t":"para","q":"Se o tratamento der certo, o que estaria diferente na sua vida daqui a 3 meses?","d":"","o":[],"x":false,"r":false},{"e":380135455,"t":"scale","q":"De 0 a 10, quão importante é para você resolver isso AGORA?","d":"","o":["0","1","2","3","4","5","6","7","8","9","10"],"x":false,"r":false},{"e":438179701,"t":"scale","q":"E de 0 a 10, quão confiante você está de que consegue fazer essa mudança com ajuda?","d":"","o":["0","1","2","3","4","5","6","7","8","9","10"],"x":false,"r":false},{"e":1996437984,"t":"check","q":"O que poderia dificultar seu acompanhamento? (marque todas que se aplicam)","d":"","o":["Distância / deslocamento até o consultório","Horários / rotina de trabalho","Custo do tratamento","Medo ou receio de tomar medicação","Experiências ruins com tratamentos anteriores","Esquecer as datas das consultas","Falta de apoio de família / parceiro(a)","Nada deve atrapalhar"],"x":true,"r":false}]}];
 // Textos de ajuda para falar (por código da pergunta). O texto da pergunta é o do formulário original.
 const DICAS = {
   1997737708: "Fale com calma, como se estivesse contando para mim. Não precisa organizar.",
@@ -149,17 +160,180 @@ const DICAS = {
 const RISCO = 770691408;
 const FREQ_CURTA = {"Nada ( de modo algum)":"Nada","Muito leve ( raramente ou menos de 1 ou 2 dias )":"Muito leve · 1 ou 2 dias","Leve ( vários dias)":"Leve · vários dias","Moderado (mais da metade dos dias )":"Moderado · mais da metade dos dias","Grave ( quase todos os dias)":"Grave · quase todos os dias"};
 const LEG_ESCALA = {216020722:["nada","muito"],380135455:["nada importante","extremamente"],438179701:["nada confiante","totalmente"]};
-const MULHER = 7; // índice da etapa "Saúde da mulher"
-const KEY = "preconsulta.v10";
+// ====== ROTEIROS ======
+// Adulto: perguntas do formulário oficial "Questionário de pré-consulta – versão 10/2026" (envio campo a campo).
+// Criança/adolescente e idoso: roteiros próprios, enviados como texto ao formulário "Pré-consulta por voz · recebimento".
+const FORM_EXTRA = "https://docs.google.com/forms/d/e/1FAIpQLSdEgVRqms8zbmovVuGCF6k2milxv4Tac83b0YddnNUcPLOgqg/formResponse";
+const CAMPO_PACIENTE = "entry.2057517674", CAMPO_RESPOSTAS = "entry.929291522";
+const CVV = "Se houver pensamento de se ferir agora, não espere a consulta: ligue <b>188</b> (CVV, 24 h, gratuito), procure o pronto-atendimento mais próximo ou ligue <b>192</b> (SAMU), e avise a clínica.";
+const FREQ_CURTO = ["Nada", "Muito leve", "Leve", "Moderado", "Grave"];
+const ROT_EXTRA = {
+pia: {
+  rotulo:"Criança e adolescente", icone:"🧒", sub:"até 17 anos · respondido pelo responsável",
+  ident:[{id:"nome",label:"Nome completo da criança ou adolescente",obrig:true},{id:"cpf",label:"CPF da criança ou adolescente",tipo:"cpf",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date",obrig:true},
+         {id:"resp",label:"Seu nome (responsável)",obrig:true},{id:"parent",label:"Parentesco (mãe, pai, avó, outro)",obrig:true},{id:"tel",label:"Celular do responsável com DDD",tipo:"tel",obrig:true}],
+  areas:["Escola / aprendizado","Amizades","Convivência em casa","Sono","Alimentação","Brincar e lazer","Autoestima","Saúde física","Esportes e atividades"],
+  rastreioTitulo:"Nas últimas 2 semanas", rastreioIntro:"Pensando no seu filho ou filha, o quanto cada item aconteceu?",
+  rastreio:[
+   "Dificuldade de prestar atenção ou se distrai com facilidade",
+   "Agitado(a), não para quieto(a)",
+   "Age sem pensar, interrompe, não espera a vez",
+   "Birras, desafia regras ou discute com os adultos",
+   "Irritado(a) ou explode com facilidade",
+   "Triste, chora fácil ou sem vontade de fazer as coisas",
+   "Medos ou preocupações exagerados",
+   "Evita a escola, sair de casa ou ficar longe dos pais",
+   "Dificuldade de fazer ou manter amizades",
+   "Pouco contato visual ou pouco interesse em brincar com outras crianças",
+   "Interesses muito intensos ou rotinas que não podem mudar",
+   "Repete movimentos, falas ou rituais",
+   "Incomoda-se muito com barulhos, texturas, cheiros ou roupas",
+   "Problemas com o sono",
+   "Problemas com a alimentação (come muito pouco, demais, ou só alguns alimentos)",
+   "Tempo excessivo de telas, ou irritação forte quando tiram a tela",
+   "Fala em morrer ou se machuca de propósito",
+   "Sofreu provocações, exclusão ou agressões (bullying)"],
+  risco:16,
+  telas:[
+   {id:"ident", tipo:"ident", titulo:"Quem vai consultar"},
+   {id:"motivo", tipo:"voz", obrig:true, titulo:"O que motivou a consulta", pergunta:"Conte com suas palavras o que motivou a procura.",
+    dicas:["O que preocupa vocês","Desde quando isso acontece","Quem percebeu primeiro (família, escola, pediatra)","O que já tentaram fazer"]},
+   {id:"impacto", tipo:"impacto", titulo:"Como isso afeta a vida dele(a)"},
+   {id:"gestacao", tipo:"voz", titulo:"Gestação, parto e primeiros meses", pergunta:"Como foram a gestação, o parto e os primeiros meses de vida?",
+    dicas:["Se a gestação foi planejada e se houve alguma complicação","Uso de remédios, álcool ou cigarro na gravidez","Parto: normal ou cesárea, com quantas semanas, peso ao nascer","Se precisou de UTI ou ficou internado(a)","Amamentação, e se era um bebê calmo ou muito choroso"]},
+   {id:"desenvolvimento", tipo:"voz", titulo:"Desenvolvimento", pergunta:"Como foi o desenvolvimento?",
+    dicas:["Com que idade sentou, engatinhou e andou","Primeiras palavras e primeiras frases","Quando largou a fralda de dia e de noite","Se perdeu alguma habilidade que já tinha","Coordenação: correr, pular, desenhar, escrever"]},
+   {id:"escola", tipo:"voz", titulo:"Escola", pergunta:"Como está a vida escolar?",
+    dicas:["Escola e série","Notas e aprendizado: leitura, escrita, contas","O que os professores falam","Comportamento em sala e no recreio","Se já repetiu de ano, se tem reforço ou apoio"]},
+   {id:"rastreio", tipo:"rastreio"},
+   {id:"social", tipo:"voz", titulo:"Jeito de ser e convivência", pergunta:"Como ele ou ela é no dia a dia com as pessoas?",
+    dicas:["Com quem brinca e se tem amigos","Como se dá com irmãos e familiares","Do que mais gosta; interesses muito intensos","Rotinas que precisam ser sempre iguais","Sensibilidade a barulhos, texturas, roupas ou alimentos"]},
+   {id:"rotina", tipo:"voz", titulo:"Sono, alimentação e telas", pergunta:"Como é a rotina?",
+    dicas:["Que horas dorme e acorda, se dorme sozinho(a), se acorda à noite","Alimentação e apetite","Quantas horas por dia de celular, tablet, TV ou videogame","Esportes, brincadeiras e atividades fora de casa"]},
+   {id:"remedios", tipo:"voz", obrig:true, titulo:"Remédios e alergias", pergunta:"Usa algum remédio hoje? Tem alergia a algum remédio?",
+    dicas:["Nome, dose e há quanto tempo usa","Para que usa","Vitaminas e suplementos também","Alergias (se não tiver, diga \"não tem\")"]},
+   {id:"tratamentos", tipo:"voz", alerta:true, titulo:"Avaliações e tratamentos anteriores", pergunta:"Já fez alguma avaliação ou tratamento?",
+    dicas:["Fono, terapia ocupacional, psicólogo, psicopedagogo, neuropediatra ou psiquiatra: quando e por quê","Diagnósticos já dados (TDAH, autismo, dislexia, ansiedade, outros)","Remédios que já usou e se ajudaram","Se já precisou de internação ou pronto-socorro por motivo emocional"]},
+   {id:"clinico", tipo:"voz", extra:"pesoAltura", titulo:"Saúde do corpo", pergunta:"Como é a saúde física?",
+    dicas:["Doenças, alergias respiratórias, problemas de tireoide ou outros","Cirurgias e internações","Convulsões ou batida forte na cabeça","Audição e visão (já testou? usa óculos?)"]},
+   {id:"familia", tipo:"voz", titulo:"Família", pergunta:"Conte sobre a família.",
+    dicas:["Com quem mora; se os pais vivem juntos ou separados, e como é a guarda","Acontecimentos difíceis: perdas, mudanças, brigas, violência","Saúde mental na família de sangue: TDAH, autismo, dificuldade de aprendizagem, depressão, ansiedade, bipolaridade, álcool ou drogas, suicídio"]},
+   {id:"adolescente", tipo:"voz", opcional:true, alerta:true, titulo:"Espaço do adolescente", pergunta:"Se a consulta é para um adolescente, este espaço é dele ou dela, para responder com as próprias palavras.",
+    dicas:["Como você está se sentindo ultimamente","O que mais te incomoda","Escola, amigos, celular e sono","O que você gostaria que mudasse","O que você espera da consulta"],
+    nota:"Se preferir, responda sozinho(a). O que você contar aqui é sigiloso."},
+   {id:"expect", tipo:"voz", titulo:"O que vocês esperam", pergunta:"O que vocês esperam do tratamento?",
+    dicas:["Se der certo, o que estaria diferente daqui a 3 meses","O que poderia dificultar o acompanhamento (horário, distância, dinheiro, outro)"]},
+   {id:"motivacao", tipo:"escalaFinal", titulo:"Quase lá"},
+   {id:"revisao", tipo:"revisao", titulo:"Revise e envie"}]
+},
+geri: {
+  rotulo:"Idoso", icone:"👵", sub:"65 anos ou mais · paciente e/ou cuidador",
+  ident:[{id:"nome",label:"Nome completo de quem vai consultar",obrig:true},{id:"cpf",label:"CPF de quem vai consultar",tipo:"cpf",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date",obrig:true},
+         {id:"quem",label:"Quem está respondendo?",tipo:"select",opcoes:["O próprio paciente","Um familiar ou cuidador","Os dois juntos"],obrig:true},
+         {id:"resp",label:"Nome e parentesco do familiar ou cuidador (se houver)"},{id:"tel",label:"Celular para contato com DDD",tipo:"tel",obrig:true}],
+  areas:["Memória","Autonomia em casa","Convívio familiar","Sono","Saúde física","Finanças","Vida social","Humor","Sair de casa / dirigir"],
+  rastreioTitulo:"Nas últimas 2 semanas", rastreioIntro:"Pensando na pessoa que vai consultar (ou em você, se for o próprio paciente), o quanto cada item aconteceu?",
+  rastreio:[
+   "Esquece conversas ou fatos recentes",
+   "Repete as mesmas perguntas ou histórias",
+   "Se perde ou se confunde em lugares conhecidos",
+   "Dificuldade para achar palavras ou acompanhar conversas",
+   "Triste, desanimado(a) ou chorando",
+   "Perdeu o interesse pelas coisas, fica parado(a)",
+   "Nervoso(a), ansioso(a) ou preocupado(a)",
+   "Irritado(a), agitado(a) ou agressivo(a)",
+   "Desconfiado(a): acha que mexem nas suas coisas ou querem prejudicá-lo(a)",
+   "Vê ou ouve coisas que não estão lá",
+   "Fica confuso(a) de repente, mais à tarde ou à noite",
+   "Problemas com o sono, ou troca o dia pela noite",
+   "Muito sono durante o dia",
+   "Perda de apetite ou de peso",
+   "Quedas ou desequilíbrio",
+   "Fala em morrer ou em se ferir"],
+  risco:15,
+  telas:[
+   {id:"ident", tipo:"ident", titulo:"Quem vai consultar"},
+   {id:"motivo", tipo:"voz", obrig:true, titulo:"O que motivou a consulta", pergunta:"Conte com suas palavras o que motivou a procura.",
+    dicas:["O que mudou","Desde quando, e se começou de repente ou aos poucos","Quem percebeu primeiro","O que já foi feito (consultas, exames, remédios)"]},
+   {id:"impacto", tipo:"impacto", titulo:"Como isso afeta o dia a dia"},
+   {id:"memoria", tipo:"voz", titulo:"Memória e orientação", pergunta:"Como estão a memória e a orientação?",
+    dicas:["Esquece recados, compromissos ou onde guardou as coisas","Confunde datas, dia da semana ou horários","Se perde em caminhos conhecidos","Dificuldade para achar palavras ou reconhecer pessoas","Se isso vem piorando, e em quanto tempo"]},
+   {id:"autonomia", tipo:"voz", titulo:"Autonomia", pergunta:"O que consegue fazer sozinho(a) e em que precisa de ajuda?",
+    dicas:["Cuidar do dinheiro e pagar contas","Tomar os remédios nos horários certos","Usar telefone, cozinhar, fazer compras","Sair sozinho(a), usar transporte, dirigir","Tomar banho, se vestir, ir ao banheiro; controle da urina e das fezes"]},
+   {id:"rastreio", tipo:"rastreio"},
+   {id:"rotina", tipo:"voz", titulo:"Sono e rotina", pergunta:"Como é o dia a dia?",
+    dicas:["Horário de dormir e acordar, cochilos, se ronca ou se agita dormindo","Alimentação e peso","Atividade física e caminhadas","Convívio: visitas, igreja, grupos, amigos","Álcool e cigarro"]},
+   {id:"remedios", tipo:"voz", obrig:true, titulo:"Remédios e alergias", pergunta:"Quais remédios usa hoje? Tem alergia a algum?",
+    dicas:["Nome, dose e horário de cada um (pode ler das caixas ou da receita)","Quem organiza e dá os remédios","Remédios para dormir ou calmantes","Alergias (se não tiver, diga \"não tem\")"]},
+   {id:"clinico", tipo:"voz", extra:"pesoAltura", titulo:"Saúde do corpo", pergunta:"Como está a saúde física?",
+    dicas:["Pressão alta, diabetes, coração, AVC, tireoide, Parkinson, outras","Cirurgias e internações","Quedas no último ano","Audição e visão: usa aparelho ou óculos?","Exames recentes: sangue, tomografia ou ressonância"]},
+   {id:"psiq", tipo:"voz", alerta:true, titulo:"Saúde mental antes", pergunta:"Já houve algum tratamento de saúde mental?",
+    dicas:["Depressão, ansiedade ou outros problemas no passado","Psiquiatra, psicólogo ou neurologista: quando e por quê","Remédios que já usou e se ajudaram","Internações ou tentativas de tirar a própria vida"]},
+   {id:"vida", tipo:"voz", titulo:"História de vida", pergunta:"Conte um pouco da história de vida.",
+    dicas:["Onde nasceu e onde mora; com quem mora","Até que série estudou","Profissão e quando se aposentou","Estado civil, filhos e netos","Do que mais gosta de fazer"]},
+   {id:"familia", tipo:"voz", titulo:"Saúde na família", pergunta:"Alguém da família de sangue teve problemas parecidos?",
+    dicas:["Demência ou Alzheimer, Parkinson, AVC","Depressão, bipolaridade, álcool, suicídio","Quem foi e com que idade começou"]},
+   {id:"cuidador", tipo:"voz", opcional:true, titulo:"Para quem cuida", pergunta:"Se existe um cuidador ou familiar responsável, este espaço é para ele ou ela.",
+    dicas:["Quem cuida e quantas horas por dia","Como você está: cansaço, sono, preocupação","Que ajuda você recebe","Se há decisões importantes a tomar (dinheiro, moradia, procuração)"]},
+   {id:"expect", tipo:"voz", titulo:"O que vocês esperam", pergunta:"O que vocês esperam da consulta?",
+    dicas:["O que seria um bom resultado","O que poderia dificultar o acompanhamento (transporte, horário, quem acompanha)"]},
+   {id:"motivacao", tipo:"escalaFinal", titulo:"Quase lá"},
+   {id:"revisao", tipo:"revisao", titulo:"Revise e envie"}]
+}};
+
+const ROTEIROS = {
+  adulto: { rotulo: "Adulto", icone: "🧑", sub: "18 a 64 anos, respondendo por si" },
+  pia: { rotulo: ROT_EXTRA.pia.rotulo, icone: ROT_EXTRA.pia.icone, sub: ROT_EXTRA.pia.sub },
+  geri: { rotulo: ROT_EXTRA.geri.rotulo, icone: ROT_EXTRA.geri.icone, sub: ROT_EXTRA.geri.sub }
+};
+// Etapa do rastreio do adulto: subtítulo; pergunta sobre tentativa de suicídio: aviso do CVV.
+STEPS_ADULTO[2].sub = "Nas últimas <b>duas semanas</b>, o quanto você foi incomodado(a) por cada um destes problemas?";
+STEPS_ADULTO.forEach((st) => st.q.forEach((q) => { if (/tentativa de suic/i.test(q.q)) q.alerta = true; if (q.e === 302491566) q.cpf = true; }));
+// Converte um roteiro (criança/idoso) para o mesmo formato de etapas do adulto.
+function montarSteps(k) {
+  const r = ROT_EXTRA[k], OPC = Object.keys(FREQ_CURTA), id = (x) => k + "." + x, out = [];
+  r.telas.forEach((t) => {
+    if (t.tipo === "ident") out.push({ n: t.titulo, q: r.ident.map((c) => ({ e: id(c.id), q: c.label, r: !!c.obrig,
+      t: c.tipo === "date" ? "date" : c.tipo === "select" ? "radio" : "text", o: c.opcoes || [], cpf: c.tipo === "cpf", tel: c.tipo === "tel" })) });
+    else if (t.tipo === "voz") { const q = [{ e: id(t.id), t: "para", q: t.pergunta, r: !!t.obrig, l: t.dicas, nota: t.nota, alerta: t.alerta, o: [] }];
+      if (t.extra === "pesoAltura") q.push({ e: id("pesoAltura"), t: "text", q: "Peso (kg) e altura (m)", o: [] });
+      out.push({ n: t.titulo + (t.opcional ? " (opcional)" : ""), q }); }
+    else if (t.tipo === "impacto") out.push({ n: t.titulo, q: [
+      { e: id("areas"), t: "check", q: "Em quais áreas isso tem atrapalhado? (marque todas que se aplicam)", o: r.areas },
+      { e: id("nota"), t: "scale", q: "De 0 a 10, quanto isso tem atrapalhado hoje?", o: ["0","1","2","3","4","5","6","7","8","9","10"], leg: ["não atrapalha", "completamente"] }] });
+    else if (t.tipo === "rastreio") out.push({ n: r.rastreioTitulo, sub: esc(r.rastreioIntro), q: r.rastreio.map((txt, i) => ({ e: id("r" + i), t: "radio", q: txt, o: OPC, risco: i === r.risco })) });
+    else if (t.tipo === "escalaFinal") out.push({ n: "Para fechar", q: [
+      { e: id("imp"), t: "scale", q: "De 0 a 10, quão importante é resolver isso agora?", o: ["0","1","2","3","4","5","6","7","8","9","10"], leg: ["nada importante", "extremamente"] },
+      { e: id("conf"), t: "scale", q: "E de 0 a 10, quão confiante você está de que é possível mudar com ajuda?", o: ["0","1","2","3","4","5","6","7","8","9","10"], leg: ["nada confiante", "totalmente"] }] });
+  });
+  return out;
+}
+const KEYS = { adulto: "preconsulta.v10", pia: "preconsulta.v10.pia", geri: "preconsulta.v10.geri" };
+let ROTEIRO = null, STEPS = STEPS_ADULTO, TOTAL = STEPS.length, MULHER = 7;
+const ehRisco = (q) => q.e === RISCO || q.risco;
+function cpfValido(c) {
+  c = String(c || "").replace(/\D/g, "");
+  if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+  for (const n of [9, 10]) { let s = 0; for (let i = 0; i < n; i++) s += +c[i] * (n + 1 - i); if ((s * 10 % 11) % 10 !== +c[n]) return false; }
+  return true;
+}
+const mascaraCpf = (v) => { const d = v.replace(/\D/g, "").slice(0, 11); return d.replace(/^(\d{3})(\d)/, "$1.$2").replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2"); };
 
 // Estado: respostas por código; para caixas, array; "Outro" em resp["<e>.outro"]
 let S = { etapa: -1, resp: {}, pularMulher: false, email: "" };
-try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.resp) S = Object.assign(S, s); } catch (e) {}
-const salvar = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); document.getElementById("salvo").textContent = "Salvo neste celular"; } catch (e) {} };
+const lerEstado = (k) => { try { const s = JSON.parse(localStorage.getItem(KEYS[k]) || "null"); return s && s.resp ? s : null; } catch (e) { return null; } };
+const temProgresso = (k) => { const s = lerEstado(k); return !!(s && Object.keys(s.resp).length); };
+function carregar(k) {
+  const email = S.email;
+  ROTEIRO = k; S = Object.assign({ etapa: -1, resp: {}, pularMulher: false, email: "" }, lerEstado(k) || {});
+  if (!S.email) S.email = email;
+  STEPS = k === "adulto" ? STEPS_ADULTO : montarSteps(k); TOTAL = STEPS.length; MULHER = k === "adulto" ? 7 : -1;
+  try { localStorage.setItem("preconsulta.roteiro", k); } catch (e) {}
+}
+const salvar = () => { if (!ROTEIRO) return; try { localStorage.setItem(KEYS[ROTEIRO], JSON.stringify(S)); document.getElementById("salvo").textContent = "Salvo neste celular"; } catch (e) {} };
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const TOTAL = STEPS.length;
 
 /* ---------- mensagem de boas-vindas (capa) ---------- */
 // Para usar a gravação na voz do médico, coloque aqui o caminho do arquivo (ex.: "audio/boas-vindas.mp3").
@@ -179,6 +353,18 @@ function escolherVoz() { if (!TTS) return; const all = speechSynthesis.getVoices
   vozPt = vs.find((v) => /google|luciana|francisca|natural|online/i.test(v.name)) || vs[0] || all.find((v) => /^pt/i.test(v.lang)) || null; }
 if (TTS) { escolherVoz(); speechSynthesis.onvoiceschanged = escolherVoz; }
 const falarP = (txt) => new Promise((res) => { if (!TTS || !txt) return res(); const u = new SpeechSynthesisUtterance(txt); u.lang = "pt-BR"; if (vozPt) u.voice = vozPt; u.rate = 0.95; u.onend = res; u.onerror = res; speechSynthesis.speak(u); });
+let ouvindoQ = null;
+function pararOuvirQ() { if (ouvindoQ) { ouvindoQ.classList.remove("on"); ouvindoQ = null; if (TTS) speechSynthesis.cancel(); } }
+function ouvirPergunta(btn) {
+  if (ouvindoQ === btn) { pararOuvirQ(); return; }
+  pararOuvirQ(); pararCarta(); pararVoz();
+  const q = STEPS.flatMap((s) => s.q).find((x) => String(x.e) === btn.dataset.ouvir); if (!q) return;
+  const partes = [q.q.replace(/\s+/g, " ")];
+  if (q.l) partes.push("Você pode falar sobre: " + q.l.join("; ") + ".");
+  if (q.o && q.o.length && q.t !== "scale") partes.push("Opções: " + q.o.map((o) => FREQ_CURTA[o] || o).join("; ") + ".");
+  ouvindoQ = btn; btn.classList.add("on");
+  (async () => { for (const t of partes) { if (ouvindoQ !== btn) return; await falarP(t); } if (ouvindoQ === btn) pararOuvirQ(); })();
+}
 function rotuloCarta() { return cartaPos ? "▶ Continuar ouvindo" : "▶ Ouvir a mensagem"; }
 function pararCarta(guardar) {
   cartaId++; if (cartaAudio) cartaAudio.pause(); else if (TTS) speechSynthesis.cancel();
@@ -222,7 +408,7 @@ const juntarFala = (base, txt) => {
   return (base ? base + " " : "") + txt;
 };
 function botaoMic(on) {
-  document.querySelectorAll(".mic").forEach((b) => { const ativo = on && +b.dataset.mic === recAlvo; b.classList.toggle("on", ativo); b.querySelector(".rotulo").textContent = ativo ? "Parar" : "Falar"; });
+  document.querySelectorAll(".mic").forEach((b) => { const ativo = on && b.dataset.mic === String(recAlvo); b.classList.toggle("on", ativo); b.querySelector(".rotulo").textContent = ativo ? "Parar" : "Falar"; });
 }
 function gravarFala(e) {
   const txt = juntarFala(recBase, recSessao);
@@ -287,9 +473,10 @@ const MIC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" w
 function campoTexto(q) {
   const v = S.resp[q.e] || "";
   const longo = q.t === "para" || q.q.length > 60;
-  const tipo = /mail/i.test(q.q) ? "email" : /telefone|celular/i.test(q.q) ? "tel" : "text";
+  const tipo = /mail/i.test(q.q) ? "email" : q.tel || /telefone|celular/i.test(q.q) ? "tel" : "text";
   const campo = longo
-    ? `<textarea id="q${q.e}" data-e="${q.e}" rows="4">${esc(v)}</textarea>`
+    ? `<textarea id="q${q.e}" data-e="${q.e}" rows="${q.l ? 6 : 4}">${esc(v)}</textarea>`
+    : q.cpf ? `<input id="q${q.e}" data-e="${q.e}" data-cpf="1" type="text" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" value="${esc(v)}">`
     : `<input id="q${q.e}" data-e="${q.e}" type="${tipo}" value="${esc(v)}" ${tipo === "tel" ? 'inputmode="tel" autocomplete="tel"' : ""}>`;
   const usaVoz = longo && SR;
   return campo + (usaVoz ? `<div class="voz"><button type="button" class="mic" data-mic="${q.e}">${MIC_SVG}<span class="ponto"></span><span class="rotulo">Falar</span></button><span class="ouvindo" id="o${q.e}"></span></div>` : longo ? `<p class="dica-teclado">Para falar em vez de digitar, toque no campo e use o microfone do teclado do celular.</p>` : "");
@@ -306,26 +493,31 @@ function campoOpcoes(q) {
   if (q.x) h += `<button type="button" class="op" data-op="${q.e}" data-v="__other_option__" aria-pressed="${sel("__other_option__")}">Outro</button>`;
   h += "</div>";
   if (q.x) h += `<div class="outro ${sel("__other_option__") ? "vis" : ""}" id="outro${q.e}"><input type="text" data-outro="${q.e}" placeholder="Qual?" value="${esc(S.resp[q.e + ".outro"] || "")}"></div>`;
-  if (q.e === RISCO) h += `<div class="alerta ${atual && atual !== q.o[0] ? "vis" : ""}" id="alertaRisco"><b>Obrigado por contar.</b> O Dr. Luis Felipe vai ver isso com atenção. Se esses pensamentos estiverem fortes agora, não espere a consulta: ligue <b>188</b> (CVV, 24 horas, gratuito), <b>192</b> (SAMU) ou procure o pronto-atendimento mais próximo.</div>`;
+  if (ehRisco(q)) h += `<div class="alerta ${atual && atual !== q.o[0] ? "vis" : ""}" id="alertaRisco"><b>Obrigado por contar.</b> O Dr. Luis Felipe vai ver isso com atenção. Se esses pensamentos estiverem fortes agora, não espere a consulta: ligue <b>188</b> (CVV, 24 horas, gratuito), <b>192</b> (SAMU) ou procure o pronto-atendimento mais próximo.</div>`;
   return h;
 }
 function campoEscala(q) {
-  const leg = LEG_ESCALA[q.e] || ["0", "10"];
+  const leg = q.leg || LEG_ESCALA[q.e] || ["0", "10"];
   return `<div class="escala" role="group">` + q.o.map((o) => `<button type="button" class="op" data-op="${q.e}" data-v="${o}" aria-pressed="${S.resp[q.e] === o}">${o}</button>`).join("") +
     `</div><div class="escala-legenda"><span>${esc(leg[0])}</span><span>${esc(leg[1])}</span></div>`;
 }
 function cartao(q) {
   const corpo = q.t === "text" || q.t === "para" ? campoTexto(q) : q.t === "date" ? campoData(q) : q.t === "scale" ? campoEscala(q) : campoOpcoes(q);
-  const dica = DICAS[q.e] ? `<p class="q-desc">${esc(DICAS[q.e])}</p>` : "";
-  return `<div class="cartao" id="c${q.e}"><p class="q-tit">${esc(q.q)}${q.r ? ' <span class="obr" aria-label="obrigatória">*</span>' : ""}</p>${dica}${corpo}<p class="q-erro">Esta resposta é necessária para enviar.</p></div>`;
+  const dica = (DICAS[q.e] ? `<p class="q-desc">${esc(DICAS[q.e])}</p>` : "") +
+    (q.l ? `<ul class="q-lista">${q.l.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "") +
+    (q.nota ? `<p class="q-desc">${esc(q.nota)}</p>` : "");
+  const ouvir = TTS ? `<button type="button" class="ouvirQ" data-ouvir="${q.e}" aria-label="Ouvir a pergunta">🔊</button>` : "";
+  const alerta = q.alerta ? `<div class="alerta vis">${CVV}</div>` : "";
+  return `<div class="cartao" id="c${q.e}"><p class="q-tit">${ouvir}${esc(q.q)}${q.r ? ' <span class="obr" aria-label="obrigatória">*</span>' : ""}</p>${dica}${corpo}${alerta}<p class="q-erro">Esta resposta é necessária para enviar.</p></div>`;
 }
 
 /* ---------- telas ---------- */
 function capa() {
-  const tem = Object.keys(S.resp).length > 0;
+  pararOuvirQ();
+  const tem = ROTEIRO ? temProgresso(ROTEIRO) : false, algum = Object.keys(KEYS).some(temProgresso);
   $("nav").hidden = true; $("progresso").style.width = "0"; $("contador").textContent = "Pré-consulta";
   $("tela").innerHTML = `<section class="capa">
-    ${cartaHtml(tem)}
+    ${cartaHtml(algum)}
     <p class="rot">Antes da sua primeira consulta</p>
     <h1>Conte a sua história do seu jeito</h1>
     <p class="nota" style="font-size:16px">Estas perguntas me ajudam a chegar à consulta já conhecendo o que você vive. Assim aproveitamos melhor o nosso tempo juntos.</p>
@@ -336,6 +528,9 @@ function capa() {
     </ul>
     <p class="aviso">Leva de 20 a 30 minutos. Você pode parar e continuar depois: o que já respondeu fica guardado neste celular até o envio. Muitos temas são delicados e só as perguntas com <b>*</b> são obrigatórias.</p>
     <p class="nota">A transcrição usa o serviço de voz do próprio celular (Google ou Apple). O consultório não guarda gravações: recebe apenas o texto que você revisou, sob sigilo médico e conforme a LGPD.</p>
+    <p class="q-tit" style="font-size:18px;margin-top:6px">Para quem é a consulta? <span class="obr">*</span></p>
+    <div class="roteiros" role="group">${Object.entries(ROTEIROS).map(([k, r]) => `<button type="button" data-roteiro="${k}" aria-pressed="${ROTEIRO === k}"><span class="ic">${r.icone}</span><span><b>${esc(r.rotulo)}</b><small>${esc(r.sub)}</small>${temProgresso(k) ? "<em>Continuar de onde parou</em>" : ""}</span></button>`).join("")}</div>
+    <span class="q-erro" id="roteiroErro">Escolha para quem é a consulta.</span>
     <label class="cartao" for="email" style="display:block">
       <span class="q-tit">Seu e-mail <span class="obr">*</span></span>
       <input type="email" id="email" autocomplete="email" inputmode="email" value="${esc(S.email)}" placeholder="voce@exemplo.com">
@@ -347,16 +542,20 @@ function capa() {
   </section>`;
   const bc = $("btnCarta"); if (bc) bc.onclick = () => tocarCarta(bc);
   $("email").addEventListener("input", (ev) => { S.email = ev.target.value.trim(); salvar(); });
+  document.querySelectorAll("[data-roteiro]").forEach((b) => b.onclick = () => { carregar(b.dataset.roteiro); capa(); });
   $("comecar").onclick = () => {
+    $("roteiroErro").style.display = ROTEIRO ? "none" : "block";
+    if (!ROTEIRO) return;
     const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(S.email);
     $("emailErro").style.display = ok ? "none" : "block";
     if (!ok) { $("email").focus(); return; }
+    if (!S.inicio) S.inicio = Date.now();
     ir(S.etapa >= 0 && S.etapa < TOTAL ? S.etapa : 0);
   };
   const r = $("recomecar"); if (r) r.onclick = () => { S = { etapa: -1, resp: {}, pularMulher: false, email: S.email }; salvar(); capa(); };
 }
 function ir(n) {
-  pararVoz(); pararCarta();
+  pararVoz(); pararCarta(); pararOuvirQ();
   if (n === MULHER && S.pularMulher === true && n !== S.etapa) { /* mostra mesmo assim, com a opção marcada */ }
   S.etapa = n; salvar();
   if (n >= TOTAL) return revisao();
@@ -366,9 +565,9 @@ function ir(n) {
   $("nav").hidden = false; $("voltar").hidden = false;
   $("avancar").textContent = n === TOTAL - 1 ? "Revisar" : "Continuar";
   let h = `<p class="rot">Etapa ${n + 1} de ${TOTAL}</p><h2 class="etapa-tit">${esc(st.n)}</h2>`;
-  if (n === 2) h += `<p class="etapa-sub">Nas últimas <b>duas semanas</b>, o quanto você foi incomodado(a) por cada um destes problemas?</p>`;
+  if (st.sub) h += `<p class="etapa-sub">${st.sub}</p>`;
   if (n === MULHER) h += `<label class="pular"><input type="checkbox" id="pular" ${S.pularMulher ? "checked" : ""}> Esta etapa não se aplica a mim</label>`;
-  const qs = n === 2 ? st.q.map((q, i) => i === 0 ? Object.assign({}, q, { q: "Pouco interesse ou prazer em fazer as coisas?" }) : q) : st.q;
+  const qs = ROTEIRO === "adulto" && n === 2 ? st.q.map((q, i) => i === 0 ? Object.assign({}, q, { q: "Pouco interesse ou prazer em fazer as coisas?" }) : q) : st.q;
   h += `<div id="qs" ${n === MULHER && S.pularMulher ? "hidden" : ""}>` + qs.map(cartao).join("") + "</div>";
   $("tela").innerHTML = h;
   window.scrollTo(0, 0);
@@ -381,14 +580,16 @@ function valida(n) {
     const c = $("c" + q.e); if (!c) return;
     const v = S.resp[q.e];
     const vazio = !q.r ? false : Array.isArray(v) ? v.length === 0 : !String(v || "").trim();
-    c.classList.toggle("erro", vazio);
-    if (vazio && !primeiro) primeiro = c;
+    const cpfRuim = !vazio && q.cpf && String(v || "").trim() && !cpfValido(v);
+    c.querySelector(".q-erro").textContent = cpfRuim ? "Confira o CPF: os números não conferem." : "Esta resposta é necessária para enviar.";
+    c.classList.toggle("erro", vazio || cpfRuim);
+    if ((vazio || cpfRuim) && !primeiro) primeiro = c;
   });
   if (primeiro) { primeiro.scrollIntoView({ behavior: "smooth", block: "center" }); return false; }
   return true;
 }
 function textoResp(q) {
-  if (STEPS[MULHER].q.includes(q) && S.pularMulher) return "";
+  if (MULHER >= 0 && STEPS[MULHER].q.includes(q) && S.pularMulher) return "";
   const v = S.resp[q.e];
   if (Array.isArray(v)) return v.map((x) => x === "__other_option__" ? "Outro: " + (S.resp[q.e + ".outro"] || "") : x).join(" · ");
   if (v === "__other_option__") return "Outro: " + (S.resp[q.e + ".outro"] || "");
@@ -400,7 +601,7 @@ function revisao() {
   $("contador").textContent = "Revisão"; $("progresso").style.width = "100%";
   $("nav").hidden = false; $("avancar").textContent = "Enviar ao Dr. Luis Felipe";
   let h = `<p class="rot">Quase lá</p><h2 class="etapa-tit">Revise as suas respostas</h2><p class="etapa-sub">Se quiser mudar algo, toque em "Editar" na etapa. Quando estiver tudo certo, envie.</p>`;
-  h += `<div class="rev-bloco"><h3>Contato</h3><div class="rev-item"><p>E-mail</p><div>${esc(S.email)}</div></div></div>`;
+  h += `<div class="rev-bloco"><h3>Contato</h3><div class="rev-item"><p>Para quem é a consulta</p><div>${esc(ROTEIROS[ROTEIRO].rotulo)}</div></div><div class="rev-item"><p>E-mail</p><div>${esc(S.email)}</div></div></div>`;
   STEPS.forEach((st, i) => {
     if (i === MULHER && S.pularMulher) { h += `<div class="rev-bloco"><h3>${esc(st.n)} <button type="button" data-edit="${i}">Editar</button></h3><div class="rev-item"><div class="vazio">Não se aplica</div></div></div>`; return; }
     h += `<div class="rev-bloco"><h3>${esc(st.n)} <button type="button" data-edit="${i}">Editar</button></h3>` +
@@ -415,6 +616,7 @@ async function enviar() {
     if (faltando) { ir(i); setTimeout(() => valida(i), 50); return; }
   }
   const b = $("avancar"); b.disabled = true; b.textContent = "Enviando…";
+  if (ROTEIRO !== "adulto") return enviarExtra(b);
   const fd = new URLSearchParams();
   fd.append("emailAddress", S.email);
   STEPS.forEach((st, i) => st.q.forEach((q) => {
@@ -429,7 +631,48 @@ async function enviar() {
   fd.append("fvv", "1"); fd.append("fbzx", FBZX); fd.append("pageHistory", "0,1,2,3,4,5,6,7");
   try {
     await fetch(FORM, { method: "POST", mode: "no-cors", body: fd });
-    try { localStorage.removeItem(KEY); } catch (e) {}
+    concluido();
+  } catch (err) {
+    b.disabled = false; b.textContent = "Tentar enviar de novo";
+    alert("Não foi possível enviar. Confira a internet e tente de novo. Suas respostas continuam salvas neste celular.");
+  }
+}
+// Criança/adolescente e idoso: mesmo texto organizado que o prontuário recebe (seções "## ...").
+function textoExtra() {
+  const r = ROT_EXTRA[ROTEIRO], g = (x) => S.resp[ROTEIRO + "." + x], OPC = Object.keys(FREQ_CURTA);
+  const dataBR = (d) => d ? d.split("-").reverse().join("/") : "";
+  const curto = (v) => v == null || v === "" ? "—" : FREQ_CURTO[OPC.indexOf(v)] || v;
+  const min = S.inicio ? Math.round((Date.now() - S.inicio) / 60000) : null;
+  const tempo = min == null ? "" : min <= 120 ? `${Math.max(1, min)} min` : "em mais de uma sessão";
+  const blocos = [["Identificação", r.ident.map((c) => `${c.label}: ${c.tipo === "date" ? dataBR(g(c.id)) : (g(c.id) || "")}`).join("\n") + `\nE-mail: ${S.email}`]];
+  r.telas.forEach((t) => {
+    if (t.tipo === "voz") { let tx = String(g(t.id) || "").trim(); if (t.extra === "pesoAltura" && g("pesoAltura")) tx += (tx ? "\n" : "") + "Peso e altura: " + g("pesoAltura"); blocos.push([t.titulo, tx]); }
+    if (t.tipo === "impacto") blocos.push([t.titulo, `Áreas: ${(g("areas") || []).join(", ") || "—"}\nQuanto atrapalha (0–10): ${g("nota") || "—"}`]);
+    if (t.tipo === "rastreio") blocos.push([r.rastreioTitulo, r.rastreio.map((q, i) => `${q}: ${curto(g("r" + i))}`).join("\n")]);
+    if (t.tipo === "escalaFinal") blocos.push(["Motivação", `Importância de resolver agora (0–10): ${g("imp") || "—"}\nConfiança de mudar com ajuda (0–10): ${g("conf") || "—"}`]);
+  });
+  const livre = r.telas.filter((t) => t.tipo === "voz").map((t) => g(t.id) || "").join(" ").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const rv = g("r" + r.risco), risco = (rv && rv !== OPC[0]) || /(suicid|me matar|se matar|tirar (a )?(minha|propria|sua) vida|nao quero mais viver|quer morrer|quero morrer|acabar com tudo|me ferir|me cortar|se cortar|se machuca)/.test(livre);
+  const cpf = String(g("cpf") || "").replace(/\D/g, "");
+  const cab = `[${r.rotulo}] ${g("nome") || ""} · CPF ${cpf || "—"} · nasc. ${dataBR(g("nasc")) || "—"} · ${g("tel") || ""}${g("resp") ? " · resp.: " + g("resp") : ""}`;
+  const corpo = (risco ? "⚠ ATENÇÃO: sinal de risco (autolesão/suicídio) nas respostas.\n\n" : "") +
+    `PRÉ-CONSULTA · ${r.rotulo.toUpperCase()} (texto revisado por quem respondeu)\n` + new Date().toLocaleString("pt-BR") + (tempo ? `\nTempo de preenchimento: ${tempo}` : "") + "\n\n" +
+    blocos.map(([t, x]) => `## ${t}\n${x || "—"}`).join("\n\n");
+  return { cab, corpo };
+}
+async function enviarExtra(b) {
+  const { cab, corpo } = textoExtra(), fd = new URLSearchParams();
+  fd.append(CAMPO_PACIENTE, cab); fd.append(CAMPO_RESPOSTAS, corpo);
+  try {
+    await fetch(FORM_EXTRA, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: fd.toString() });
+    concluido();
+  } catch (err) {
+    b.disabled = false; b.textContent = "Tentar enviar de novo";
+    alert("Não foi possível enviar. Confira a internet e tente de novo. Suas respostas continuam salvas neste celular.");
+  }
+}
+function concluido() {
+    try { localStorage.removeItem(KEYS[ROTEIRO]); localStorage.removeItem("preconsulta.roteiro"); } catch (e) {}
     $("nav").hidden = true; $("contador").textContent = "Enviado";
     $("tela").innerHTML = `<section class="fim"><svg viewBox="0 0 110 155" aria-hidden="true"><path d="M0 0H108V42L97 62 75 77 103 93 110 112V155H3V113L13 93 35 77 8 62 0 42Z"/></svg>
       <h1>Recebido, obrigado!</h1>
@@ -438,25 +681,24 @@ async function enviar() {
       <a class="btn sec" href="https://drluisfelipejardimpsiquiatra.github.io/regua-sintomas/consultorio/">Conhecer o consultório</a>
       <p class="crise">Se piorar antes da consulta: <b>188</b> (CVV, 24 horas) ou <b>192</b> (SAMU).</p></section>`;
     window.scrollTo(0, 0);
-  } catch (err) {
-    b.disabled = false; b.textContent = "Tentar enviar de novo";
-    alert("Não foi possível enviar. Confira a internet e tente de novo. Suas respostas continuam salvas neste celular.");
-  }
 }
 
 /* ---------- eventos ---------- */
 document.addEventListener("input", (ev) => {
   const t = ev.target;
+  if (t.dataset.cpf) t.value = mascaraCpf(t.value);
   if (t.dataset.e) { if (recLigado && recAlvo == t.dataset.e) { recSessao = ""; recBase = t.value; pararVoz(); } S.resp[t.dataset.e] = t.value; $("c" + t.dataset.e)?.classList.remove("erro"); salvar(); }
   if (t.dataset.outro) { S.resp[t.dataset.outro + ".outro"] = t.value; salvar(); }
 });
 document.addEventListener("click", (ev) => {
   const mic = ev.target.closest("[data-mic]");
-  if (mic) { iniciarVoz(+mic.dataset.mic, mic); return; }
+  if (mic) { pararOuvirQ(); iniciarVoz(mic.dataset.mic, mic); return; }
+  const oq = ev.target.closest("[data-ouvir]");
+  if (oq) { ouvirPergunta(oq); return; }
   const op = ev.target.closest("[data-op]");
   if (op) {
-    const e = +op.dataset.op, v = op.dataset.v;
-    const q = STEPS.flatMap((s) => s.q).find((x) => x.e === e);
+    const e = op.dataset.op, v = op.dataset.v;
+    const q = STEPS.flatMap((s) => s.q).find((x) => String(x.e) === e);
     if (q.t === "check") {
       const a = Array.isArray(S.resp[e]) ? S.resp[e] : [];
       S.resp[e] = a.includes(v) ? a.filter((x) => x !== v) : [...a, v];
@@ -467,7 +709,7 @@ document.addEventListener("click", (ev) => {
     }
     const o = $("outro" + e);
     if (o) o.classList.toggle("vis", Array.isArray(S.resp[e]) ? S.resp[e].includes("__other_option__") : S.resp[e] === "__other_option__");
-    if (e === RISCO) $("alertaRisco").classList.toggle("vis", !!S.resp[e] && S.resp[e] !== q.o[0]);
+    if (ehRisco(q)) $("alertaRisco").classList.toggle("vis", !!S.resp[e] && S.resp[e] !== q.o[0]);
     $("c" + e)?.classList.remove("erro");
     salvar(); return;
   }
@@ -480,6 +722,10 @@ $("avancar").onclick = () => {
   ir(S.etapa + 1);
 };
 $("voltar").onclick = () => { if (S.etapa >= TOTAL) return ir(TOTAL - 1); if (S.etapa <= 0) { pararVoz(); return capa(); } ir(S.etapa - 1); };
+// Reabre o roteiro em andamento (pacientes que já tinham começado o de adulto continuam de onde pararam).
+{ let k = null; try { k = localStorage.getItem("preconsulta.roteiro"); } catch (e) {}
+  if (!KEYS[k]) k = temProgresso("adulto") ? "adulto" : null;
+  if (k) carregar(k); }
 capa();
 </script>
 </body>

@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Pré-consulta por voz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--oliva:#656635;--ambar:#E89925;--tinta:#2B2A22;--verde:#38584B;--terracota:#C3622D;--cafe:#83462D;--creme:#FBF8EE;--off:#F2F1F0;--suave:#5f5d4c;--linha:#e2dccb}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--oliva);color:var(--tinta);font-family:Figtree,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:620px;margin:0 auto;padding:18px 16px 48px}
+.topo{color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.topo h1{font-family:Marcellus,Optima,serif;font-weight:400;font-size:22px;margin:0}
+.topo small{opacity:.85;font-size:13px;text-align:right}
+.barra{height:6px;background:rgba(255,255,255,.25);border-radius:4px;overflow:hidden;margin-bottom:14px}
+.barra i{display:block;height:100%;width:0;background:var(--ambar);transition:width .3s}
+.card{background:var(--creme);border-radius:18px;padding:20px 18px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+h2{font-family:Marcellus,Optima,serif;font-weight:400;font-size:24px;margin:0 0 8px;color:var(--oliva)}
+p{line-height:1.5;margin:8px 0}
+.dica{background:#fff;border:1px solid var(--linha);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--suave);margin:10px 0}
+.dica ul{margin:4px 0 0;padding-left:18px}
+.dica li{margin:2px 0}
+label.campo{display:block;font-weight:600;margin:14px 0 4px}
+input[type=text],input[type=tel],input[type=date],textarea,select{width:100%;border:1px solid var(--linha);border-radius:12px;padding:12px;font:16px Figtree,system-ui,sans-serif;background:#fff;color:var(--tinta)}
+textarea{min-height:150px;resize:vertical;line-height:1.45}
+textarea.gravando{border-color:var(--terracota);box-shadow:0 0 0 3px rgba(195,98,45,.18)}
+.mic{display:flex;align-items:center;gap:12px;margin:12px 0 6px;flex-wrap:wrap}
+.btnmic{width:64px;height:64px;border-radius:50%;border:0;background:var(--ambar);color:var(--tinta);font-size:28px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18);flex:0 0 auto}
+.btnmic.on{background:var(--terracota);color:#fff;animation:pulso 1.2s infinite}
+@keyframes pulso{0%{box-shadow:0 0 0 0 rgba(195,98,45,.5)}70%{box-shadow:0 0 0 14px rgba(195,98,45,0)}100%{box-shadow:0 0 0 0 rgba(195,98,45,0)}}
+.micinfo{font-size:14px;color:var(--suave);flex:1 1 180px}
+.interino{color:var(--suave);font-style:italic;font-size:15px;min-height:1.4em;margin-top:4px}
+.mini{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.mini button{border:1px solid var(--linha);background:#fff;border-radius:20px;padding:7px 12px;font:600 13px Figtree,system-ui,sans-serif;color:var(--tinta);cursor:pointer}
+.nav{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;border:0;border-radius:999px;padding:15px;font:700 16px Figtree,system-ui,sans-serif;cursor:pointer}
+.prim{background:var(--ambar);color:var(--tinta)}
+.sec{background:transparent;border:2px solid var(--linha);color:var(--tinta)}
+.btn:disabled{opacity:.5}
+.roteiros{display:grid;gap:10px;margin:14px 0}
+.roteiros button{display:flex;align-items:center;gap:14px;text-align:left;border:2px solid var(--linha);background:#fff;border-radius:16px;padding:14px 16px;cursor:pointer;font:inherit;color:var(--tinta)}
+.roteiros button:hover{border-color:var(--ambar)}
+.roteiros .ic{font-size:30px;flex:0 0 auto}
+.roteiros b{display:block;font-size:17px}
+.roteiros small{color:var(--suave);font-size:13px}
+.roteiros em{display:block;color:var(--verde);font-size:12px;font-style:normal;font-weight:700;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chips button{border:2px solid var(--linha);background:#fff;border-radius:999px;padding:9px 13px;font:600 14px Figtree,system-ui,sans-serif;color:var(--tinta);cursor:pointer}
+.chips button.on{background:var(--verde);border-color:var(--verde);color:#fff}
+.escala{display:grid;grid-template-columns:repeat(11,1fr);gap:4px;margin-top:8px}
+.escala button{border:1px solid var(--linha);background:#fff;border-radius:8px;padding:9px 0;font:700 14px Figtree,system-ui,sans-serif;color:var(--tinta);cursor:pointer}
+.escala button.on{background:var(--oliva);border-color:var(--oliva);color:#fff}
+.pontas{display:flex;justify-content:space-between;font-size:12px;color:var(--suave);margin-top:4px}
+.item{border-top:1px solid var(--linha);padding:12px 0;border-radius:10px;transition:background .3s}
+.item:first-of-type{border-top:0}
+.item.foco{background:#f3ecd6;padding-left:8px;padding-right:8px}
+.item .q{font-weight:600}
+.freq{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.freq button{flex:1 1 auto;border:1px solid var(--linha);background:#fff;border-radius:10px;padding:8px 6px;font:600 13px Figtree,system-ui,sans-serif;color:var(--tinta);cursor:pointer}
+.freq button.on{background:var(--oliva);border-color:var(--oliva);color:#fff}
+.falarTopo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid var(--linha);border-radius:14px;padding:10px 12px;margin:10px 0}
+.falarTopo span{font-size:14px;color:var(--suave);flex:1 1 200px}
+.falar{border:0;background:var(--ambar);color:var(--tinta);border-radius:999px;padding:10px 16px;font:700 14px Figtree,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.falar.on{background:var(--terracota);color:#fff;animation:pulso 1.2s infinite}
+.falarMini{border:1px solid var(--linha);background:#fff;border-radius:999px;padding:6px 12px;font:600 13px Figtree,system-ui,sans-serif;color:var(--tinta);cursor:pointer;margin-top:8px}
+.falarMini.on{background:var(--terracota);border-color:var(--terracota);color:#fff}
+.ouviu{font-size:13px;color:var(--suave);font-style:italic;margin-top:4px;min-height:1.2em}
+.alerta{display:none;background:#fbeee6;border:1px solid #e9c2a8;color:var(--cafe);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:14px;line-height:1.45}
+.alerta.sempre{display:block}
+.rev{border-top:1px solid var(--linha);padding:10px 0}
+.rev h3{font-size:15px;margin:0 0 4px;display:flex;justify-content:space-between;gap:8px}
+.rev h3 button{border:0;background:none;color:var(--verde);font:700 13px Figtree,system-ui,sans-serif;cursor:pointer;text-decoration:underline}
+.rev pre{white-space:pre-wrap;font:14px/1.45 Figtree,system-ui,sans-serif;margin:0;color:var(--suave)}
+.ok{text-align:center}
+.ok h2{color:var(--verde)}
+.ouvirTopo{float:right;margin:0 0 8px 10px}
+.ouvir{border:2px solid var(--verde);background:#fff;color:var(--verde);border-radius:999px;padding:8px 14px;font:700 14px Figtree,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.ouvir.on{background:var(--verde);color:#fff}
+.ouvirMini{border:0;background:none;font-size:16px;padding:0 6px 0 0;cursor:pointer;vertical-align:-1px}
+.ouvirMini.on{filter:drop-shadow(0 0 3px var(--verde))}
+.carta{background:#fff;border:1px solid var(--linha);border-left:5px solid var(--ambar);border-radius:16px;padding:18px 16px 14px;margin:0 0 18px}
+.carta .cab{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.carta img{width:72px;height:72px;border-radius:50%;object-fit:cover;object-position:50% 18%;flex:0 0 auto;border:3px solid var(--creme)}
+.carta h2{font-size:27px;margin:0;line-height:1.15}
+.carta .cab small{display:block;color:var(--suave);font-size:13px;margin-top:2px}
+.carta p{font-size:17px;line-height:1.6;margin:10px 0;padding:2px 6px;border-radius:8px;transition:background .3s}
+.carta p.lendo{background:#f3ecd6}
+.carta .ass{font-family:Marcellus,Optima,serif;color:var(--oliva);font-size:18px;text-align:right}
+.btnCarta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:999px;padding:16px;background:var(--verde);color:#fff;font:700 17px Figtree,system-ui,sans-serif;cursor:pointer;margin:4px 0 6px}
+.btnCarta.on{background:var(--terracota)}
+details.cartaFechada{margin:0 0 16px}
+details.cartaFechada summary{cursor:pointer;color:var(--verde);font-weight:700;font-size:15px;padding:6px 0}
+.rodape{color:rgba(255,255,255,.8);font-size:12px;text-align:center;margin-top:16px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topo"><h1>Pré-consulta</h1><small id="passo"></small></div>
+  <div class="barra"><i id="prog"></i></div>
+  <div class="card" id="tela"></div>
+  <div class="rodape">Dr. Luis Felipe Jardim · Psiquiatra · CRM-SC 12767 · RQE 22739</div>
+</div>
+
+<script>
+// ====== CONFIGURAÇÃO ======
+// Formulário Google que recebe as respostas (2 perguntas de parágrafo: "Paciente" e "Respostas").
+const FORM = "https://docs.google.com/forms/d/e/1FAIpQLSdEgVRqms8zbmovVuGCF6k2milxv4Tac83b0YddnNUcPLOgqg/formResponse";
+const CAMPO_PACIENTE = "entry.2057517674";
+const CAMPO_RESPOSTAS = "entry.929291522";
+const CHAVE = "preconsulta-voz-v2-";
+
+const FREQ_CURTO = ["Nada","Muito leve","Leve","Moderado","Grave"];
+const CVV = "Se houver pensamento de se ferir agora, não espere a consulta: ligue <b>188</b> (CVV, 24 h, gratuito), procure o pronto-atendimento mais próximo ou ligue <b>192</b> (SAMU), e avise a clínica.";
+
+// ====== MENSAGEM DE BOAS-VINDAS (cabeçalho da primeira tela) ======
+// Para usar a gravação na voz do próprio médico, coloque aqui o caminho do arquivo (ex.: "audio/boas-vindas.mp3").
+// Enquanto estiver vazio, a mensagem é lida pela voz do próprio aparelho.
+const AUDIO_CARTA = "";
+const CARTA = [
+ "Querido paciente,",
+ "Antes de tudo, para mim é uma honra e uma responsabilidade contar com a sua confiança para cuidar da sua saúde.",
+ "Antes mesmo da consulta, eu gosto de conhecer o paciente por meio deste material de pré-consulta: um questionário em que você pode responder escrevendo, ou ouvindo cada pergunta e respondendo por voz, aqui mesmo, nesta página que criei para isso.",
+ "Peço que você realmente se dedique a ele. Se tiver alguma dificuldade, peça ajuda a um familiar, de preferência alguém que conheça bem o seu caso.",
+ "Tente trazer a sua história da forma mais completa possível: se já consultou com outros profissionais, se tem diagnósticos anteriores, o nome dos remédios que já usou, se tem alguma doença clínica e se fez exames recentes. Contar a sua história de vida também ajuda muito.",
+ "Essas questões também são exploradas na consulta, sim. Mas a maioria dos pacientes que chegam sem esse preparo acaba não trazendo informações que fazem muita diferença na qualidade do atendimento, na precisão do diagnóstico e, com isso, em melhores decisões de tratamento.",
+ "Pode ser cansativo, eu sei. Mas é a base do material que teremos para o seu acompanhamento, tanto na primeira consulta quanto no futuro."];
+
+// ====== ROTEIROS ======
+const ROT = {
+adulto: {
+  rotulo:"Adulto", icone:"🧑", sub:"18 a 64 anos, respondendo por si",
+  ident:[{id:"nome",label:"Nome completo",obrig:true},{id:"cpf",label:"CPF",tipo:"cpf",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date"},{id:"tel",label:"Celular com DDD",tipo:"tel",obrig:true}],
+  areas:["Trabalho / estudos","Relacionamento amoroso","Filhos / família","Sono","Saúde física","Finanças","Amizades / vida social","Autoestima","Lazer e prazer nas coisas"],
+  rastreioTitulo:"Nas últimas 2 semanas", rastreioIntro:"O quanto você foi incomodado(a) por cada item abaixo?",
+  rastreio:[
+   "Pouco interesse ou prazer em fazer as coisas",
+   "Sentiu-se desanimado(a), deprimido(a) ou sem esperança",
+   "Sentiu-se mais irritado(a), mal-humorado(a) ou zangado(a) do que o usual",
+   "Dormiu menos do que o usual, mas ainda com muita energia",
+   "Começou muito mais projetos do que o usual ou fez coisas mais arriscadas",
+   "Sentiu-se nervoso(a), ansioso(a), assustado(a), preocupado(a) ou tenso(a)",
+   "Sentiu pânico ou se sentiu amedrontado(a)",
+   "Evitou situações que te deixam ansioso(a)",
+   "Dores sem explicação (cabeça, costas, articulações, barriga, pernas)",
+   "Sentiu que suas doenças não estão sendo levadas a sério",
+   "Pensamentos de ferir a si mesmo(a)",
+   "Ouviu coisas que outras pessoas não ouviam, como vozes",
+   "Sentiu que alguém podia ouvir seus pensamentos, ou que você ouvia os pensamentos de outra pessoa",
+   "Problemas com o sono",
+   "Problemas de memória ou para se localizar (ex.: achar o caminho de casa)",
+   "Pensamentos, impulsos ou imagens desagradáveis que voltam repetidamente",
+   "Sentiu-se obrigado(a) a repetir certos comportamentos ou pensamentos",
+   "Sentiu-se desligado(a) de si, do corpo, do ambiente ou das lembranças",
+   "Sentiu-se sem saber quem você é ou o que quer da vida",
+   "Não se sentiu próximo(a) das pessoas nem aproveitou as relações"],
+  risco:10,
+  telas:[
+   {id:"ident", tipo:"ident", titulo:"Quem é você"},
+   {id:"motivo", tipo:"voz", obrig:true, titulo:"O que te traz à consulta", pergunta:"Conte com suas palavras o principal motivo da sua procura.",
+    dicas:["O que você está sentindo ou vivendo","Há quanto tempo isso acontece","O que já tentou para resolver (tratamentos, mudanças, ajuda de alguém)"]},
+   {id:"impacto", tipo:"impacto", titulo:"Como isso afeta sua vida"},
+   {id:"vida", tipo:"voz", titulo:"Sua vida hoje", pergunta:"Fale um pouco sobre a sua vida atual.",
+    dicas:["Onde nasceu e em que cidade mora","Com quem mora: parentesco, nome, idade e se alguém tem alguma doença","Se é casado(a) ou tem companheiro(a)","Escolaridade","Trabalho: o que faz, desde quando, e o quanto é estressante","Religião, se tiver"]},
+   {id:"rastreio", tipo:"rastreio"},
+   {id:"habitos", tipo:"voz", titulo:"Sono e rotina", pergunta:"Como é o seu dia a dia?",
+    dicas:["Que horas deita e que horas acorda; se tem queixa de sono","O que faz para se divertir e relaxar","Atividade física: qual e quantas vezes por semana","Como é sua alimentação, o que acha certo e errado nela","Cafés, chás e energéticos por dia","Como funciona seu intestino"]},
+   {id:"substancias", tipo:"voz", titulo:"Álcool, cigarro e outras substâncias", pergunta:"Você usa ou já usou álcool, cigarro ou outras substâncias?",
+    dicas:["Fuma? Quanto por dia?","Quantas doses de bebida alcoólica por semana","Outras substâncias (maconha, cocaína, outras): quais, no passado ou agora, e quando usou pela última vez"],
+    nota:"Isto fica entre você e o médico, protegido pelo sigilo médico."},
+   {id:"remedios", tipo:"voz", obrig:true, titulo:"Remédios e alergias", pergunta:"Quais remédios você usa hoje? E tem alergia a algum remédio?",
+    dicas:["Nome, dose e há quanto tempo usa","Para que usa","Vitaminas e suplementos também","Alergia a remédios ou alimentos (se não tiver, diga \"não tenho\")"]},
+   {id:"psiq", tipo:"voz", alerta:true, titulo:"Tratamentos anteriores", pergunta:"Você já fez algum tratamento de saúde mental?",
+    dicas:["Psiquiatra ou psicólogo: motivo e ano","Remédios psiquiátricos que já usou e não usa mais, e se ajudaram","Diagnósticos que algum médico já te deu","Se já precisou ser internado(a) por motivo emocional","Se já tentou tirar a própria vida: quando e como foi"]},
+   {id:"clinico", tipo:"voz", extra:"pesoAltura", titulo:"Saúde do corpo", pergunta:"Conte sobre a sua saúde física.",
+    dicas:["Doenças que os médicos já diagnosticaram","Cirurgias (qual, ano e se resolveu)","Internações (motivo e ano)","Se já teve convulsão ou bateu a cabeça a ponto de desmaiar"]},
+   {id:"infancia", tipo:"voz", opcional:true, titulo:"Infância e família", pergunta:"Se quiser, fale sobre sua infância e sua família.",
+    dicas:["Como foi sua infância","Acontecimentos difíceis (conflitos, perdas, mudanças, dificuldade na escola, qualquer forma de abuso)","Como era seu pai e como era a relação com ele","Como era sua mãe e como era a relação com ela","Como você e as pessoas próximas descrevem o seu jeito de ser"]},
+   {id:"relacoes", tipo:"voz", opcional:true, titulo:"Relacionamentos e apoio", pergunta:"Como estão seus relacionamentos?",
+    dicas:["Se está em um relacionamento, o quanto está feliz nele","Se tem amigos e pessoas com quem pode contar"]},
+   {id:"familia", tipo:"voz", titulo:"Saúde mental na família", pergunta:"Alguém da sua família de sangue já teve problemas de saúde mental?",
+    dicas:["Quem (pai, mãe, irmãos, avós, tios, primos)","O quê: depressão, ansiedade, bipolaridade, esquizofrenia, álcool ou drogas, suicídio, demência, TDAH, autismo, outros","Se não sabe ou não tem, pode dizer"]},
+   {id:"mulher", tipo:"voz", opcional:true, titulo:"Para mulheres", pergunta:"Se você é mulher, conte sobre sua saúde reprodutiva.",
+    dicas:["Se está grávida ou amamentando","Data da última menstruação","Número de gestações e de filhos","Mudanças de humor antes da menstruação ou com anticoncepcional","Se usa método para evitar gravidez, qual"]},
+   {id:"expect", tipo:"voz", titulo:"O que você espera", pergunta:"O que você espera do tratamento?",
+    dicas:["O que é, para você, um bom atendimento médico","Se o tratamento der certo, o que estaria diferente na sua vida daqui a 3 meses","Se nada mudar nos próximos 6 meses, o que você imagina que pode acontecer","O que poderia dificultar seu acompanhamento (horário, distância, dinheiro, outro)"]},
+   {id:"motivacao", tipo:"escalaFinal", titulo:"Quase lá"},
+   {id:"revisao", tipo:"revisao", titulo:"Revise e envie"}]
+},
+pia: {
+  rotulo:"Criança e adolescente", icone:"🧒", sub:"até 17 anos · respondido pelo responsável",
+  ident:[{id:"nome",label:"Nome completo da criança ou adolescente",obrig:true},{id:"cpf",label:"CPF da criança ou adolescente",tipo:"cpf",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date",obrig:true},
+         {id:"resp",label:"Seu nome (responsável)",obrig:true},{id:"parent",label:"Parentesco (mãe, pai, avó, outro)",obrig:true},{id:"tel",label:"Celular do responsável com DDD",tipo:"tel",obrig:true}],
+  areas:["Escola / aprendizado","Amizades","Convivência em casa","Sono","Alimentação","Brincar e lazer","Autoestima","Saúde física","Esportes e atividades"],
+  rastreioTitulo:"Nas últimas 2 semanas", rastreioIntro:"Pensando no seu filho ou filha, o quanto cada item aconteceu?",
+  rastreio:[
+   "Dificuldade de prestar atenção ou se distrai com facilidade",
+   "Agitado(a), não para quieto(a)",
+   "Age sem pensar, interrompe, não espera a vez",
+   "Birras, desafia regras ou discute com os adultos",
+   "Irritado(a) ou explode com facilidade",
+   "Triste, chora fácil ou sem vontade de fazer as coisas",
+   "Medos ou preocupações exagerados",
+   "Evita a escola, sair de casa ou ficar longe dos pais",
+   "Dificuldade de fazer ou manter amizades",
+   "Pouco contato visual ou pouco interesse em brincar com outras crianças",
+   "Interesses muito intensos ou rotinas que não podem mudar",
+   "Repete movimentos, falas ou rituais",
+   "Incomoda-se muito com barulhos, texturas, cheiros ou roupas",
+   "Problemas com o sono",
+   "Problemas com a alimentação (come muito pouco, demais, ou só alguns alimentos)",
+   "Tempo excessivo de telas, ou irritação forte quando tiram a tela",
+   "Fala em morrer ou se machuca de propósito",
+   "Sofreu provocações, exclusão ou agressões (bullying)"],
+  risco:16,
+  telas:[
+   {id:"ident", tipo:"ident", titulo:"Quem vai consultar"},
+   {id:"motivo", tipo:"voz", obrig:true, titulo:"O que motivou a consulta", pergunta:"Conte com suas palavras o que motivou a procura.",
+    dicas:["O que preocupa vocês","Desde quando isso acontece","Quem percebeu primeiro (família, escola, pediatra)","O que já tentaram fazer"]},
+   {id:"impacto", tipo:"impacto", titulo:"Como isso afeta a vida dele(a)"},
+   {id:"gestacao", tipo:"voz", titulo:"Gestação, parto e primeiros meses", pergunta:"Como foram a gestação, o parto e os primeiros meses de vida?",
+    dicas:["Se a gestação foi planejada e se houve alguma complicação","Uso de remédios, álcool ou cigarro na gravidez","Parto: normal ou cesárea, com quantas semanas, peso ao nascer","Se precisou de UTI ou ficou internado(a)","Amamentação, e se era um bebê calmo ou muito choroso"]},
+   {id:"desenvolvimento", tipo:"voz", titulo:"Desenvolvimento", pergunta:"Como foi o desenvolvimento?",
+    dicas:["Com que idade sentou, engatinhou e andou","Primeiras palavras e primeiras frases","Quando largou a fralda de dia e de noite","Se perdeu alguma habilidade que já tinha","Coordenação: correr, pular, desenhar, escrever"]},
+   {id:"escola", tipo:"voz", titulo:"Escola", pergunta:"Como está a vida escolar?",
+    dicas:["Escola e série","Notas e aprendizado: leitura, escrita, contas","O que os professores falam","Comportamento em sala e no recreio","Se já repetiu de ano, se tem reforço ou apoio"]},
+   {id:"rastreio", tipo:"rastreio"},
+   {id:"social", tipo:"voz", titulo:"Jeito de ser e convivência", pergunta:"Como ele ou ela é no dia a dia com as pessoas?",
+    dicas:["Com quem brinca e se tem amigos","Como se dá com irmãos e familiares","Do que mais gosta; interesses muito intensos","Rotinas que precisam ser sempre iguais","Sensibilidade a barulhos, texturas, roupas ou alimentos"]},
+   {id:"rotina", tipo:"voz", titulo:"Sono, alimentação e telas", pergunta:"Como é a rotina?",
+    dicas:["Que horas dorme e acorda, se dorme sozinho(a), se acorda à noite","Alimentação e apetite","Quantas horas por dia de celular, tablet, TV ou videogame","Esportes, brincadeiras e atividades fora de casa"]},
+   {id:"remedios", tipo:"voz", obrig:true, titulo:"Remédios e alergias", pergunta:"Usa algum remédio hoje? Tem alergia a algum remédio?",
+    dicas:["Nome, dose e há quanto tempo usa","Para que usa","Vitaminas e suplementos também","Alergias (se não tiver, diga \"não tem\")"]},
+   {id:"tratamentos", tipo:"voz", alerta:true, titulo:"Avaliações e tratamentos anteriores", pergunta:"Já fez alguma avaliação ou tratamento?",
+    dicas:["Fono, terapia ocupacional, psicólogo, psicopedagogo, neuropediatra ou psiquiatra: quando e por quê","Diagnósticos já dados (TDAH, autismo, dislexia, ansiedade, outros)","Remédios que já usou e se ajudaram","Se já precisou de internação ou pronto-socorro por motivo emocional"]},
+   {id:"clinico", tipo:"voz", extra:"pesoAltura", titulo:"Saúde do corpo", pergunta:"Como é a saúde física?",
+    dicas:["Doenças, alergias respiratórias, problemas de tireoide ou outros","Cirurgias e internações","Convulsões ou batida forte na cabeça","Audição e visão (já testou? usa óculos?)"]},
+   {id:"familia", tipo:"voz", titulo:"Família", pergunta:"Conte sobre a família.",
+    dicas:["Com quem mora; se os pais vivem juntos ou separados, e como é a guarda","Acontecimentos difíceis: perdas, mudanças, brigas, violência","Saúde mental na família de sangue: TDAH, autismo, dificuldade de aprendizagem, depressão, ansiedade, bipolaridade, álcool ou drogas, suicídio"]},
+   {id:"adolescente", tipo:"voz", opcional:true, alerta:true, titulo:"Espaço do adolescente", pergunta:"Se a consulta é para um adolescente, este espaço é dele ou dela, para responder com as próprias palavras.",
+    dicas:["Como você está se sentindo ultimamente","O que mais te incomoda","Escola, amigos, celular e sono","O que você gostaria que mudasse","O que você espera da consulta"],
+    nota:"Se preferir, responda sozinho(a). O que você contar aqui é sigiloso."},
+   {id:"expect", tipo:"voz", titulo:"O que vocês esperam", pergunta:"O que vocês esperam do tratamento?",
+    dicas:["Se der certo, o que estaria diferente daqui a 3 meses","O que poderia dificultar o acompanhamento (horário, distância, dinheiro, outro)"]},
+   {id:"motivacao", tipo:"escalaFinal", titulo:"Quase lá"},
+   {id:"revisao", tipo:"revisao", titulo:"Revise e envie"}]
+},
+geri: {
+  rotulo:"Idoso", icone:"👵", sub:"65 anos ou mais · paciente e/ou cuidador",
+  ident:[{id:"nome",label:"Nome completo de quem vai consultar",obrig:true},{id:"cpf",label:"CPF de quem vai consultar",tipo:"cpf",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date",obrig:true},
+         {id:"quem",label:"Quem está respondendo?",tipo:"select",opcoes:["O próprio paciente","Um familiar ou cuidador","Os dois juntos"],obrig:true},
+         {id:"resp",label:"Nome e parentesco do familiar ou cuidador (se houver)"},{id:"tel",label:"Celular para contato com DDD",tipo:"tel",obrig:true}],
+  areas:["Memória","Autonomia em casa","Convívio familiar","Sono","Saúde física","Finanças","Vida social","Humor","Sair de casa / dirigir"],
+  rastreioTitulo:"Nas últimas 2 semanas", rastreioIntro:"Pensando na pessoa que vai consultar (ou em você, se for o próprio paciente), o quanto cada item aconteceu?",
+  rastreio:[
+   "Esquece conversas ou fatos recentes",
+   "Repete as mesmas perguntas ou histórias",
+   "Se perde ou se confunde em lugares conhecidos",
+   "Dificuldade para achar palavras ou acompanhar conversas",
+   "Triste, desanimado(a) ou chorando",
+   "Perdeu o interesse pelas coisas, fica parado(a)",
+   "Nervoso(a), ansioso(a) ou preocupado(a)",
+   "Irritado(a), agitado(a) ou agressivo(a)",
+   "Desconfiado(a): acha que mexem nas suas coisas ou querem prejudicá-lo(a)",
+   "Vê ou ouve coisas que não estão lá",
+   "Fica confuso(a) de repente, mais à tarde ou à noite",
+   "Problemas com o sono, ou troca o dia pela noite",
+   "Muito sono durante o dia",
+   "Perda de apetite ou de peso",
+   "Quedas ou desequilíbrio",
+   "Fala em morrer ou em se ferir"],
+  risco:15,
+  telas:[
+   {id:"ident", tipo:"ident", titulo:"Quem vai consultar"},
+   {id:"motivo", tipo:"voz", obrig:true, titulo:"O que motivou a consulta", pergunta:"Conte com suas palavras o que motivou a procura.",
+    dicas:["O que mudou","Desde quando, e se começou de repente ou aos poucos","Quem percebeu primeiro","O que já foi feito (consultas, exames, remédios)"]},
+   {id:"impacto", tipo:"impacto", titulo:"Como isso afeta o dia a dia"},
+   {id:"memoria", tipo:"voz", titulo:"Memória e orientação", pergunta:"Como estão a memória e a orientação?",
+    dicas:["Esquece recados, compromissos ou onde guardou as coisas","Confunde datas, dia da semana ou horários","Se perde em caminhos conhecidos","Dificuldade para achar palavras ou reconhecer pessoas","Se isso vem piorando, e em quanto tempo"]},
+   {id:"autonomia", tipo:"voz", titulo:"Autonomia", pergunta:"O que consegue fazer sozinho(a) e em que precisa de ajuda?",
+    dicas:["Cuidar do dinheiro e pagar contas","Tomar os remédios nos horários certos","Usar telefone, cozinhar, fazer compras","Sair sozinho(a), usar transporte, dirigir","Tomar banho, se vestir, ir ao banheiro; controle da urina e das fezes"]},
+   {id:"rastreio", tipo:"rastreio"},
+   {id:"rotina", tipo:"voz", titulo:"Sono e rotina", pergunta:"Como é o dia a dia?",
+    dicas:["Horário de dormir e acordar, cochilos, se ronca ou se agita dormindo","Alimentação e peso","Atividade física e caminhadas","Convívio: visitas, igreja, grupos, amigos","Álcool e cigarro"]},
+   {id:"remedios", tipo:"voz", obrig:true, titulo:"Remédios e alergias", pergunta:"Quais remédios usa hoje? Tem alergia a algum?",
+    dicas:["Nome, dose e horário de cada um (pode ler das caixas ou da receita)","Quem organiza e dá os remédios","Remédios para dormir ou calmantes","Alergias (se não tiver, diga \"não tem\")"]},
+   {id:"clinico", tipo:"voz", extra:"pesoAltura", titulo:"Saúde do corpo", pergunta:"Como está a saúde física?",
+    dicas:["Pressão alta, diabetes, coração, AVC, tireoide, Parkinson, outras","Cirurgias e internações","Quedas no último ano","Audição e visão: usa aparelho ou óculos?","Exames recentes: sangue, tomografia ou ressonância"]},
+   {id:"psiq", tipo:"voz", alerta:true, titulo:"Saúde mental antes", pergunta:"Já houve algum tratamento de saúde mental?",
+    dicas:["Depressão, ansiedade ou outros problemas no passado","Psiquiatra, psicólogo ou neurologista: quando e por quê","Remédios que já usou e se ajudaram","Internações ou tentativas de tirar a própria vida"]},
+   {id:"vida", tipo:"voz", titulo:"História de vida", pergunta:"Conte um pouco da história de vida.",
+    dicas:["Onde nasceu e onde mora; com quem mora","Até que série estudou","Profissão e quando se aposentou","Estado civil, filhos e netos","Do que mais gosta de fazer"]},
+   {id:"familia", tipo:"voz", titulo:"Saúde na família", pergunta:"Alguém da família de sangue teve problemas parecidos?",
+    dicas:["Demência ou Alzheimer, Parkinson, AVC","Depressão, bipolaridade, álcool, suicídio","Quem foi e com que idade começou"]},
+   {id:"cuidador", tipo:"voz", opcional:true, titulo:"Para quem cuida", pergunta:"Se existe um cuidador ou familiar responsável, este espaço é para ele ou ela.",
+    dicas:["Quem cuida e quantas horas por dia","Como você está: cansaço, sono, preocupação","Que ajuda você recebe","Se há decisões importantes a tomar (dinheiro, moradia, procuração)"]},
+   {id:"expect", tipo:"voz", titulo:"O que vocês esperam", pergunta:"O que vocês esperam da consulta?",
+    dicas:["O que seria um bom resultado","O que poderia dificultar o acompanhamento (transporte, horário, quem acompanha)"]},
+   {id:"motivacao", tipo:"escalaFinal", titulo:"Quase lá"},
+   {id:"revisao", tipo:"revisao", titulo:"Revise e envie"}]
+}};
+
+// ====== ESTADO ======
+const params = new URLSearchParams(location.search);
+const codigo = (params.get("c") || "").replace(/[^A-Za-z0-9_-]/g,"").slice(0,32);
+let tipo = null, R = {}, atual = 0;
+function ler(k){ try { return JSON.parse(localStorage.getItem(k) || "null"); } catch(e) { return null; } }
+function carregar(t){ tipo = t; const s = ler(CHAVE + t); R = (s && s.R) || {}; if (!R.inicio) R.inicio = Date.now(); atual = Math.max(1, (s && s.atual) || 1); }
+function salvar(){ if (!tipo) return; try { localStorage.setItem(CHAVE + tipo, JSON.stringify({R, atual})); } catch(e) {} }
+const pT = params.get("tipo");
+if (ROT[pT]) carregar(pT);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const TELAS = () => [{id:"inicio", tipo:"inicio"}].concat(tipo ? ROT[tipo].telas : []);
+
+// ====== DITADO (texto aparece enquanto fala) ======
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const MSG_MIC = "O microfone não foi liberado. Você pode digitar, ou usar o microfone do próprio teclado.";
+const MSG_SILENCIO = "Ainda não ouvi nada. Fale mais perto do aparelho. Se continuar assim, o microfone escolhido pode estar errado ou mudo (no computador: cadeado ao lado do endereço → Microfone).";
+const MSG_SEM_SOM = "Não está chegando som do microfone. Confira se o microfone certo está escolhido (no computador: cadeado ao lado do endereço → Microfone). Enquanto isso, você pode digitar.";
+let rec = null, gravando = false, alvo = null, interinoEl = null, btnAtual = null, base = "";
+// No computador, o microfone padrão pode estar mudo (ex.: mesa de som desligada).
+// Mede rapidamente cada entrada e usa a que tem som. Celular: usa o padrão.
+const MOVEL = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+let trilha = null, nomeMic = "";
+async function pico(track, ms = 250){
+  const ac = new (window.AudioContext || window.webkitAudioContext)(); const an = ac.createAnalyser();
+  ac.createMediaStreamSource(new MediaStream([track])).connect(an);
+  const d = new Float32Array(2048); let mx = 0; const fim = Date.now() + ms;
+  while (Date.now() < fim) { await new Promise(r => setTimeout(r, 50)); an.getFloatTimeDomainData(d); for (const x of d) mx = Math.max(mx, Math.abs(x)); }
+  ac.close(); return mx;
+}
+async function escolherTrilha(){
+  if (MOVEL || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return null;
+  if (trilha && trilha.readyState === "live") return trilha;
+  try {
+    const s0 = await navigator.mediaDevices.getUserMedia({audio:true});
+    const t0 = s0.getAudioTracks()[0];
+    if (await pico(t0) > 1e-4) { trilha = t0; nomeMic = t0.label; return trilha; }
+    const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput" && !["default","communications"].includes(d.deviceId));
+    let melhor = null, mp = 0;
+    for (const d of devs) {
+      try { const s = await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:d.deviceId}}}); const t = s.getAudioTracks()[0]; const p = await pico(t);
+        if (p > mp) { if (melhor) melhor.stop(); melhor = t; mp = p; } else t.stop(); } catch(e) {}
+    }
+    if (melhor && mp > 1e-4) { t0.stop(); trilha = melhor; nomeMic = melhor.label; return trilha; }
+    trilha = t0; nomeMic = t0.label; return trilha;
+  } catch(e) { return null; }
+}
+function ligarRec(r, trk){ if (trk) { try { r.start(trk); return; } catch(e) {} } r.start(); }
+function pararVoz(){ if (rec && gravando) { gravando = false; try{ rec.stop(); }catch(e){} } gravando = false; if (btnAtual){ btnAtual.classList.remove("on"); btnAtual.textContent="🎤"; } if (alvo) alvo.classList.remove("gravando"); if (interinoEl) interinoEl.textContent=""; }
+async function iniciarVoz(textarea, btn, interino){
+  if (!SR) return;
+  pararVoz(); pararFala(); pararConversa();
+  if (!trilha && !MOVEL) interino.textContent = "Preparando o microfone…";
+  const trk = await escolherTrilha();
+  rec = new SR(); rec.lang = "pt-BR"; rec.continuous = true; rec.interimResults = true;
+  alvo = textarea; btnAtual = btn; interinoEl = interino; base = textarea.value.trim();
+  rec.onresult = ev => {
+    let fin = "", tmp = "";
+    for (let i = ev.resultIndex; i < ev.results.length; i++) { const t = ev.results[i][0].transcript; if (ev.results[i].isFinal) fin += t; else tmp += t; }
+    if (fin) { fin = fin.trim(); fin = fin.charAt(0).toUpperCase() + fin.slice(1);
+      base = (base ? base + (/[.!?]$/.test(base) ? " " : ". ") : "") + fin;
+      textarea.value = base; textarea.dispatchEvent(new Event("input")); }
+    interino.textContent = tmp;
+  };
+  let teveAudio = false, falhas = 0;
+  rec.onaudiostart = () => { teveAudio = true; falhas = 0; };
+  rec.onerror = ev => {
+    if (ev.error === "no-speech") { interino.textContent = MSG_SILENCIO; return; }
+    if (ev.error === "aborted") return;
+    pararVoz();
+    interino.textContent = ev.error === "network" ? "O reconhecimento de voz precisa de internet. Confira a conexão, ou digite." : MSG_MIC;
+  };
+  rec.onend = () => {
+    if (!gravando) return;
+    if (!teveAudio && ++falhas >= 2) { pararVoz(); interino.textContent = MSG_SEM_SOM; return; }
+    teveAudio = false;
+    try { ligarRec(rec, trk); } catch(e) { pararVoz(); }
+  };
+  try { ligarRec(rec, trk); gravando = true; btn.classList.add("on"); btn.textContent = "■"; textarea.classList.add("gravando"); interino.textContent = "Ouvindo…" + (nomeMic && !MOVEL ? ` (microfone: ${nomeMic})` : ""); }
+  catch(e) { interino.textContent = "Não consegui ligar o microfone. Você pode digitar."; }
+}
+
+// ====== OUVIR (leitura em voz alta) ======
+const TTS = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+let vozPt = null, falandoBtn = null;
+function escolherVoz(){ if (!TTS) return; const all = speechSynthesis.getVoices(); const vs = all.filter(v => /^pt(-|_)?BR/i.test(v.lang) || /portugu[eê]s.*brasil/i.test(v.name));
+  vozPt = vs.find(v => /google|luciana|francisca|natural|online/i.test(v.name)) || vs[0] || all.find(v => /^pt/i.test(v.lang)) || null; }
+if (TTS) { escolherVoz(); speechSynthesis.onvoiceschanged = escolherVoz; }
+function pararFala(){ if (TTS) speechSynthesis.cancel(); if (falandoBtn) { falandoBtn.classList.remove("on"); falandoBtn.innerHTML = falandoBtn.dataset.rotulo; } falandoBtn = null; }
+function utter(txt){ const u = new SpeechSynthesisUtterance(txt); u.lang = "pt-BR"; if (vozPt) u.voice = vozPt; u.rate = 0.95; return u; }
+function falar(partes, btn){
+  if (!TTS) return;
+  if (falandoBtn === btn) { pararFala(); return; }
+  pararFala(); pararVoz(); pararConversa(); pararCarta(true);
+  falandoBtn = btn; btn.classList.add("on"); btn.innerHTML = btn.classList.contains("ouvirMini") ? "■" : "■ Parar";
+  const lista = partes.filter(Boolean);
+  lista.forEach((txt, k) => { const u = utter(txt); if (k === lista.length - 1) u.onend = () => { if (falandoBtn === btn) pararFala(); }; speechSynthesis.speak(u); });
+}
+const falarP = txt => new Promise(res => { if (!TTS || !txt) return res(); const u = utter(txt); u.onend = res; u.onerror = res; speechSynthesis.speak(u); });
+const limpo = h => String(h).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+function btnOuvir(id){ return TTS ? `<button class="ouvir" id="${id}" data-rotulo="🔊 Ouvir">🔊 Ouvir</button>` : ""; }
+
+// ====== LEITURA DA MENSAGEM (destaca o parágrafo que está sendo lido) ======
+let cartaId = 0, cartaPos = 0, cartaAudio = null;
+const ROT_CARTA = "▶ Ouvir a mensagem";
+function pararCarta(guardar){
+  cartaId++; if (cartaAudio) cartaAudio.pause(); else if (TTS) speechSynthesis.cancel();
+  if (!guardar) cartaPos = 0;
+  document.querySelectorAll(".carta p.lendo").forEach(p => p.classList.remove("lendo"));
+  const b = document.getElementById("btnCarta"); if (b) { b.classList.remove("on"); b.textContent = cartaPos ? "▶ Continuar ouvindo" : ROT_CARTA; }
+}
+async function tocarCarta(btn){
+  if (btn.classList.contains("on")) { pararCarta(true); return; }
+  pararVoz(); pararFala(); pararConversa();
+  btn.classList.add("on"); btn.textContent = "⏸ Pausar";
+  if (AUDIO_CARTA) {
+    if (!cartaAudio) { cartaAudio = new Audio(AUDIO_CARTA); cartaAudio.onended = () => { cartaPos = 0; pararCarta(); }; }
+    try { await cartaAudio.play(); } catch(e) { pararCarta(true); }
+    return;
+  }
+  const meu = ++cartaId, ps = [...document.querySelectorAll(".carta p")];
+  for (; cartaPos < ps.length && meu === cartaId; cartaPos++) {
+    ps.forEach(p => p.classList.remove("lendo")); ps[cartaPos].classList.add("lendo");
+    await falarP(ps[cartaPos].textContent);
+  }
+  if (meu === cartaId) { cartaPos = 0; pararCarta(); }
+}
+
+// ====== RESPONDER FALANDO (perguntas de toque) ======
+let conversaId = 0, escutaRec = null;
+function pararConversa(){ conversaId++; if (escutaRec) { try { escutaRec.abort(); } catch(e){} escutaRec = null; } if (TTS) speechSynthesis.cancel();
+  document.querySelectorAll(".falar.on,.falarMini.on").forEach(b => { b.classList.remove("on"); b.innerHTML = b.dataset.rotulo; });
+  document.querySelectorAll(".item.foco").forEach(e => e.classList.remove("foco")); }
+// Escuta uma resposta curta; resolve com o texto ("" se nada).
+async function escutarP(statusEl, ms = 9000){
+  const trk = await escolherTrilha();
+  return new Promise(res => {
+    if (!SR) return res("");
+    const r = new SR(); escutaRec = r; r.lang = "pt-BR"; r.continuous = false; r.interimResults = true; r.maxAlternatives = 3;
+    let fim = "", feito = false, teveAudio = false, semFala = false;
+    r.onaudiostart = () => { teveAudio = true; };
+    const acabar = () => { if (feito) return; feito = true; clearTimeout(tm);
+      if (!teveAudio && statusEl) { statusEl.textContent = MSG_SEM_SOM; pararConversa(); }
+      else if (!fim.trim() && semFala && statusEl) statusEl.textContent = MSG_SILENCIO;
+      res(fim.trim()); };
+    r.onresult = ev => { let tmp = ""; for (let i = 0; i < ev.results.length; i++) { const t = [...ev.results[i]].map(a => a.transcript).join(" | ");
+        if (ev.results[i].isFinal) fim += " " + t; else tmp += t; } if (statusEl) statusEl.textContent = "Ouvi: " + (fim + " " + tmp).replace(/ \| .*/g,"").trim(); };
+    r.onerror = ev => { if (ev.error === "no-speech") semFala = true; if (statusEl && ["not-allowed","service-not-allowed","audio-capture"].includes(ev.error)) statusEl.textContent = MSG_MIC; };
+    r.onend = acabar;
+    const tm = setTimeout(() => { try { r.stop(); } catch(e) { acabar(); } }, ms);
+    try { ligarRec(r, trk); if (statusEl) statusEl.textContent = "Ouvindo…"; } catch(e) { acabar(); }
+  });
+}
+function parseFreq(t){ t = norm(t); if (!t) return null;
+  if (/muito leve|pouquinho|raramente|um ou dois dias|1 ou 2 dias/.test(t)) return 1;
+  if (/moderad|metade/.test(t)) return 3;
+  if (/grave|quase todos|todos os dias|todo dia|sempre|muito forte|demais/.test(t)) return 4;
+  if (/\bleve\b|leves|alguns dias|varios dias|as vezes/.test(t)) return 2;
+  if (/\bnada\b|nunca|nenhum|\bnao\b|zero/.test(t)) return 0;
+  return null; }
+const NUMS = {zero:0,um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,meia:6,sete:7,oito:8,nove:9,dez:10};
+function parseNum(t){ t = norm(t); const d = t.match(/\b(10|[0-9])\b/); if (d) return +d[1]; for (const w of t.split(/[^a-z]+/)) if (w in NUMS) return NUMS[w]; return null; }
+function parseAreas(t, areas){ t = norm(t); return areas.filter(a => norm(a).split(/[^a-z]+/).filter(w => w.length > 3).some(w => t.includes(w.slice(0, Math.max(5, w.length - 2))))); }
+
+async function conversaRastreio(btn){
+  if (btn.classList.contains("on")) { pararConversa(); return; }
+  pararFala(); pararVoz(); pararConversa();
+  const meu = ++conversaId; btn.classList.add("on"); btn.innerHTML = "■ Parar";
+  const st = document.getElementById("statusConversa"), rot = ROT[tipo], itens = rot.rastreio;
+  const vivo = () => meu === conversaId;
+  await falarP("Vou ler cada item. Depois de cada um, responda: nada, muito leve, leve, moderado ou grave.");
+  for (let i = 0; i < itens.length && vivo(); i++) {
+    if ((R.rastreio || {})[i] != null) continue;
+    const el = document.querySelector(`.freq[data-q="${i}"]`).closest(".item");
+    document.querySelectorAll(".item.foco").forEach(e => e.classList.remove("foco")); el.classList.add("foco");
+    el.scrollIntoView({behavior:"smooth", block:"center"});
+    let v = null;
+    for (let tent = 0; tent < 2 && v == null && vivo(); tent++) {
+      await falarP(tent ? "Não entendi. Diga: nada, muito leve, leve, moderado ou grave." : itens[i] + "?");
+      if (!vivo()) break;
+      const ouvido = await escutarP(st);
+      v = parseFreq(ouvido);
+    }
+    if (!vivo()) break;
+    if (v != null) { el.querySelector(`[data-f="${v}"]`).click(); st.textContent = `Marquei: ${FREQ_CURTO[v]}`;
+      if (i === rot.risco && v > 0) await falarP(limpo(CVV)); }
+    else st.textContent = "Pulei este item. Você pode tocar na resposta.";
+  }
+  if (vivo()) { await falarP("Pronto. Confira as respostas e, se quiser, toque para corrigir."); pararConversa(); }
+}
+async function falarEscala(btn, nome){
+  if (btn.classList.contains("on")) { pararConversa(); return; }
+  pararFala(); pararVoz(); pararConversa(); const meu = ++conversaId;
+  btn.classList.add("on"); btn.innerHTML = "■ Ouvindo";
+  const st = btn.parentElement.querySelector(".ouviu");
+  const t = await escutarP(st, 7000); if (meu !== conversaId) return;
+  const n = parseNum(t);
+  if (n != null) { tela.querySelector(`[data-escala="${nome}"] [data-v="${n}"]`).click(); st.textContent = `Marquei: ${n}`; } else if (t) st.textContent = `Ouvi "${t.replace(/ \| .*/,"")}", mas não entendi o número. Toque no número.`;
+  pararConversa();
+}
+async function falarAreas(btn){
+  if (btn.classList.contains("on")) { pararConversa(); return; }
+  pararFala(); pararVoz(); pararConversa(); const meu = ++conversaId;
+  btn.classList.add("on"); btn.innerHTML = "■ Ouvindo";
+  const st = btn.parentElement.querySelector(".ouviu");
+  const t = await escutarP(st, 10000); if (meu !== conversaId) return;
+  const achou = parseAreas(t, ROT[tipo].areas);
+  achou.forEach(a => tela.querySelector(`[data-area="${CSS.escape(a)}"]`).classList.add("on"));
+  st.textContent = achou.length ? "Marquei: " + achou.join(", ") : (t ? "Não reconheci as áreas. Toque nelas." : "");
+  pararConversa();
+}
+const falarMini = (acao, rotulo) => SR ? `<div><button class="falarMini" data-acao="${acao}" data-rotulo="${rotulo}">${rotulo}</button><div class="ouviu"></div></div>` : "";
+
+// ====== TEXTO PARA OUVIR ======
+function textoParaOuvir(t){
+  const rot = tipo && ROT[tipo];
+  if (t.tipo === "inicio") return [
+    "Primeiro, escolha para quem é a consulta: adulto, criança e adolescente, ou idoso.",
+    "Você pode responder falando. Toque no microfone, fale à vontade, e o texto vai aparecendo na tela. Depois é só conferir e corrigir.",
+    "Sobre a privacidade: a transcrição usa o reconhecimento de voz do seu celular. O áudio não é gravado nem guardado. Só o texto que você revisar e enviar chega ao médico, sob sigilo médico.",
+    "Em cada tela, você pode tocar em Ouvir para eu ler a pergunta."];
+  if (t.tipo === "ident") return [t.titulo + ". Preencha: " + rot.ident.map(c => c.label).join("; ") + "."];
+  if (t.tipo === "voz") return [t.titulo + (t.opcional ? ". Esta parte é opcional." : "."), t.pergunta, "Você pode falar sobre: " + t.dicas.join("; ") + ".", t.nota || "", t.alerta ? limpo(CVV) : "", "Quando quiser responder, toque no microfone."];
+  if (t.tipo === "impacto") return [t.titulo + ".", "Em quais áreas isso tem atrapalhado? " + rot.areas.join("; ") + ".", "Depois, de zero a dez, quanto isso tem atrapalhado hoje. Zero é nada, dez é completamente.", SR ? "Você pode tocar nas opções ou nos botões de falar." : ""];
+  if (t.tipo === "rastreio") return [rot.rastreioIntro, "Para cada item: nada, muito leve, que é um ou dois dias, leve, vários dias, moderado, mais da metade dos dias, ou grave, quase todos os dias.", SR ? "Se preferir, toque em Responder falando: eu leio cada item e você responde em voz alta." : ""];
+  if (t.tipo === "escalaFinal") return ["Quase lá.", "De zero a dez, quão importante é resolver isso agora?", "E de zero a dez, quão confiante você está de que é possível mudar com ajuda?"];
+  if (t.tipo === "revisao") return ["Revise e envie. Confira as respostas. Toque em corrigir para voltar a qualquer parte. Quando estiver tudo certo, toque em Enviar ao médico."];
+  return [];
+}
+
+// ====== TELAS ======
+const tela = document.getElementById("tela");
+function render(){
+  pararVoz(); pararFala(); pararConversa(); if (typeof pararCarta === "function") { cartaId++; if (cartaAudio) cartaAudio.pause(); cartaPos = 0; }
+  const L = TELAS(), t = L[atual] || L[0], rot = tipo && ROT[tipo];
+  document.getElementById("prog").style.width = tipo ? (atual/(L.length-1)*100)+"%" : "0";
+  document.getElementById("passo").textContent = atual === 0 ? "" : `${rot.rotulo} · ${atual} de ${L.length-1}`;
+  let h = "";
+  if (t.tipo === "inicio") {
+    const tem = k => { const s = ler(CHAVE + k); return s && s.R && Object.keys(s.R).length; };
+    const jaComecou = Object.keys(ROT).some(tem);
+    const podeOuvir = AUDIO_CARTA || TTS;
+    const carta = `<div class="carta"><div class="cab"><img src="consultorio/foto-retrato.jpg" alt="Dr. Luis Felipe Jardim"><div><h2>Antes de começar</h2><small>Uma mensagem do Dr. Luis Felipe Jardim</small></div></div>
+      ${podeOuvir ? `<button class="btnCarta" id="btnCarta">${ROT_CARTA}</button>` : ""}
+      ${CARTA.map(t => `<p>${esc(t)}</p>`).join("")}
+      <div class="ass">Dr. Luis Felipe Jardim</div></div>`;
+    h = (jaComecou ? `<details class="cartaFechada"><summary>Rever a mensagem do Dr. Luis Felipe</summary>${carta}</details>` : carta) + `
+    <p style="display:flex;align-items:center;justify-content:space-between;gap:10px"><b>Para quem é a consulta?</b>${btnOuvir("ouvir")}</p>
+    <div class="roteiros">${Object.entries(ROT).map(([k,r]) => `<button data-tipo="${k}"><span class="ic">${r.icone}</span><span><b>${r.rotulo}</b><small>${r.sub}</small>${tem(k) ? "<em>Continuar de onde parou</em>" : ""}</span></button>`).join("")}</div>
+    <p><b>Você pode responder falando.</b> Toque no 🎤, fale à vontade, e o texto aparece na tela enquanto você fala. Depois é só conferir e corrigir.</p>
+    ${TTS ? `<p><b>Prefere ouvir?</b> Em cada tela, toque em <b>🔊 Ouvir</b> e a pergunta é lida em voz alta.</p>` : ""}
+    <div class="dica"><b>Sobre a privacidade</b><ul>
+      <li>A transcrição usa o reconhecimento de voz do seu celular (Google no Android, Apple no iPhone).</li>
+      <li>O áudio <b>não é gravado nem guardado</b>: só o texto que você revisar e enviar chega ao médico.</li>
+      <li>As respostas ficam sob sigilo médico, conforme a LGPD (Lei 13.709/2018).</li>
+      <li>Muitos temas são sensíveis. Responda só o que se sentir à vontade.</li></ul></div>
+    ${SR ? "" : `<div class="alerta sempre">Este navegador não tem reconhecimento de voz. Você pode digitar normalmente, ou tocar no 🎤 do próprio teclado do celular para ditar. Se preferir, abra este link no Chrome (Android) ou no Safari (iPhone).</div>`}
+    <p style="font-size:14px;color:var(--suave)">Leva cerca de 15 a 20 minutos. O que já foi respondido fica guardado neste aparelho, se precisar parar e voltar depois.</p>`;
+  }
+  else if (t.tipo === "ident") {
+    const v = R.ident || {};
+    h = `<h2>${t.titulo}</h2>` + rot.ident.map(c => `<label class="campo" for="f_${c.id}">${c.label}${c.obrig ? " *" : ""}</label>` + (
+      c.tipo === "select" ? `<select id="f_${c.id}"><option value=""></option>${c.opcoes.map(o => `<option ${v[c.id]===o?"selected":""}>${o}</option>`).join("")}</select>`
+      : c.tipo === "cpf" ? `<input type="text" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" id="f_${c.id}" value="${esc(v[c.id])}">`
+      : `<input type="${c.tipo || "text"}" id="f_${c.id}" value="${esc(v[c.id])}" ${c.tipo==="tel"?'autocomplete="tel"':""}>`)).join("") +
+      `<p style="font-size:13px;color:var(--suave);margin-top:10px">O CPF serve só para juntar estas respostas ao seu cadastro na clínica, com segurança.</p>` + navHtml();
+  }
+  else if (t.tipo === "voz") {
+    h = `<h2>${t.titulo}${t.opcional ? ' <span style="font-size:14px;color:var(--suave);font-family:Figtree">(opcional)</span>' : ""}</h2>
+    <p><b>${t.pergunta}</b></p>
+    <div class="dica">Você pode falar sobre:<ul>${t.dicas.map(d=>`<li>${d}</li>`).join("")}</ul></div>
+    ${t.nota ? `<p style="font-size:14px;color:var(--suave)">${t.nota}</p>` : ""}
+    ${SR ? `<div class="mic"><button class="btnmic" id="mic" aria-label="Falar a resposta">🎤</button><div class="micinfo"><b>Falar a resposta:</b> toque e fale; o texto aparece abaixo enquanto você fala. Toque de novo para parar.</div></div><div class="interino" id="interino"></div>` : ""}
+    <textarea id="txt" placeholder="${SR ? "O texto aparece aqui enquanto você fala. Você também pode digitar." : "Escreva aqui (ou use o microfone do teclado)."}">${esc(R[t.id])}</textarea>
+    <div class="mini"><button data-acao="limpar">Apagar e recomeçar</button></div>
+    ${t.alerta ? `<div class="alerta sempre">${CVV}</div>` : ""}
+    ${t.extra === "pesoAltura" ? `<div style="display:flex;gap:10px"><div style="flex:1"><label class="campo" for="peso">Peso (kg)</label><input type="text" inputmode="decimal" id="peso" value="${esc((R.pa||{}).peso)}"></div><div style="flex:1"><label class="campo" for="alt">Altura (m)</label><input type="text" inputmode="decimal" id="alt" value="${esc((R.pa||{}).alt)}"></div></div>` : ""}
+    ${navHtml()}`;
+  }
+  else if (t.tipo === "impacto") {
+    const v = R.impacto || {areas:[], nota:null};
+    h = `<h2>${t.titulo}</h2>
+    <p><b>Em quais áreas isso tem atrapalhado?</b> Toque em todas que valem.</p>
+    <div class="chips" id="areas">${rot.areas.map(a=>`<button data-area="${esc(a)}" class="${v.areas.includes(a)?"on":""}">${a}</button>`).join("")}</div>
+    ${falarMini("areas","🎤 Dizer as áreas")}
+    <p style="margin-top:18px"><b>De 0 a 10, quanto isso tem atrapalhado hoje?</b></p>
+    ${escalaHtml("nota", v.nota, "Não atrapalha", "Atrapalha completamente")}
+    ${navHtml()}`;
+  }
+  else if (t.tipo === "rastreio") {
+    const v = R.rastreio || {};
+    h = `<h2>${rot.rastreioTitulo}</h2><p>${rot.rastreioIntro}</p>
+    ${SR ? `<div class="falarTopo"><button class="falar" id="conversa" data-rotulo="🗣 Responder falando">🗣 Responder falando</button><span id="statusConversa">Eu leio cada item e você responde em voz alta: nada, muito leve, leve, moderado ou grave.</span></div>` : ""}
+    ${rot.rastreio.map((q,i)=>`<div class="item"><div class="q">${TTS?`<button class="ouvirMini" data-ouvir-item="${i}" data-rotulo="🔊" aria-label="Ouvir">🔊</button>`:""}${q}</div><div class="freq" data-q="${i}">${FREQ_CURTO.map((f,j)=>`<button data-f="${j}" class="${v[i]===j?"on":""}">${f}</button>`).join("")}</div>${i===rot.risco?`<div class="alerta" id="alertaRisco" style="${v[i]>0?"display:block":""}">${CVV}</div>`:""}</div>`).join("")}
+    <p style="font-size:13px;color:var(--suave)">Muito leve = 1 ou 2 dias · Leve = vários dias · Moderado = mais da metade dos dias · Grave = quase todos os dias.</p>
+    ${navHtml()}`;
+  }
+  else if (t.tipo === "escalaFinal") {
+    const v = R.motivacao || {};
+    h = `<h2>${t.titulo}</h2>
+    <p><b>De 0 a 10, quão importante é resolver isso agora?</b></p>${escalaHtml("imp", v.imp, "Nada importante", "Extremamente importante")}
+    <p style="margin-top:18px"><b>E quão confiante você está de que é possível mudar com ajuda?</b></p>${escalaHtml("conf", v.conf, "Nada confiante", "Totalmente confiante")}
+    ${navHtml()}`;
+  }
+  else if (t.tipo === "revisao") {
+    h = `<h2>${t.titulo}</h2><p>Confira as respostas. Toque em <b>corrigir</b> para voltar a qualquer parte.</p>
+    ${resumoBlocos().map(b=>`<div class="rev"><h3><span>${esc(b.titulo)}</span>${b.ir!=null?`<button data-ir="${b.ir}">corrigir</button>`:""}</h3><pre>${esc(b.texto || "—")}</pre></div>`).join("")}
+    <div class="dica" style="margin-top:14px">Ao enviar, você concorda que estas respostas sejam usadas pelo Dr. Luis Felipe Jardim na avaliação, sob sigilo médico (LGPD).</div>
+    <div class="nav"><button class="btn sec" data-ir="${atual-1}">Voltar</button><button class="btn prim" id="enviar">Enviar ao médico</button></div>
+    <p id="msgEnvio" style="font-size:14px;color:var(--cafe)"></p>`;
+  }
+  tela.innerHTML = (TTS && t.tipo !== "inicio" ? `<div class="ouvirTopo">${btnOuvir("ouvir")}</div>` : "") + h;
+  const bo = document.getElementById("ouvir"); if (bo) bo.onclick = () => falar(textoParaOuvir(t), bo);
+  tela.querySelectorAll("[data-ouvir-item]").forEach(b => b.onclick = () => { const i = +b.dataset.ouvirItem; falar([rot.rastreio[i] + "?", i === rot.risco ? limpo(CVV) : ""], b); });
+  ligar(t);
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function navHtml(){ return `<div class="nav"><button class="btn sec" data-ir="${atual-1}">Voltar</button><button class="btn prim" id="prox">Continuar</button></div><p id="aviso" style="font-size:14px;color:var(--cafe);margin:8px 0 0"></p>`; }
+function escalaHtml(nome, val, a, b){
+  return `<div class="escala" data-escala="${nome}">${Array.from({length:11},(_,i)=>`<button data-v="${i}" class="${val===i?"on":""}">${i}</button>`).join("")}</div><div class="pontas"><span>${a}</span><span>${b}</span></div>${falarMini("num:"+nome,"🎤 Dizer o número")}`;
+}
+function cpfValido(c){
+  c = String(c || "").replace(/\D/g, "");
+  if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+  for (const n of [9, 10]) { let s = 0; for (let i = 0; i < n; i++) s += +c[i] * (n + 1 - i); if ((s * 10 % 11) % 10 !== +c[n]) return false; }
+  return true;
+}
+const mascaraCpf = v => { const d = v.replace(/\D/g, "").slice(0, 11); return d.replace(/^(\d{3})(\d)/, "$1.$2").replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2"); };
+function ligar(t){
+  const cpfIn = document.getElementById("f_cpf"); if (cpfIn) cpfIn.oninput = () => { cpfIn.value = mascaraCpf(cpfIn.value); };
+  const bc = document.getElementById("btnCarta"); if (bc) bc.onclick = () => tocarCarta(bc);
+  tela.querySelectorAll("[data-tipo]").forEach(b => b.onclick = () => { carregar(b.dataset.tipo); salvar(); render(); });
+  tela.querySelectorAll("[data-ir]").forEach(b => b.onclick = () => { coletar(t); atual = Math.max(0, +b.dataset.ir); salvar(); render(); });
+  const txt = document.getElementById("txt");
+  if (txt) {
+    txt.oninput = () => { R[t.id] = txt.value; salvar(); if (!gravando) base = txt.value.trim(); };
+    const mic = document.getElementById("mic");
+    if (mic) mic.onclick = () => { if (gravando) pararVoz(); else iniciarVoz(txt, mic, document.getElementById("interino")); };
+    tela.querySelector('[data-acao="limpar"]').onclick = () => { if (!txt.value || confirm("Apagar o texto desta resposta?")) { pararVoz(); txt.value = ""; base = ""; R[t.id] = ""; salvar(); } };
+  }
+  tela.querySelectorAll("#areas button").forEach(b => b.onclick = () => b.classList.toggle("on"));
+  tela.querySelectorAll(".escala button").forEach(b => b.onclick = () => { b.parentElement.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); });
+  tela.querySelectorAll(".freq button").forEach(b => b.onclick = () => {
+    const grp = b.parentElement; grp.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+    if (+grp.dataset.q === ROT[tipo].risco) document.getElementById("alertaRisco").style.display = +b.dataset.f > 0 ? "block" : "none";
+    coletar(t); salvar();
+  });
+  const cv = document.getElementById("conversa"); if (cv) cv.onclick = () => conversaRastreio(cv);
+  tela.querySelectorAll(".falarMini").forEach(b => b.onclick = () => { const a = b.dataset.acao; if (a === "areas") falarAreas(b); else falarEscala(b, a.slice(4)); });
+  const prox = document.getElementById("prox");
+  if (prox) prox.onclick = () => {
+    coletar(t);
+    const aviso = document.getElementById("aviso");
+    if (t.tipo === "ident") {
+      const falta = ROT[tipo].ident.filter(c => c.obrig && !String(R.ident[c.id]||"").trim());
+      if (falta.length) { aviso.textContent = "Preencha: " + falta.map(c => c.label).join(", ") + "."; return; }
+      if (String(R.ident.tel||"").replace(/\D/g,"").length < 10) { aviso.textContent = "Confira o celular com DDD."; return; }
+      if (!cpfValido(R.ident.cpf)) { aviso.textContent = "Confira o CPF: os números não conferem."; return; }
+    }
+    if (t.tipo === "voz" && t.obrig && !(R[t.id]||"").trim()) { aviso.textContent = "Esta resposta é importante. Fale ou escreva pelo menos uma frase."; return; }
+    atual++; salvar(); render();
+  };
+  const env = document.getElementById("enviar"); if (env) env.onclick = enviar;
+}
+function coletar(t){
+  const rot = tipo && ROT[tipo];
+  if (t.tipo === "ident") { R.ident = {}; rot.ident.forEach(c => R.ident[c.id] = val("f_" + c.id)); }
+  if (t.tipo === "voz") { R[t.id] = val("txt"); if (t.extra === "pesoAltura") R.pa = {peso: val("peso"), alt: val("alt")}; }
+  if (t.tipo === "impacto") R.impacto = { areas: [...tela.querySelectorAll("#areas button.on")].map(b=>b.dataset.area), nota: selEscala("nota") };
+  if (t.tipo === "rastreio") { const o = {}; tela.querySelectorAll(".freq").forEach(g => { const on = g.querySelector("button.on"); if (on) o[g.dataset.q] = +on.dataset.f; }); R.rastreio = o; }
+  if (t.tipo === "escalaFinal") R.motivacao = { imp: selEscala("imp"), conf: selEscala("conf") };
+}
+const val = id => { const e = document.getElementById(id); return e ? e.value : ""; };
+const selEscala = n => { const b = tela.querySelector(`[data-escala="${n}"] button.on`); return b ? +b.dataset.v : null; };
+const dataBR = d => d ? d.split("-").reverse().join("/") : "";
+
+function resumoBlocos(){
+  const rot = ROT[tipo], L = TELAS(), out = [], idx = id => L.findIndex(t=>t.id===id), i = R.ident || {};
+  out.push({titulo:"Identificação", ir: idx("ident"), texto: rot.ident.map(c => `${c.label}: ${c.tipo==="date" ? dataBR(i[c.id]) : (i[c.id]||"")}`).join("\n")});
+  for (const t of rot.telas) {
+    if (t.tipo === "voz") { let tx = (R[t.id]||"").trim();
+      if (t.extra === "pesoAltura" && R.pa && (R.pa.peso || R.pa.alt)) tx += `${tx?"\n":""}Peso: ${R.pa.peso||"—"} kg · Altura: ${R.pa.alt||"—"} m`;
+      out.push({titulo: t.titulo, ir: idx(t.id), texto: tx}); }
+    if (t.tipo === "impacto") { const v = R.impacto || {areas:[]}; out.push({titulo:t.titulo, ir: idx(t.id), texto:`Áreas: ${v.areas.join(", ")||"—"}\nQuanto atrapalha (0–10): ${v.nota ?? "—"}`}); }
+    if (t.tipo === "rastreio") { const v = R.rastreio || {}; out.push({titulo: rot.rastreioTitulo, ir: idx(t.id), texto: rot.rastreio.map((q,k)=>`${q}: ${v[k]!=null?FREQ_CURTO[v[k]]:"—"}`).join("\n")}); }
+    if (t.tipo === "escalaFinal") { const v = R.motivacao || {}; out.push({titulo:"Motivação", ir: idx(t.id), texto:`Importância de resolver agora (0–10): ${v.imp ?? "—"}\nConfiança de mudar com ajuda (0–10): ${v.conf ?? "—"}`}); }
+  }
+  return out;
+}
+function riscoSinal(){
+  const rot = ROT[tipo], r = (R.rastreio||{})[rot.risco];
+  const tx = norm(rot.telas.filter(t => t.tipo === "voz").map(t => R[t.id] || "").join(" "));
+  return (r != null && r > 0) || /(suicid|me matar|se matar|tirar (a )?(minha|propria|sua) vida|nao quero mais viver|quer morrer|quero morrer|acabar com tudo|me ferir|me cortar|se cortar|se machuca)/.test(tx);
+}
+async function enviar(){
+  const msg = document.getElementById("msgEnvio"), btn = document.getElementById("enviar");
+  if (!FORM || !CAMPO_PACIENTE || !CAMPO_RESPOSTAS) { msg.textContent = "Página em teste: o envio ainda não está ligado."; return; }
+  btn.disabled = true; btn.textContent = "Enviando…";
+  const i = R.ident || {}, rot = ROT[tipo];
+  const min = R.inicio ? Math.round((Date.now() - R.inicio) / 60000) : null;
+  const tempo = min == null ? "" : min <= 120 ? `${Math.max(1, min)} min` : "em mais de uma sessão";
+  const cab = `[${rot.rotulo}] ${i.nome||""} · CPF ${String(i.cpf||"").replace(/\D/g,"") || "—"} · nasc. ${dataBR(i.nasc) || "—"} · ${i.tel||""}${i.resp ? " · resp.: " + i.resp : ""}${codigo ? " · código " + codigo : ""}`;
+  const corpo = (riscoSinal() ? "⚠ ATENÇÃO: sinal de risco (autolesão/suicídio) nas respostas.\n\n" : "") +
+    `PRÉ-CONSULTA POR VOZ · ${rot.rotulo.toUpperCase()} (texto revisado por quem respondeu)\n` + new Date().toLocaleString("pt-BR") + (tempo ? `\nTempo de preenchimento: ${tempo}` : "") + "\n\n" +
+    resumoBlocos().map(b => `## ${b.titulo}\n${b.texto || "—"}`).join("\n\n");
+  const fd = new URLSearchParams(); fd.append(CAMPO_PACIENTE, cab); fd.append(CAMPO_RESPOSTAS, corpo);
+  try {
+    await fetch(FORM, {method:"POST", mode:"no-cors", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body: fd.toString()});
+    try { localStorage.removeItem(CHAVE + tipo); } catch(e) {}
+    tela.innerHTML = `<div class="ok"><h2>Recebido. Obrigado!</h2><p>As respostas chegaram ao Dr. Luis Felipe Jardim. Na consulta vamos conversar sobre elas com calma.</p>${riscoSinal() ? `<div class="alerta sempre">${CVV}</div>` : ""}</div>`;
+    document.getElementById("prog").style.width = "100%"; document.getElementById("passo").textContent = "";
+  } catch(e) {
+    btn.disabled = false; btn.textContent = "Tentar de novo";
+    msg.textContent = "Não consegui enviar (sem internet?). As respostas continuam guardadas neste aparelho; tente de novo em instantes.";
+  }
+}
+render();
+</script>
+</body>
+</html>
