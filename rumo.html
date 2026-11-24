@@ -583,17 +583,31 @@ function reduz(file, lado, q) {
 $("fotoIn").onchange = async (e) => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
   try {
-    FOTO.grande = await reduz(f, 1280, 0.72); FOTO.mini = await reduz(f, 160, 0.6);
+    FOTO.grande = await reduz(f, FOTO_URL ? 1280 : 900, FOTO_URL ? 0.72 : 0.6); FOTO.mini = await reduz(f, 160, 0.6);
     $("fotoPrev").src = FOTO.mini; $("fotoPrev").hidden = false;
     $("fotoLbl").firstChild.textContent = "📷 Foto pronta (toque para tirar outra)";
-    $("fotoSub").textContent = FOTO_URL ? "Ela vai junto com o resultado para o Dr. Luis Felipe." : "Ela fica guardada neste celular como prova do seu resultado.";
+    $("fotoSub").textContent = "Ela vai junto com o resultado para o Dr. Luis Felipe e fica guardada neste celular.";
   } catch (err) { alert("Não foi possível abrir a foto. Tente de novo."); }
 };
 async function enviaFoto(d) {
-  if (!FOTO_URL) return false;
+  if (!FOTO_URL) return enviaFotoForm(d);
   try {
     const r = await fetch(FOTO_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ c: cod, d, ts: Date.now(), img: FOTO.grande.split(",")[1] }) });
     const j = await r.json().catch(() => ({})); return !!j.ok;
+  } catch (e) { return false; }
+}
+// Sem Apps Script: a foto vai pelo mesmo formulário, em partes de até 30 mil caracteres.
+// O painel junta as partes, guarda a foto no banco dele e limpa essas linhas da planilha.
+async function enviaFotoForm(d) {
+  try {
+    const b64 = FOTO.grande.split(",")[1], id = Date.now().toString(36), TAM = 30000, n = Math.ceil(b64.length / TAM);
+    if (n > 8) return false;
+    for (let k = 0; k < n; k++) {
+      const fd = new URLSearchParams(); fd.set(E_COD, cod);
+      fd.set(E_RESP, ["v1", "e=dqfoto", "id=" + id, "d=" + d, "k=" + k, "n=" + n, "b=" + b64.slice(k * TAM, (k + 1) * TAM)].join(";"));
+      await fetch(FORM, { method: "POST", mode: "no-cors", body: fd });
+    }
+    return true;
   } catch (e) { return false; }
 }
 function guardaMini(d, mini, res) {
