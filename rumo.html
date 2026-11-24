@@ -115,6 +115,14 @@ ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
 .tel a.sv{background:var(--ok);color:var(--ok-ink)}
 .pessoa{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
 .pessoa a{font-weight:800;color:var(--brand)}
+.foto{display:flex;gap:12px;align-items:center;margin-top:12px;padding:12px;border:2px dashed var(--line);border-radius:14px}
+.foto label{flex:1;cursor:pointer;font-weight:800;color:var(--brand)}
+.foto img{width:64px;height:64px;object-fit:cover;border-radius:10px;display:block}
+.foto input{position:absolute;opacity:0;width:1px;height:1px}
+.provas{display:flex;gap:6px;overflow-x:auto;padding:6px 0}
+.provas figure{margin:0;flex:0 0 auto;text-align:center;font-size:10px;color:var(--soft)}
+.provas img{width:54px;height:54px;object-fit:cover;border-radius:8px;display:block;border:2px solid var(--ok)}
+.sem .t.semfoto{background:var(--neu)}
 .festa{position:fixed;inset:0;pointer-events:none;z-index:40}
 .done h2{color:var(--ok)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
@@ -172,6 +180,7 @@ ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
       <div class="sub">Cada coluna é uma semana: segunda em cima, quinta embaixo.</div>
       <div class="semanas" id="semanas"></div>
       <div class="leg"><span><i style="background:var(--ok)"></i>negativo</span><span><i style="background:var(--bad)"></i>positivo</span><span><i style="border:2px dashed var(--neu)"></i>sem teste</span><span><i style="border:2px solid var(--accent)"></i>hoje</span></div>
+      <div id="provasBox" hidden><h3 style="font-size:16px;margin-top:14px">Minhas provas</h3><div class="sub">Fotos dos seus testes negativos, guardadas neste celular.</div><div class="provas" id="provas"></div></div>
       <h3 style="font-size:16px;margin-top:14px">Marcos</h3>
       <div class="marcos" id="marcos"></div>
     </section>
@@ -189,6 +198,7 @@ ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
           <label class="f">Quem viu o teste?</label>
           <div class="opts" id="quem"><button type="button" data-v="s">Fiz sozinho(a)</button><button type="button" data-v="f">Alguém da família viu</button><button type="button" data-v="c">Fiz na clínica</button></div>
         </div>
+        <div class="foto" id="fotoBox"><img id="fotoPrev" alt="Foto do teste" hidden><label for="fotoIn" id="fotoLbl">📷 Tirar foto do teste<span class="sub" style="display:block;font-weight:500" id="fotoSub">Fotografe a fita com as linhas à mostra. A foto é o registro do seu resultado.</span></label><input type="file" id="fotoIn" accept="image/*" capture="environment"></div>
         <button type="button" class="lnk" id="bSemTeste">Hoje não fiz teste, só quero responder a régua</button>
       </section>
 
@@ -213,6 +223,17 @@ ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
       <h2 id="dTit">Recebido!</h2>
       <p id="dTxt"></p>
       <button class="sec" id="bNovo">Fazer outro registro</button>
+    </section>
+
+    <section class="card">
+      <details id="lemb">
+        <summary><h2>Lembrete no celular</h2></summary>
+        <div class="sub">Um alarme discreto toda segunda e quinta, na agenda do seu celular. Aparece só “Rotina de cuidado”, sem falar de teste.</div>
+        <label class="f" for="lHora">Horário</label>
+        <input type="time" id="lHora" value="07:30">
+        <a class="pri" id="lGoogle" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">Adicionar na agenda do Google (Android)</a>
+        <button class="sec" id="lIcs">Adicionar no calendário do iPhone</button>
+      </details>
     </section>
 
     <section class="card">
@@ -255,6 +276,8 @@ ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
 <script>
 const FORM = "https://docs.google.com/forms/d/e/1FAIpQLSe9mXjLDkPk8fOvcG7DD49wKGn_biyGz3wDrZLVA17B8jdd2g/formResponse";
 const E_COD = "entry.1044444738", E_RESP = "entry.364211632";
+// Endereço do Apps Script que guarda as fotos no Google Drive do médico (integracao/rumo-fotos.gs). Vazio: a foto fica só no celular.
+const FOTO_URL = "";
 const ZAP_CONSULTORIO = "5548992092831", ZAP_TXT = "(48) 99209-2831";
 const SUBST = { coc: "Cocaína / crack", thc: "Maconha", amp: "Anfetamina", met: "Metanfetamina", bzo: "Calmantes (benzodiazepínicos)", opi: "Opioides / morfina", mdma: "Ecstasy (MDMA)", alc: "Álcool (fita de saliva)" };
 const APOIO = { na: "NA / AA", ter: "Terapia", caps: "CAPS AD", gru: "Grupo / igreja", esp: "Exercício", fam: "Conversei com a família", trab: "Trabalho / estudo" };
@@ -281,6 +304,7 @@ const CFG = {
   precoG: Math.min(Math.max(+q.get("g") || 50, 1), 2000),
   modo: q.get("m") === "e" ? "e" : "f",
   inicio: /^\d{4}-\d\d-\d\d$/.test(q.get("i") || "") ? q.get("i") : null,
+  foto: q.get("f") === "1",
 };
 if (!CFG.subs.length) CFG.subs = ["coc"];
 const KEY = "rumo:" + cod;
@@ -302,12 +326,13 @@ let H = ler(); H.regs = H.regs || []; H.ret = H.ret || []; H.plano = H.plano || 
 /* ---------- manejo de contingências (mesma regra do painel do médico) ---------- */
 function resultado(res) { const v = Object.values(res || {}); if (!v.length) return null; if (v.includes("p")) return "pos"; if (v.includes("i")) return "inv"; return v.every((x) => x === "n") ? "neg" : null; }
 function calcula() {
+  const resReg = (r) => { const x = resultado(r.res); return x === "neg" && CFG.foto && !r.foto ? "semfoto" : x; };
   const testes = H.regs.filter((r) => r.res && resultado(r.res));
   const ini = [CFG.inicio, ...testes.map((r) => slotDe(r.d))].filter(Boolean).sort()[0];
   const out = { slots: [], semanas: [], saldo: 0, ganho: 0, seq: 0, negTot: 0 };
   if (!ini) return out;
   const porSlot = {};
-  testes.forEach((r) => { const s = slotDe(r.d), x = resultado(r.res), a = porSlot[s]; porSlot[s] = a === "pos" || x === "pos" ? "pos" : a === "neg" || x === "neg" ? "neg" : x; });
+  testes.forEach((r) => { const s = slotDe(r.d), x = resReg(r), a = porSlot[s]; porSlot[s] = a === "pos" || x === "pos" ? "pos" : a === "neg" || x === "neg" ? "neg" : x; });
   const h = hoje(); let s = slotDe(ini);
   let nivel = 0, nivelAnt = 0, negDesdeReset = 0;
   while (s <= h) {
@@ -506,9 +531,11 @@ $("send").onclick = async () => {
   const btn = $("send"); btn.disabled = true; btn.textContent = "Enviando…";
   try {
     const antes = calcula();
+    let fotoOk = false;
+    if (comTeste && FOTO.grande) { btn.textContent = "Enviando a foto…"; fotoOk = await enviaFoto(d); partes.push(fotoOk ? "ft=1" : "ft=2"); btn.textContent = "Enviando…"; }
     await enviar(partes);
     const reg = { d: comTeste ? d : hoje(), ts: Date.now(), v: { ...V } };
-    if (comTeste) reg.res = { ...sel.res };
+    if (comTeste) { reg.res = { ...sel.res }; if (FOTO.grande) reg.foto = true; if (FOTO.mini) guardaMini(reg.d, FOTO.mini, resultado(reg.res)); }
     H.regs.push(reg); gravar();
     const depois = desenha();
     celebra(comTeste ? resultado(reg.res) : null, antes, depois);
@@ -517,13 +544,16 @@ $("send").onclick = async () => {
 function celebra(res, antes, depois) {
   $("form").hidden = true; $("done").hidden = false;
   const ganhou = depois.ganho - antes.ganho, novoMarco = MARCOS.find(([w]) => antes.seq < w && depois.seq >= w);
-  if (res === "neg") {
+  if (res === "neg" && !(CFG.foto && !(H.regs[H.regs.length - 1] || {}).foto)) {
     $("dTit").textContent = novoMarco ? `Marco alcançado: ${novoMarco[1]}!` : `+${real(ganhou)} no cofrinho!`;
     $("dTxt").innerHTML = `Teste negativo. Coloque <b>${real(ganhou)}</b> na sua caixinha agora: esse dinheiro é a prova do seu esforço. Saldo: <b>${real(depois.saldo)}</b>.${depois.seq ? ` Você está com ${depois.seq} semana${depois.seq > 1 ? "s" : ""} livre${depois.seq > 1 ? "s" : ""} seguida${depois.seq > 1 ? "s" : ""}.` : ""}`;
     festa(novoMarco ? 220 : 120);
   } else if (res === "pos") {
     $("dTit").textContent = "Obrigado pela sinceridade";
     $("dTxt").innerHTML = `Um teste positivo não apaga as ${depois.negTot} vitórias que você já teve. Hoje não entra dinheiro na caixinha, mas o que você juntou continua seu. O próximo teste é uma nova chance. Se quiser, toque em <b>Preciso de ajuda agora → Usei</b> para ver o que fazer nas próximas horas.`;
+  } else if (res === "neg" && CFG.foto && !(H.regs[H.regs.length - 1] || {}).foto) {
+    $("dTit").textContent = "Falta a foto";
+    $("dTxt").innerHTML = "Seu resultado foi registrado, mas para entrar no cofrinho o teste precisa da foto. Toque em <b>Fazer outro registro</b>, tire a foto da mesma fita e envie de novo.";
   } else if (res === "inv") {
     $("dTit").textContent = "Teste inválido";
     $("dTxt").textContent = "A fita não funcionou. Repita com outra fita e registre de novo.";
@@ -534,6 +564,64 @@ function celebra(res, antes, depois) {
   scrollTo({ top: $("done").offsetTop - 20, behavior: "smooth" });
 }
 $("bNovo").onclick = () => location.reload();
+
+/* ---------- foto do teste ---------- */
+const FOTO = { grande: null, mini: null };
+function reduz(file, lado, q) {
+  return new Promise((ok, falha) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => { const k = Math.min(1, lado / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", q)); };
+    img.onerror = () => { URL.revokeObjectURL(url); falha(new Error("imagem")); };
+    img.src = url;
+  });
+}
+$("fotoIn").onchange = async (e) => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  try {
+    FOTO.grande = await reduz(f, 1280, 0.72); FOTO.mini = await reduz(f, 160, 0.6);
+    $("fotoPrev").src = FOTO.mini; $("fotoPrev").hidden = false;
+    $("fotoLbl").firstChild.textContent = "📷 Foto pronta (toque para tirar outra)";
+    $("fotoSub").textContent = FOTO_URL ? "Ela vai junto com o resultado para o Dr. Luis Felipe." : "Ela fica guardada neste celular como prova do seu resultado.";
+  } catch (err) { alert("Não foi possível abrir a foto. Tente de novo."); }
+};
+async function enviaFoto(d) {
+  if (!FOTO_URL) return false;
+  try {
+    const r = await fetch(FOTO_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ c: cod, d, ts: Date.now(), img: FOTO.grande.split(",")[1] }) });
+    const j = await r.json().catch(() => ({})); return !!j.ok;
+  } catch (e) { return false; }
+}
+function guardaMini(d, mini, res) {
+  if (res !== "neg") return;
+  H.provas = (H.provas || []).concat({ d, img: mini }).slice(-40); gravar();
+}
+function desenhaProvas() {
+  const ps = (H.provas || []).slice().reverse();
+  $("provasBox").hidden = !ps.length;
+  $("provas").innerHTML = ps.map((x) => `<figure><img src="${x.img.startsWith("data:image/jpeg") ? x.img : ""}" alt="Teste de ${dBR(x.d)}"><figcaption>${dBR(x.d)}</figcaption></figure>`).join("");
+}
+
+/* ---------- lembrete na agenda do celular (discreto) ---------- */
+function proxSegQui() { let d = hoje(); while (!ehDiaTeste(d)) d = somaDias(d, 1); return d; }
+function lembreteDados() {
+  const [h, m] = ($("lHora").value || "07:30").split(":"), d = proxSegQui().replace(/-/g, ""), ini = d + "T" + h + m + "00";
+  const fimMin = (+h * 60 + +m + 10), fim = d + "T" + String(Math.floor(fimMin / 60) % 24).padStart(2, "0") + String(fimMin % 60).padStart(2, "0") + "00";
+  return { ini, fim, titulo: "Rotina de cuidado", txt: "Registro de hoje: " + location.href.split("#")[0] };
+}
+function atualizaGoogle() {
+  const x = lembreteDados();
+  $("lGoogle").href = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(x.titulo) + "&details=" + encodeURIComponent(x.txt) + "&dates=" + x.ini + "/" + x.fim + "&ctz=America/Sao_Paulo&recur=" + encodeURIComponent("RRULE:FREQ=WEEKLY;BYDAY=MO,TH");
+}
+$("lHora").oninput = atualizaGoogle;
+$("lIcs").onclick = () => {
+  const x = lembreteDados();
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Consultorio//Rotina//PT", "BEGIN:VEVENT", "UID:rotina-" + cod + "@consultorio", "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
+    "DTSTART;TZID=America/Sao_Paulo:" + x.ini, "DTEND;TZID=America/Sao_Paulo:" + x.fim, "RRULE:FREQ=WEEKLY;BYDAY=MO,TH", "SUMMARY:" + x.titulo, "DESCRIPTION:" + x.txt,
+    "BEGIN:VALARM", "TRIGGER:PT0M", "ACTION:DISPLAY", "DESCRIPTION:" + x.titulo, "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" })); a.download = "rotina.ics"; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+};
 
 /* ---------- confete ---------- */
 function festa(n) {
@@ -673,7 +761,8 @@ $("bSOS").onclick = sos;
 if (!/^[A-Za-z0-9]{6,16}$/.test(cod)) { $("app").hidden = true; $("err").style.display = "block"; $("sosbar").hidden = true; }
 else {
   $("saud").textContent = `Cada teste negativo vale ${real(CFG.valor)}${CFG.modo === "e" ? " (ou mais, se vierem seguidos)" : ""} no seu cofrinho. Teste na segunda e na quinta. Cada semana livre é sua.`;
-  montaForm(); carregaPlano(); desenha();
+  montaForm(); carregaPlano(); desenha(); desenhaProvas(); atualizaGoogle();
+  if (CFG.foto) $("fotoSub").textContent = "Obrigatório: o negativo só entra no cofrinho com a foto da fita.";
 }
 </script>
 </body>
