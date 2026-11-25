@@ -1,8 +1,17 @@
 # Pré-consulta → prontuário do V Saúde: como instalar
 
-> **Atenção: ainda não instalar.** Este programa foi escrito para a página de pré-consulta antiga (`preconsulta.html`, apagada).
-> Precisa ser adaptado à versão oficial (`consultorio/pre-consulta.html`), que envia para a planilha do
-> "Questionário de pré-consulta – versão 10/2026".
+> **Pode instalar.** Funciona para tudo o que chega à planilha "Pré-consulta por voz · recebimento":
+> **DIVA-5**, pré-consulta de **criança/adolescente** e de **idoso**.
+> A pré-consulta de **adulto** vai para outra planilha (formulário 10/2026) e ainda não passa por aqui.
+
+## Como o paciente é encontrado no V Saúde
+1. Pelo **CPF** informado.
+2. Se o CPF não estiver no cadastro (muitos cadastros estão sem CPF), pelo **nome**, conferido com a **data de nascimento**.
+   Acentos, maiúsculas, "de/da/dos" e um nome do meio a mais ou a menos não atrapalham.
+3. Só anexa quando sobra **um único** cadastro. Homônimos que a data não desempata, data que não confere
+   ou paciente não cadastrado ficam pendentes: o senhor recebe um e-mail e a planilha tenta de novo a cada hora
+   (basta corrigir ou criar o cadastro).
+4. A coluna "Status V Saúde" diz como foi localizado, e avisa quando o cadastro está sem CPF ou com CPF diferente.
 
 Faça isto uma vez, no computador (no celular o editor do Google não funciona bem). Leva uns 10 minutos.
 

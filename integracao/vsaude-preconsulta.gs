@@ -58,22 +58,21 @@ function processarLinha_(linha, silencioso) {
   const status = msg => sh.getRange(linha, col).setValue(msg);
   try {
     const d = interpretar(String(cab), String(corpo));
-    if (!d.cpf) { status("⚠ Sem CPF na resposta"); return; }
-    const achados = buscarPorCpf_(d.cpf);
-    if (achados.length !== 1) {
-      const msg = achados.length ? `⚠ ${achados.length} cadastros com este CPF` : "⚠ CPF não encontrado no V Saúde";
+    const loc = localizar_(d);
+    if (!loc.p) {
+      const msg = "⚠ " + loc.erro;
       const anterior = String(sh.getRange(linha, col).getValue());
       status(msg + " · tentando de hora em hora");
       if (!silencioso || !anterior.startsWith("⚠")) avisar_(d, msg, linha);
       return;
     }
-    const p = achados[0];
-    d.vsaude = { id: p.id, numero: p.sequentialNumber, nome: p.name };
+    const p = loc.p;
+    d.vsaude = { id: p.id, numero: p.sequentialNumber, nome: p.name, via: loc.via };
     const data = Utilities.formatDate(quando instanceof Date ? quando : new Date(), "America/Sao_Paulo", "dd-MM-yyyy");
     const nomeArq = `${d.roteiro === "DIVA-5" ? "DIVA-5 (TDAH)" : "Pré-consulta"} – ${data}.pdf`;
     const pdf = HtmlService.createHtmlOutput(montarHtml(d)).getAs("application/pdf").setName(nomeArq);
     enviarArquivo_(p.id, nomeArq, pdf);
-    status(`✅ Anexado em ${Utilities.formatDate(new Date(), "America/Sao_Paulo", "dd/MM HH:mm")} · paciente nº ${p.sequentialNumber}`);
+    status(`✅ Anexado em ${Utilities.formatDate(new Date(), "America/Sao_Paulo", "dd/MM HH:mm")} · paciente nº ${p.sequentialNumber} · localizado pelo ${loc.via}${loc.obs ? " · " + loc.obs : ""}`);
   } catch (err) {
     status("⚠ Erro: " + String(err.message || err).slice(0, 180) + " · tentando de hora em hora");
     if (!silencioso) avisar_(null, String(err.message || err), linha);
@@ -105,6 +104,59 @@ function buscarPorCpf_(cpf) {
   return out;
 }
 
+/**
+ * Localiza o paciente no V Saúde.
+ * 1) pelo CPF; 2) se o CPF não estiver no cadastro, pelo NOME, conferido com a DATA DE NASCIMENTO.
+ * Só anexa quando sobra exatamente um cadastro; homônimos sem como desempatar ficam pendentes.
+ */
+function localizar_(d) {
+  if (d.cpf) {
+    const a = buscarPorCpf_(d.cpf);
+    if (a.length === 1) return { p: a[0], via: "CPF" };
+    if (a.length > 1) return { erro: `${a.length} cadastros com este CPF` };
+  }
+  const nome = norm_(d.nome);
+  if (!nome) return { erro: d.cpf ? "CPF não encontrado no V Saúde e resposta sem nome" : "Resposta sem CPF e sem nome" };
+  const cand = {};
+  const buscar = k => (vs_("POST", "/PatientService/Search?keyword=" + encodeURIComponent(k)) || []).forEach(p => (cand[p.id] = p));
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(d.nasc || "")) buscar(d.nasc);
+  buscar(d.nome.trim());
+  let iguais = Object.keys(cand).map(k => cand[k]).filter(p => mesmoNome_(norm_(p.name), nome));
+  if (!iguais.length) return { erro: "Paciente não encontrado no V Saúde (nem pelo CPF, nem pelo nome)" };
+  iguais.forEach(p => (p.nasc_ = nascDe_(p.id)));
+  if (d.nasc) {
+    const conf = iguais.filter(p => p.nasc_ === d.nasc);
+    if (conf.length === 1) return achado_(conf[0], "nome e data de nascimento", d);
+    if (conf.length > 1) return { erro: `${conf.length} cadastros com o mesmo nome e nascimento` };
+    iguais = iguais.filter(p => !p.nasc_); // cadastro sem data: só vale se o nome for idêntico e único
+  }
+  const exatos = iguais.filter(p => norm_(p.name) === nome);
+  if (exatos.length === 1) return achado_(exatos[0], "nome (cadastro sem data de nascimento)", d);
+  return { erro: iguais.length > 1 ? `${iguais.length} cadastros com nome parecido; confira o CPF no cadastro` : "Nome encontrado, mas a data de nascimento não confere" };
+}
+function achado_(p, via, d) {
+  const cpfCad = String(p.personalIdentifier || "").replace(/\D/g, "");
+  return { p, via, obs: cpfCad && d.cpf && cpfCad !== d.cpf ? "CPF do cadastro difere do informado" : !cpfCad && d.cpf ? "cadastro sem CPF: vale completar" : "" };
+}
+const PARTICULAS_ = { de: 1, da: 1, do: 1, das: 1, dos: 1, e: 1 };
+function norm_(s) {
+  return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z ]/g, " ")
+    .split(/\s+/).filter(w => w && !PARTICULAS_[w]).join(" ");
+}
+/** Mesmo nome: idêntico, ou mesmo primeiro e último nome e um contido no outro (nome do meio a mais ou a menos). */
+function mesmoNome_(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const x = a.split(" "), y = b.split(" ");
+  if (x[0] !== y[0] || x[x.length - 1] !== y[y.length - 1]) return false;
+  const [cur, lon] = x.length <= y.length ? [x, y] : [y, x];
+  return cur.every(w => lon.indexOf(w) >= 0);
+}
+function nascDe_(id) {
+  try { const b = String((vs_("GET", "/PatientService/Get?Id=" + id) || {}).birthday || ""); const m = b.match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; }
+  catch (e) { return ""; }
+}
+
 function enviarArquivo_(pacienteId, nome, blob) {
   const q = `?parent=${PASTA_RAIZ}&ownerPatient=${pacienteId}&fileName=${encodeURIComponent(nome)}`;
   return vs_("POST", "/FilesService/Upload" + q, undefined, { payload: { file: blob } });
@@ -126,9 +178,9 @@ function colunaStatus_() {
 function avisar_(d, motivo, linha) {
   const para = Session.getEffectiveUser().getEmail(); if (!para) return;
   const quem = d ? `${d.nome || "(sem nome)"} · CPF ${d.cpfFmt || "—"}` : "(não identificado)";
-  MailApp.sendEmail(para, `Pré-consulta não anexada ao V Saúde: ${d ? d.nome : ""}`,
+  MailApp.sendEmail(para, `${d && d.roteiro === "DIVA-5" ? "DIVA-5" : "Pré-consulta"} não anexada ao V Saúde: ${d ? d.nome : ""}`,
     `${motivo}\n\nPaciente: ${quem}\nLinha da planilha: ${linha}\n\n` +
-    `O que fazer: confira se o paciente está cadastrado no V Saúde com este CPF (ou corrija o CPF no cadastro). ` +
+    `O que fazer: confira se o paciente está cadastrado no V Saúde com este CPF, ou com o mesmo nome e data de nascimento (corrija ou complete o cadastro). ` +
     `A planilha tenta de novo a cada hora e anexa sozinha quando encontrar.\n\n` +
     `Planilha: ${SpreadsheetApp.getActiveSpreadsheet().getUrl()}`);
 }
@@ -210,7 +262,7 @@ function montarHtml(d) {
   <div class="id"><div class="nome">${e(d.nome)}</div><table><tr>
    <td><b>CPF</b>${e(d.cpfFmt)}</td><td><b>Nascimento · idade</b>${e(d.nasc)}${d.idade != null ? " · " + d.idade + " anos" : ""}</td><td><b>Celular</b>${e(d.tel)}</td></tr><tr>
    <td><b>Respondido por</b>${e(d.respondente)}${d.cuidador ? "<br>" + e(d.cuidador) : ""}</td>
-   <td><b>Cadastro V Saúde</b>${d.vsaude ? "Paciente nº " + e(d.vsaude.numero) + " · localizado pelo CPF" : "—"}</td>
+   <td><b>Cadastro V Saúde</b>${d.vsaude ? "Paciente nº " + e(d.vsaude.numero) + " · localizado pelo " + e(d.vsaude.via || "CPF") : "—"}</td>
    <td><b>Tempo de preenchimento</b>${e(d.tempo || "—")}</td></tr></table></div>
   ${d.risco || d.riscoItens.length ? `<div class="alerta"><b>⚠ Sinal de risco.</b> ${d.riscoItens.map(it => `Rastreio: “${e(it.q)}” = <b>${FREQ[it.v]}</b>.`).join(" ")}
     ${frases.length ? " No relato: " + frases.map(f => "“" + e(f) + "”").join(" ") : ""} A orientação do CVV 188 / SAMU 192 foi exibida na tela.</div>` : ""}
@@ -230,4 +282,4 @@ function montarHtml(d) {
   </body></html>`;
 }
 
-if (typeof module !== "undefined") module.exports = { interpretar, montarHtml }; // testes locais
+if (typeof module !== "undefined") module.exports = { interpretar, montarHtml, localizar_, norm_, mesmoNome_ }; // testes locais
