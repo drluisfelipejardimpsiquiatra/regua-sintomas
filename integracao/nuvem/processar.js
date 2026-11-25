@@ -9,7 +9,8 @@
  *   - e-mail    → devolvido em JSON para a sessão enviar pelo Gmail.
  *
  * Uso: node processar.js linhas.json saida.json [--simular]
- *   linhas.json: { "inicio": "2026-11-25", "linhas": [[carimbo, paciente, respostas, status], ...] }  (linha 1 = cabeçalho)
+ *   linhas.json: { "inicio": "2026-11-25", "linhas": [[carimbo, paciente, respostas, status], ...],  (linha 1 = cabeçalho)
+ *                  "links": [[código, id do paciente no V Saúde, nome, app, criado em], ...] }  (aba "Links", com cabeçalho)
  *   saida.json : { "status": { "<nº da linha>": "texto" }, "emails": [{ assunto, texto }], "anexos": [...] }
  * Só processa linhas a partir de "inicio" e que ainda não tenham status ✅ ou ⛔.
  */
@@ -47,9 +48,11 @@ const planilha = {
       setFontWeight: () => rg };
     return rg;
   } };
+const linksAba = (dados.links || []).map((l) => [String(l[0] || ""), String(l[1] || "")]);
+const abaLinks = { getLastRow: () => linksAba.length, getRange: (r, c, nr, nc) => ({ getValues: () => linksAba.slice(r - 1, r - 1 + nr).map((l) => l.slice(c - 1, c - 1 + nc)) }) };
 const ctx = {
   console, URL, encodeURIComponent, Intl,
-  SpreadsheetApp: { getActiveSpreadsheet: () => ({ getSheets: () => [planilha], getUrl: () => "https://docs.google.com/spreadsheets/d/" + (dados.planilhaId || "") }) },
+  SpreadsheetApp: { getActiveSpreadsheet: () => ({ getSheets: () => [planilha], getSheetByName: (n) => (n === "Links" ? abaLinks : null), getUrl: () => "https://docs.google.com/spreadsheets/d/" + (dados.planilhaId || "") }) },
   Session: { getEffectiveUser: () => ({ getEmail: () => "medico" }) },
   MailApp: { sendEmail: (para, assunto, texto) => saida.emails.push({ assunto, texto }) },
   PropertiesService: { getScriptProperties: () => ({ getProperty: () => "injetada-pelo-ambiente" }) },
