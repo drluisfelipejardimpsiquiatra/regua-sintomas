@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Marcellus&display=swap" rel="stylesheet">
 <style>
 /* Pré-consulta por voz. Base: Guia de Marca Simple But (tema Claro, cabeçalho oliva).
-   Uma etapa por tela; perguntas abertas com microfone e transcrição editável; envio para o
+   Uma etapa por tela; perguntas abertas por texto (o ditado do teclado do celular é sugerido no cabeçalho); envio para o
    Google Formulário "Questionário de pré-consulta – versão 10/2026" (mesma planilha de sempre). */
 :root{
   --cafe:#83462D; --terracota:#C3622D; --ambar:#E89925; --oliva-dourado:#88764F; --oliva:#656635;
@@ -51,15 +51,6 @@ main{padding-block:28px 120px}
 textarea,input[type=text],input[type=email],input[type=tel],input[type=date]{width:100%;font:16px var(--f-body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-top:10px}
 textarea{min-height:92px;resize:vertical;line-height:1.5}
 textarea:focus,input:focus{outline:2px solid var(--ambar);outline-offset:1px;background:#fff}
-.voz{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
-.mic{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--verde-floresta);background:#fff;color:var(--verde-floresta);font:600 14px var(--f-body);cursor:pointer}
-.mic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.mic.on{background:var(--terracota);border-color:var(--terracota);color:#fff}
-.mic.on .ponto{display:inline-block}
-.ponto{display:none;width:9px;height:9px;border-radius:50%;background:#fff;animation:pulsa 1s infinite}
-@keyframes pulsa{50%{opacity:.25}}
-.ouvindo{font-size:13.5px;color:var(--soft);font-style:italic;min-height:1em}
-.dica-teclado{font-size:13px;color:var(--soft);margin-top:8px}
 .ops{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .op{border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 13px;font:500 15px/1.25 var(--f-body);cursor:pointer;text-align:left}
 .op[aria-pressed="true"]{background:var(--verde-floresta);border-color:var(--verde-floresta);color:#fff}
@@ -138,10 +129,15 @@ details.det summary small{display:block;color:var(--soft);font-size:13.5px}
 .cartao.compacto{padding:12px 10px;margin-top:8px}
 .cartao.compacto .q-tit{font-size:15px}
 .legenda-freq{font-size:13px;color:var(--soft);margin-top:6px}
-.aviso-nav{background:#FFF4E0;border:1px solid #F1D39A;border-radius:10px;padding:12px 14px;font-size:14.5px;margin-top:12px}
-.aviso-nav-bt{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.btn.mini{min-height:40px;padding:0 14px;font-size:11.5px}
 .porque{background:#EEF2EC;border-left:4px solid var(--verde-floresta);border-radius:10px;padding:14px 16px;font-size:15px;line-height:1.55}
+.dita{background:#56572D;color:var(--on-dark);font-size:13px;line-height:1.35}
+header.top .dita .in{display:flex;align-items:center;gap:10px;min-height:40px;padding-block:6px}
+header.top .dita span{font:400 13.5px/1.35 var(--f-body);letter-spacing:0;text-transform:none;color:var(--on-dark)}
+header.top .dita b{font:700 13.5px/1.35 var(--f-body);margin:0;color:#fff}
+header.top svg.tecla{width:26px;height:26px;flex:none}
+svg.tecla rect{fill:#F2F1F0}
+svg.tecla path{fill:#2B2A22}
+svg.tecla path.t{fill:none;stroke:#2B2A22;stroke-width:1.8;stroke-linecap:round}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -150,6 +146,7 @@ details.det summary small{display:block;color:var(--soft);font-size:13.5px}
 <header class="top">
   <div class="in"><svg viewBox="0 0 110 155" aria-hidden="true"><path d="M0 0H108V42L97 62 75 77 103 93 110 112V155H3V113L13 93 35 77 8 62 0 42Z"/></svg><b>Dr. Luis Felipe Jardim</b><span id="contador">Pré-consulta</span></div>
   <div class="barra" aria-hidden="true"><i id="progresso"></i></div>
+  <div class="dita"><div class="in"><svg class="tecla" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="6"/><path d="M14 6.5a3 3 0 0 0-3 3v4.5a3 3 0 0 0 6 0V9.5a3 3 0 0 0-3-3z"/><path class="t" d="M8.8 13.6a5.2 5.2 0 0 0 10.4 0M14 18.8v2.7"/></svg><span>Prefere falar? Toque na caixa de texto e use o <b>microfone do teclado</b> do celular.</span></div></div>
 </header>
 
 <main class="in" id="tela" aria-live="polite"></main>
@@ -181,7 +178,7 @@ const QA = {}; FORM_ADULTO.forEach((s) => s.q.forEach((q) => (QA[q.e] = q)));
 const A = (e, o) => Object.assign({}, QA[e], o || {});
 const D = (e, o) => A(e, Object.assign({ det: true }, o));
 const STEPS_ADULTO = [
- { n: "Sobre você", sub: "Dados do seu cadastro. Onde aparecer o botão <b>Falar</b>, você pode responder em voz alta.", q: [
+ { n: "Sobre você", sub: "Dados do seu cadastro.", q: [
    A(451530768, { q: "Nome completo", semVoz: true }),
    A(302491566, { q: "CPF", cpf: true }),
    A(1356641035, { q: "Data de nascimento" }),
@@ -454,7 +451,7 @@ let ouvindoQ = null;
 function pararOuvirQ() { if (ouvindoQ) { ouvindoQ.classList.remove("on"); ouvindoQ = null; if (TTS) speechSynthesis.cancel(); } }
 function ouvirPergunta(btn) {
   if (ouvindoQ === btn) { pararOuvirQ(); return; }
-  pararOuvirQ(); pararCarta(); pararVoz();
+  pararOuvirQ(); pararCarta();
   const q = acharQ(btn.dataset.ouvir); if (!q) return;
   const partes = [q.q.replace(/\s+/g, " ")];
   if (q.d) partes.push(q.d);
@@ -472,7 +469,7 @@ function pararCarta(guardar) {
 }
 async function tocarCarta(btn) {
   if (btn.classList.contains("on")) { pararCarta(true); return; }
-  pararVoz(); btn.classList.add("on"); btn.textContent = "⏸ Pausar";
+  btn.classList.add("on"); btn.textContent = "⏸ Pausar";
   if (AUDIO_CARTA) {
     if (!cartaAudio) { cartaAudio = new Audio(AUDIO_CARTA); cartaAudio.onended = () => pararCarta(); }
     try { await cartaAudio.play(); } catch (e) { pararCarta(true); }
@@ -492,142 +489,13 @@ function cartaHtml(recolhida) {
   return recolhida ? `<details class="cartaFechada"><summary>Rever a mensagem do Dr. Luis Felipe</summary>${c}</details>` : c;
 }
 
-/* ---------- reconhecimento de voz ---------- */
-// Cada toque em "Falar" abre uma escuta ligada a UM campo. O texto aparece na caixa enquanto a pessoa
-// fala. Quando o aparelho encerra a escuta sozinho (silêncio, limite de tempo, Android a cada frase),
-// ela reabre automaticamente até a pessoa tocar em "Parar". O texto que já estava no campo é preservado
-// e a fala é acrescentada no fim. Resultados que chegam logo depois de "Parar" (a versão final da última
-// frase) ainda entram no campo certo.
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const UA = navigator.userAgent;
-const IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
-const ANDROID = /Android/i.test(UA);
-// Navegadores dentro de aplicativos (WhatsApp, Instagram, Facebook...): o ditado da página costuma não funcionar.
-const INAPP = /FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Line\/|Telegram|MicroMessenger|; wv\)/i.test(UA) || (IOS && !/Safari\//.test(UA));
-// Safari (iPhone e Mac) repete o texto acumulado em cada resultado; Chrome manda trechos separados.
-const CUMULATIVO = IOS || (/Safari\//.test(UA) && !/Chrome|Chromium|Android/.test(UA));
-const DEBUG_VOZ = /[?&]debug/.test(location.search);
-const MSG_TECLADO = IOS ? "Não estou recebendo a sua voz. Toque na caixa de texto e use o 🎤 do teclado do iPhone (ao lado da barra de espaço)."
-  : "Não estou recebendo a sua voz. Toque na caixa de texto e use o 🎤 do teclado do celular.";
-function textoSessao(results) {
-  let acc = "";
-  for (let i = 0; i < results.length; i++) {
-    const t = String(results[i][0].transcript || "").replace(/\s+/g, " ").trim(); if (!t) continue;
-    if (!CUMULATIVO) { acc = acc ? acc + " " + t : t; continue; }
-    const a = acc.toLowerCase(), tl = t.toLowerCase();
-    if (!a || tl.startsWith(a)) acc = t; else if (!a.endsWith(tl)) acc += " " + t;
-  }
-  return acc;
-}
-function logVoz(e, msg) {
-  if (!DEBUG_VOZ) return;
-  let d = $("dbg" + e); const c = $("c" + e);
-  if (!d && c) { d = document.createElement("pre"); d.id = "dbg" + e; d.style.cssText = "font:11px/1.35 monospace;white-space:pre-wrap;background:#f1efe8;padding:6px;border-radius:6px;margin-top:8px;max-height:220px;overflow:auto"; c.appendChild(d); }
-  if (d) d.textContent += (performance.now() / 1000).toFixed(1) + "s " + msg + "\n";
-}
-const juntarFala = (base, txt) => {
-  txt = String(txt || "").replace(/\s+/g, " ").trim(); base = String(base || "").replace(/\s+$/, "");
-  if (!txt) return base;
-  if (!base || /[.!?]$/.test(base)) txt = txt.charAt(0).toUpperCase() + txt.slice(1);
-  return (base ? base + " " : "") + txt;
-};
-// voz = escuta atual: { e, ligado, rec, base, vazias, ouviu, vigia }
-let voz = null;
-const recLigado = () => !!(voz && voz.ligado);
-function botaoMic() {
-  document.querySelectorAll(".mic").forEach((b) => {
-    const ativo = !!(voz && voz.ligado && b.dataset.mic === String(voz.e));
-    b.classList.toggle("on", ativo); b.setAttribute("aria-pressed", ativo);
-    const r = b.querySelector(".rotulo"); if (r) r.textContent = ativo ? "Parar" : "Falar";
-  });
-}
-const avisoVoz = (e, msg) => { const o = $("o" + e); if (o) o.textContent = msg; };
 function escreverCampo(e, txt) {
   S.resp[e] = txt; salvar();
-  const ta = $("q" + e); if (ta && ta.value !== txt) { ta.value = txt; if (ta.tagName === "TEXTAREA") ta.scrollTop = ta.scrollHeight; }
+  const ta = $("q" + e); if (ta && ta.value !== txt) ta.value = txt;
   $("c" + e)?.classList.remove("erro");
-}
-function pararVoz() {
-  if (!voz) return;
-  const v = voz; v.ligado = false; clearTimeout(v.vigia);
-  if (v.rec) { try { v.rec.stop(); } catch (err) {} }
-  botaoMic(); avisoVoz(v.e, "");
-}
-// Descarta a escuta sem esperar resultados (ex.: a pessoa começou a digitar no campo).
-function abortarVoz() {
-  if (!voz) return;
-  const v = voz; voz = null; v.ligado = false; clearTimeout(v.vigia);
-  if (v.rec) { v.rec.morto = true; try { v.rec.abort(); } catch (err) {} }
-  botaoMic(); avisoVoz(v.e, "");
-}
-function novaSessao(v) {
-  const r = new SR(), base = String(S.resp[v.e] || "");
-  r.lang = "pt-BR"; r.continuous = !ANDROID; r.interimResults = true; r.maxAlternatives = 1;
-  let texto = "";
-  logVoz(v.e, "nova sessão (contínua=" + r.continuous + ")");
-  ["audiostart", "soundstart", "speechstart", "speechend", "audioend"].forEach((n) => { r["on" + n] = () => logVoz(v.e, n); });
-  r.onresult = (ev) => {
-    if (r.morto) return;
-    texto = textoSessao(ev.results);
-    logVoz(v.e, `resultado n=${ev.results.length} idx=${ev.resultIndex} final=${ev.results[ev.results.length - 1].isFinal} "${texto.slice(-60)}"`);
-    if (!texto) return;
-    v.ouviu = true; v.vazias = 0; clearTimeout(v.vigia);
-    escreverCampo(v.e, juntarFala(base, texto));
-    if (v.ligado) avisoVoz(v.e, "Ouvindo… pode continuar falando");
-  };
-  r.onerror = (ev) => {
-    logVoz(v.e, "erro: " + ev.error + (ev.message ? " " + ev.message : ""));
-    if (r.morto || ev.error === "no-speech" || ev.error === "aborted") return;
-    v.ligado = false; clearTimeout(v.vigia); botaoMic();
-    if (ev.error === "not-allowed" || ev.error === "service-not-allowed")
-      avisoVoz(v.e, v.ouviu ? "O microfone pausou. Toque em Falar para continuar."
-        : INAPP ? "O ditado não funciona dentro deste aplicativo. Abra a página no " + (IOS ? "Safari" : "Chrome") + " (veja o aviso no alto) ou use o 🎤 do teclado."
-        : IOS ? "O iPhone não liberou o reconhecimento de voz. Confira em Ajustes → Geral → Teclado → Ativar Ditado, ou use o 🎤 do teclado."
-        : "O microfone não foi liberado. Toque no cadeado ao lado do endereço da página, permita o microfone e toque em Falar de novo. Ou use o 🎤 do teclado.");
-    else if (ev.error === "network") avisoVoz(v.e, "O reconhecimento de voz precisa de internet. Confira a conexão ou use o 🎤 do teclado.");
-    else if (ev.error === "audio-capture") avisoVoz(v.e, "Não encontrei o microfone. " + MSG_TECLADO);
-    else if (ev.error === "language-not-supported") avisoVoz(v.e, "Este aparelho não reconhece português pelo navegador. Use o 🎤 do teclado.");
-    else avisoVoz(v.e, MSG_TECLADO);
-  };
-  r.onend = () => {
-    logVoz(v.e, "fim da sessão");
-    if (r.morto || voz !== v || v.rec !== r) return;
-    if (!texto) v.vazias++;
-    if (v.ligado && v.vazias <= 8) {
-      try { v.rec = novaSessao(v); v.rec.start(); return; } catch (err) { logVoz(v.e, "reinício falhou: " + err.message); }
-    }
-    if (v.ligado) avisoVoz(v.e, v.ouviu ? "Parei de ouvir por silêncio. Toque em Falar para continuar." : MSG_TECLADO);
-    v.ligado = false; clearTimeout(v.vigia); botaoMic();
-  };
-  return r;
-}
-function iniciarVoz(e) {
-  if (!SR) return;
-  if (voz && voz.ligado && voz.e === e) { pararVoz(); return; }
-  abortarVoz();
-  if (!$("q" + e)) return;
-  const v = voz = { e, ligado: true, rec: null, vazias: 0, ouviu: false, vigia: null };
-  logVoz(e, "UA: " + UA.slice(0, 90));
-  try { v.rec = novaSessao(v); v.rec.start(); }
-  catch (err) { v.ligado = false; botaoMic(); avisoVoz(e, MSG_TECLADO); logVoz(e, "start falhou: " + err.message); return; }
-  botaoMic(); avisoVoz(e, "Ouvindo… pode falar");
-  // Se em 8 segundos nada chegar, mostra o caminho alternativo (sem desligar a escuta).
-  v.vigia = setTimeout(() => { if (voz === v && v.ligado && !v.ouviu) avisoVoz(e, MSG_TECLADO); }, 8000);
-}
-function avisoNavegador() {
-  if (SR && !INAPP) return "";
-  const link = location.href.split("#")[0];
-  if (INAPP) {
-    const chrome = ANDROID ? `<a class="btn sec mini" href="intent://${esc(link.replace(/^https?:\/\//, ""))}#Intent;scheme=https;package=com.android.chrome;end">Abrir no Chrome</a>` : "";
-    return `<div class="aviso-nav"><b>Para o botão Falar funcionar,</b> abra esta página no ${IOS ? "Safari" : "Chrome"}${IOS ? ": toque em <b>⋯</b> ou no ícone de compartilhar e escolha <b>Abrir no Safari</b>" : ""}. Se preferir ficar aqui, use o 🎤 do teclado.
-      <div class="aviso-nav-bt">${chrome}<button type="button" class="btn sec mini" data-copiar="${esc(link)}">Copiar link</button></div></div>`;
-  }
-  return `<div class="aviso-nav">Neste navegador o botão Falar não está disponível. Para responder falando, toque na caixa de texto e use o 🎤 do teclado${IOS ? "" : ", ou abra a página no Chrome"}.</div>`;
 }
 
 /* ---------- desenho das perguntas ---------- */
-const MIC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
-const usaVoz = (q) => !q.cpf && !q.tel && !q.semVoz && !/mail/i.test(q.q);
 function campoTexto(q) {
   const v = S.resp[q.e] || "";
   const longo = q.t === "para" || q.q.length > 60;
@@ -637,9 +505,7 @@ function campoTexto(q) {
     : q.cpf ? `<input id="q${q.e}" data-e="${q.e}" data-cpf="1" type="text" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" value="${esc(v)}">`
     : `<input id="q${q.e}" data-e="${q.e}" type="${tipo}" value="${esc(v)}" ${tipo === "tel" ? 'inputmode="tel" autocomplete="tel"' : ""}>`;
   const sug = q.sug ? `<div class="sug">${q.sug.map((s) => `<button type="button" data-sug="${q.e}" data-v="${esc(s)}">${esc(s)}</button>`).join("")}</div>` : "";
-  if (!usaVoz(q)) return campo + sug;
-  if (!SR) return campo + sug + (longo ? `<p class="dica-teclado">Para falar em vez de digitar, toque no campo e use o 🎤 do teclado do celular.</p>` : "");
-  return campo + sug + `<div class="voz"><button type="button" class="mic" data-mic="${q.e}" aria-pressed="false">${MIC_SVG}<span class="ponto"></span><span class="rotulo">Falar</span></button><span class="ouvindo" id="o${q.e}" role="status"></span></div>`;
+  return campo + sug;
 }
 function campoData(q) {
   return `<input id="q${q.e}" data-e="${q.e}" type="date" value="${esc(S.resp[q.e] || "")}">`;
@@ -684,9 +550,8 @@ function capa() {
     <p class="rot">Antes da sua primeira consulta</p>
     <h1>Conte a sua história do seu jeito</h1>
     <p class="nota" style="font-size:16px">Estas perguntas me ajudam a chegar à consulta já conhecendo o que você vive. Assim aproveitamos melhor o nosso tempo juntos.</p>
-    ${avisoNavegador()}
     <ul>
-      <li><b>1</b><span>Nas perguntas abertas, toque em <strong>Falar</strong> e responda em voz alta. O texto aparece na hora; se alguma palavra sair errada, corrija digitando.</span></li>
+      <li><b>1</b><span>Nas perguntas abertas, escreva do seu jeito. Se preferir falar, toque na caixa de texto e use o <strong>microfone do teclado</strong> do celular; depois é só corrigir alguma palavra, se precisar.</span></li>
       <li><b>2</b><span>As perguntas de marcar são só um toque. Só as que têm <b>*</b> são obrigatórias.</span></li>
       <li><b>3</b><span>No fim de cada etapa há um espaço opcional, <strong>Quero detalhar mais</strong>, para quem quiser contar com mais detalhe. Quanto mais completo, melhor a consulta.</span></li>
     </ul>
@@ -702,7 +567,7 @@ function capa() {
     </label>
     <button class="btn pri" type="button" id="comecar" style="margin-left:0;justify-self:start">${tem ? "Continuar de onde parei" : "Começar"}</button>
     ${tem ? '<button class="btn sec" type="button" id="recomecar" style="justify-self:start">Apagar respostas e recomeçar</button>' : ""}
-    <p class="nota">A transcrição usa o serviço de voz do próprio celular (Google ou Apple). O consultório não guarda gravações: recebe apenas o texto que você revisou, sob sigilo médico e conforme a LGPD.</p>
+    <p class="nota">Suas respostas vão só para o Dr. Luis Felipe, sob sigilo médico e conforme a LGPD.</p>
     <p class="crise">Em crise, não espere a consulta: ligue <b>188</b> (CVV, 24 horas) ou <b>192</b> (SAMU), ou procure o pronto-atendimento mais próximo.</p>
   </section>`;
   const bc = $("btnCarta"); if (bc) bc.onclick = () => tocarCarta(bc);
@@ -720,7 +585,7 @@ function capa() {
   const r = $("recomecar"); if (r) r.onclick = () => { S = { etapa: -1, resp: {}, pularMulher: false, email: S.email }; salvar(); capa(); };
 }
 function ir(n) {
-  pararVoz(); pararCarta(); pararOuvirQ();
+  pararCarta(); pararOuvirQ();
   S.etapa = n; salvar();
   if (n >= TOTAL) return revisao();
   const st = STEPS[n];
@@ -730,7 +595,6 @@ function ir(n) {
   $("avancar").textContent = n === TOTAL - 1 ? "Revisar" : "Continuar";
   let h = `<p class="rot">Etapa ${n + 1} de ${TOTAL}</p><h2 class="etapa-tit">${esc(st.n)}</h2>`;
   if (st.sub) h += `<p class="etapa-sub">${st.sub}</p>`;
-  if (n === 0) h += avisoNavegador();
   if (n === MULHER) h += `<label class="pular"><input type="checkbox" id="pular" ${S.pularMulher ? "checked" : ""}> Esta etapa não se aplica a mim</label>`;
   const vis = st.q.filter((q) => !q.det), det = st.q.filter((q) => q.det);
   h += `<div id="qs" ${n === MULHER && S.pularMulher ? "hidden" : ""}>` + vis.map((q) => cartao(q, st.grade)).join("");
@@ -765,7 +629,6 @@ function textoResp(q) {
   return v ? (FREQ_CURTA[v] || v) : "";
 }
 function revisao() {
-  pararVoz();
   $("contador").textContent = "Revisão"; $("progresso").style.width = "100%";
   $("nav").hidden = false; $("avancar").textContent = "Enviar ao Dr. Luis Felipe";
   let h = `<p class="rot">Quase lá</p><h2 class="etapa-tit">Revise as suas respostas</h2><p class="etapa-sub">Se quiser mudar algo, toque em "Editar" na etapa. Quando estiver tudo certo, envie.</p>`;
@@ -859,21 +722,15 @@ document.addEventListener("input", (ev) => {
   const t = ev.target;
   if (t.dataset.cpf) t.value = mascaraCpf(t.value);
   if (t.dataset.e) {
-    // Digitar no campo que está ouvindo encerra a escuta, para a fala não apagar o que foi digitado.
-    if (voz && String(voz.e) === t.dataset.e) abortarVoz();
     S.resp[t.dataset.e] = t.value; $("c" + t.dataset.e)?.classList.remove("erro"); salvar();
   }
   if (t.dataset.outro) { S.resp[t.dataset.outro + ".outro"] = t.value; salvar(); }
 });
 document.addEventListener("click", (ev) => {
-  const mic = ev.target.closest("[data-mic]");
-  if (mic) { pararOuvirQ(); iniciarVoz(mic.dataset.mic); return; }
   const oq = ev.target.closest("[data-ouvir]");
   if (oq) { ouvirPergunta(oq); return; }
   const sg = ev.target.closest("[data-sug]");
-  if (sg) { const e = sg.dataset.sug; if (voz && String(voz.e) === e) abortarVoz(); escreverCampo(e, sg.dataset.v); return; }
-  const cp = ev.target.closest("[data-copiar]");
-  if (cp) { const l = cp.dataset.copiar; (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(() => (cp.textContent = "Link copiado ✓"), () => prompt("Copie o link:", l)); return; }
+  if (sg) { escreverCampo(sg.dataset.sug, sg.dataset.v); return; }
   const op = ev.target.closest("[data-op]");
   if (op) {
     const e = op.dataset.op, v = op.dataset.v;
@@ -901,7 +758,7 @@ $("avancar").onclick = () => {
   if (!valida(S.etapa)) return;
   ir(S.etapa + 1);
 };
-$("voltar").onclick = () => { if (S.etapa >= TOTAL) return ir(TOTAL - 1); if (S.etapa <= 0) { pararVoz(); return capa(); } ir(S.etapa - 1); };
+$("voltar").onclick = () => { if (S.etapa >= TOTAL) return ir(TOTAL - 1); if (S.etapa <= 0) return capa(); ir(S.etapa - 1); };
 // Reabre o roteiro em andamento (pacientes que já tinham começado o de adulto continuam de onde pararam).
 { let k = null; try { k = localStorage.getItem("preconsulta.roteiro"); } catch (e) {}
   if (!KEYS[k]) k = temProgresso("adulto") ? "adulto" : null;
