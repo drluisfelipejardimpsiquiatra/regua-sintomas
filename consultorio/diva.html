@@ -219,6 +219,9 @@ const TOTAL = ETAPAS.length;
 // ====== ESTADO ======
 let S = { etapa: -1, r: {} };
 try { const s = JSON.parse(localStorage.getItem(CHAVE) || "null"); if (s && s.r) S = s; } catch (e) {}
+// Link pessoal enviado pelo consultório (?c=CÓDIGO&n=Nome): o paciente já chega identificado.
+const PARAM = new URLSearchParams(location.search), COD = (PARAM.get("c") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+if (COD.length >= 6) { if (S.r.codigo !== COD) S = { etapa: -1, r: {} }; S.r.codigo = COD; S.r.nome = (PARAM.get("n") || S.r.nome || "").trim(); }
 const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(S)); $("salvo").textContent = "Salvo neste aparelho"; } catch (e) {} };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -249,7 +252,7 @@ function coluna(it, lado) {
 
 /* ---------- telas ---------- */
 function capa() {
-  const tem = Object.keys(S.r).length > 0;
+  const tem = Object.keys(S.r).filter((k) => k !== "codigo" && k !== "nome").length > 0;
   $("nav").hidden = true; $("progresso").style.width = "0"; $("contador").textContent = "DIVA-5";
   $("tela").innerHTML = `<section class="capa">
     <p class="rot">Questionário sobre atenção e agitação</p>
@@ -268,14 +271,14 @@ function capa() {
     <p class="rodape">DIVA-5 © DIVA Foundation (Haia, Holanda). J.J.S. Kooij, M.H. Francken & T.I. Bron, 2019. Adaptação brasileira: Prof. Dr. Mario R. Louzã (PRODATH/IPq-HCFMUSP). Orientações de preenchimento: Dr. Luis Felipe Coutinho Jardim, CRM SC 12767.</p>
   </section>`;
   $("comecar").onclick = () => { if (!S.inicio) S.inicio = Date.now(); ir(S.etapa >= 0 && S.etapa < TOTAL ? S.etapa : 0); };
-  const r = $("recomecar"); if (r) r.onclick = () => { if (confirm("Apagar todas as respostas deste aparelho?")) { S = { etapa: -1, r: {} }; salvar(); capa(); } };
+  const r = $("recomecar"); if (r) r.onclick = () => { if (confirm("Apagar todas as respostas deste aparelho?")) { S = { etapa: -1, r: S.r.codigo ? { codigo: S.r.codigo, nome: S.r.nome } : {} }; salvar(); capa(); } };
 }
 const IDENT = [
   { k:"nome", t:"Nome completo", obr:true }, { k:"cpf", t:"CPF", obr:true, cpf:true }, { k:"nasc", t:"Data de nascimento", obr:true, tipo:"date" },
   { k:"tel", t:"Celular com DDD", obr:true, tipo:"tel" }, { k:"email", t:"E-mail", obr:true, tipo:"email" }];
 function telaIdent() {
-  let h = `<h2 class="etapa-tit">Sobre você</h2><p class="etapa-sub">Para o seu registro no consultório.</p>`;
-  h += IDENT.map((c) => `<div class="cartao" id="c${c.k}"><p class="q-tit">${c.t} <span class="obr">*</span></p><input id="q${c.k}" data-txt="${c.k}" type="${c.tipo || "text"}" ${c.cpf ? 'data-cpf="1" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"' : ""} ${c.tipo === "tel" ? 'inputmode="tel" autocomplete="tel"' : ""} ${c.tipo === "email" ? 'inputmode="email" autocomplete="email"' : ""} value="${esc(S.r[c.k] || "")}"><p class="q-erro">Preencha este campo.</p></div>`).join("");
+  let h = `<h2 class="etapa-tit">${S.r.codigo ? "Olá" + (S.r.nome ? ", " + esc(S.r.nome.split(" ")[0]) : "") : "Sobre você"}</h2><p class="etapa-sub">${S.r.codigo ? "Este link é só seu: suas respostas vão direto para o seu prontuário. Antes de começar, duas perguntas rápidas." : "Para o seu registro no consultório."}</p>`;
+  if (!S.r.codigo) h += IDENT.map((c) => `<div class="cartao" id="c${c.k}"><p class="q-tit">${c.t} <span class="obr">*</span></p><input id="q${c.k}" data-txt="${c.k}" type="${c.tipo || "text"}" ${c.cpf ? 'data-cpf="1" inputmode="numeric" maxlength="14" placeholder="000.000.000-00"' : ""} ${c.tipo === "tel" ? 'inputmode="tel" autocomplete="tel"' : ""} ${c.tipo === "email" ? 'inputmode="email" autocomplete="email"' : ""} value="${esc(S.r[c.k] || "")}"><p class="q-erro">Preencha este campo.</p></div>`).join("");
   h += `<div class="cartao">${simNao("sexo", "Sexo", ["Masculino", "Feminino"]).replace('<span class="obr">*</span>', "")}</div>`;
   h += `<div class="cartao"><p class="q-tit">Quem ajudou a responder sobre a sua infância?</p><p class="q-desc">Marque todas as opções que se aplicam. Se ainda vai pedir ajuda a alguém, pode voltar e marcar depois.</p>${exemplos("ajuda", AJUDANTES)}<input type="text" id="qajudaOutro" data-txt="ajudaOutro" placeholder="Outra pessoa (quem?)" value="${esc(S.r.ajudaOutro || "")}"></div>`;
   return h;
@@ -315,7 +318,7 @@ function ir(n) {
 }
 function valida(n) {
   const et = ETAPAS[n], faltam = [];
-  if (et.tipo === "ident") IDENT.forEach((c) => {
+  if (et.tipo === "ident" && !S.r.codigo) IDENT.forEach((c) => {
     const v = String(S.r[c.k] || "").trim();
     const ruim = !v || (c.cpf && !cpfValido(v)) || (c.tipo === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
     const el = $("c" + c.k); el.classList.toggle("erro", ruim);
@@ -350,12 +353,12 @@ function relatorio() {
   const ajudou = [...lista("ajuda").map((i) => AJUDANTES[i]), S.r.ajudaOutro ? "Outro: " + S.r.ajudaOutro : ""].filter(Boolean).join(", ") || "—";
   const min = S.inicio ? Math.round((Date.now() - S.inicio) / 60000) : null;
   const tempo = min == null ? "" : min <= 180 ? `${Math.max(1, min)} min` : "em mais de uma sessão";
-  const cab = `[DIVA-5] ${S.r.nome || ""} · CPF ${cpf || "—"} · nasc. ${dataBR(S.r.nasc) || "—"} · ${S.r.tel || ""}`;
+  const cab = `[DIVA-5] ${S.r.nome || ""}` + (cpf ? ` · CPF ${cpf}` : "") + (S.r.nasc ? ` · nasc. ${dataBR(S.r.nasc)}` : "") + (S.r.tel ? ` · ${S.r.tel}` : "") + (S.r.codigo ? ` · código ${S.r.codigo}` : "");
   const bloco = (t, x) => `## ${t}\n${x || "—"}`;
   const ctxt = (lado) => DOMINIOS[lado].map((d) => { const m = lista(`C.${lado}.${d.k}`).map((i) => d.o[i]), o = String(S.r[`C.${lado}.${d.k}.out`] || "").trim();
     return `${d.t}: ${m.length || o ? "" : "—"}` + (m.length ? `\n  · ${m.join("\n  · ")}` : "") + (o ? `\n  Outros: ${o}` : ""); }).join("\n");
   const partes = [
-    bloco("Identificação", `Nome completo: ${S.r.nome || ""}\nCPF: ${S.r.cpf || ""}\nData de nascimento: ${dataBR(S.r.nasc)}\nSexo: ${S.r.sexo || "—"}\nCelular com DDD: ${S.r.tel || ""}\nE-mail: ${S.r.email || ""}\nQuem ajudou com a infância: ${ajudou}`),
+    bloco("Identificação", [`Nome completo: ${S.r.nome || ""}`, S.r.cpf && `CPF: ${S.r.cpf}`, S.r.nasc && `Data de nascimento: ${dataBR(S.r.nasc)}`, `Sexo: ${S.r.sexo || "—"}`, S.r.tel && `Celular com DDD: ${S.r.tel}`, S.r.email && `E-mail: ${S.r.email}`, S.r.codigo && `Link pessoal: ${S.r.codigo}`, `Quem ajudou com a infância: ${ajudou}`].filter(Boolean).join("\n")),
     bloco("Resumo para o médico (autorrelato; não é diagnóstico)",
       `Déficit de atenção (A1–A9): adulto ${p.Aad}/9 · infância ${p.Ainf}/9\n` +
       `Hiperatividade/impulsividade (H/I 1–9): adulto ${p.HIad}/9 · infância ${p.HIinf}/9\n` +
@@ -377,7 +380,7 @@ function revisao() {
   $("nav").hidden = false; $("avancar").textContent = "Enviar ao Dr. Luis Felipe";
   const linha = (rot, v) => `<div class="rev-item"><b>${rot}</b> ${v ? esc(v) : '<span class="vazio">sem resposta</span>'}</div>`;
   let h = `<p class="rot">Quase lá</p><h2 class="etapa-tit">Revise as suas respostas</h2><p class="etapa-sub">Toque em "Editar" para mudar algo. Quando estiver tudo certo, envie.</p>`;
-  h += `<div class="rev-bloco"><h3>Sobre você <button type="button" data-edit="0">Editar</button></h3>${linha("Nome:", S.r.nome)}${linha("E-mail:", S.r.email)}</div>`;
+  h += `<div class="rev-bloco"><h3>Sobre você <button type="button" data-edit="0">Editar</button></h3>${linha("Nome:", S.r.nome)}${S.r.codigo ? linha("Link pessoal:", "sim, vai direto ao seu prontuário") : linha("E-mail:", S.r.email)}</div>`;
   ITENS.forEach((it, i) => {
     const qtd = (l) => lista(`${it.k}.${l}.ex`).length + (String(S.r[`${it.k}.${l}.out`] || "").trim() ? 1 : 0);
     h += `<div class="rev-bloco"><h3>${it.k.replace("HI", "H/I ")} · ${esc(it.t)} <button type="button" data-edit="${i + 1}">Editar</button></h3>` +
@@ -391,7 +394,7 @@ function revisao() {
 }
 async function enviar() {
   for (let i = 0; i < TOTAL; i++) { const et = ETAPAS[i];
-    const falta = et.tipo === "ident" ? IDENT.some((c) => !String(S.r[c.k] || "").trim()) || !cpfValido(S.r.cpf)
+    const falta = et.tipo === "ident" ? !S.r.codigo && (IDENT.some((c) => !String(S.r[c.k] || "").trim()) || !cpfValido(S.r.cpf))
       : et.tipo === "item" ? !S.r[`${et.it.k}.ad.p`] || !S.r[`${et.it.k}.inf.p`] : et.tipo === "B" ? !S.r["B.p"] : false;
     if (falta) { ir(i); setTimeout(() => valida(i), 50); return; } }
   const b = $("avancar"); b.disabled = true; b.textContent = "Enviando…";

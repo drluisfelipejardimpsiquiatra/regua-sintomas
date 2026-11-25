@@ -62,7 +62,6 @@ function processarLinha_(linha, silencioso) {
     // sinal de risco (PHQ-9 item 9, ou "pensamentos de morte" no check-in) gera e-mail imediato.
     if ((d.roteiro === "CHECK-IN" || d.roteiro === "PHQ-9") && d.risco && !silencioso) alertarRisco_(d, linha);
     if (d.roteiro === "CHECK-IN") { status("✅ Check-in registrado · entra no próximo PDF do PHQ-9"); return; }
-    if (d.roteiro === "PHQ-9") d.historico = historicoHumor_(sh, d.cpf, d.nome, linha);
     const loc = localizar_(d);
     if (!loc.p) {
       const msg = "⚠ " + loc.erro;
@@ -72,6 +71,7 @@ function processarLinha_(linha, silencioso) {
       return;
     }
     const p = loc.p;
+    if (d.roteiro === "PHQ-9") d.historico = historicoHumor_(sh, d.cpf, d.nome, linha, d.codigo);
     d.vsaude = { id: p.id, numero: p.sequentialNumber, nome: p.name, via: loc.via };
     const data = Utilities.formatDate(quando instanceof Date ? quando : new Date(), "America/Sao_Paulo", "dd-MM-yyyy");
     const nomeArq = `${{ "DIVA-5": "DIVA-5 (TDAH)", "PHQ-9": "PHQ-9 (depressão)" }[d.roteiro] || "Pré-consulta"} – ${data}.pdf`;
@@ -115,6 +115,19 @@ function buscarPorCpf_(cpf) {
  * Só anexa quando sobra exatamente um cadastro; homônimos sem como desempatar ficam pendentes.
  */
 function localizar_(d) {
+  // Link pessoal (gerado pelo consultório para um cadastro do V Saúde): vale mais que qualquer busca.
+  if (d.codigo) {
+    const l = linkPessoal_(d.codigo);
+    if (l) {
+      const p = vs_("GET", "/PatientService/Get?Id=" + l.id);
+      if (!p) return { erro: `Link ${d.codigo}: cadastro não existe mais no V Saúde` };
+      const cpfCad = String(p.personalIdentifier || "").replace(/\D/g, ""), b = String(p.birthday || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+      // O PDF usa os dados do cadastro.
+      d.nome = p.name || d.nome; if (cpfCad) { d.cpf = cpfCad; d.cpfFmt = cpfCad.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4"); }
+      if (b) { d.nasc = `${b[3]}/${b[2]}/${b[1]}`; const h = new Date(), n = new Date(+b[1], +b[2] - 1, +b[3]); d.idade = h.getFullYear() - n.getFullYear() - (h < new Date(h.getFullYear(), n.getMonth(), n.getDate()) ? 1 : 0); } if (!d.tel && p.phone) d.tel = String(p.phone).replace(/^\+55/, "");
+      return { p: { id: p.id || l.id, name: p.name, sequentialNumber: p.sequentialNumber, personalIdentifier: p.personalIdentifier }, via: "link pessoal" };
+    }
+  }
   if (d.cpf) {
     const a = buscarPorCpf_(d.cpf);
     if (a.length === 1) return { p: a[0], via: "CPF" };
@@ -162,6 +175,14 @@ function nascDe_(id) {
   catch (e) { return ""; }
 }
 
+/** Aba "Links" da planilha: código | id do paciente no V Saúde | nome | app | criado em. */
+function linkPessoal_(codigo) {
+  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Links");
+  if (!aba || aba.getLastRow() < 2) return null;
+  const l = aba.getRange(2, 1, aba.getLastRow() - 1, 2).getValues().find(r => String(r[0]).trim().toUpperCase() === codigo);
+  return l && l[1] ? { id: String(l[1]).trim() } : null;
+}
+
 function enviarArquivo_(pacienteId, nome, blob) {
   const q = `?parent=${PASTA_RAIZ}&ownerPatient=${pacienteId}&fileName=${encodeURIComponent(nome)}`;
   return vs_("POST", "/FilesService/Upload" + q, undefined, { payload: { file: blob } });
@@ -197,6 +218,7 @@ function interpretar(cab, corpo) {
   const d = { roteiro: (cab.match(/^\[([^\]]+)\]/) || [])[1] || "", secoes: [], risco: /⚠ ATENÇÃO/.test(corpo) };
   const cpf = (cab.match(/CPF (\d{11})/) || [])[1] || "";
   d.cpf = cpf; d.cpfFmt = cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+  d.codigo = (cab.match(/código ([A-Z0-9]{6,16})/) || [])[1] || "";
   d.tempo = (corpo.match(/Tempo de preenchimento: ([^\n]+)/) || [])[1] || "";
   d.enviado = (corpo.match(/\n(\d{2}\/\d{2}\/\d{4},? \d{2}:\d{2})/) || [])[1] || "";
   corpo.split(/\n## /).slice(1).forEach(b => {
@@ -291,11 +313,11 @@ function registroHumor_(quando, cab, corpo) {
   return r;
 }
 /** Histórico do mesmo paciente na planilha (PHQ-9 e check-ins), até a linha atual. */
-function historicoHumor_(sh, cpf, nome, ateLinha) {
+function historicoHumor_(sh, cpf, nome, ateLinha, codigo) {
   const n = Math.min(sh.getLastRow(), ateLinha);
   if (n < 2) return [];
   return sh.getRange(2, 1, n - 1, 3).getValues()
-    .filter(([q, cab]) => /^\[(PHQ-9|CHECK-IN)\]/.test(String(cab)) && (cpf ? String(cab).indexOf("CPF " + cpf + " ") >= 0 : norm_(String(cab).split(" · ")[0].replace(/^\[[^\]]+\] /, "")) === norm_(nome)))
+    .filter(([q, cab]) => /^\[(PHQ-9|CHECK-IN)\]/.test(String(cab)) && ((codigo && String(cab).indexOf("código " + codigo) >= 0) || (cpf && String(cab).indexOf("CPF " + cpf + " ") >= 0) || (!cpf && !codigo && norm_(String(cab).split(" · ")[0].replace(/^\[[^\]]+\] /, "")) === norm_(nome))))
     .map(([q, cab, corpo]) => registroHumor_(q, cab, corpo)).sort((a, b) => a.quando - b.quando);
 }
 function alertarRisco_(d, linha) {

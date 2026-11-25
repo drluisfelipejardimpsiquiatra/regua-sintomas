@@ -128,6 +128,9 @@ const CVV = "Se esses pensamentos estiverem fortes agora, não espere a consulta
 let D = { id: null, hist: [] }, R = null, MODO = null;
 try { const s = JSON.parse(localStorage.getItem(CHAVE) || "null"); if (s && Array.isArray(s.hist)) D = s; } catch (e) {}
 const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(D)); } catch (e) {} };
+// Link pessoal enviado pelo consultório (?c=CÓDIGO&n=Nome): o paciente já chega identificado.
+const PARAM = new URLSearchParams(location.search), COD = (PARAM.get("c") || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+if (COD.length >= 6 && (!D.id || D.id.codigo !== COD)) { D = { id: { codigo: COD, nome: (PARAM.get("n") || "").trim(), cpf: "", nasc: "", tel: "" }, hist: [] }; salvar(); }
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const dataBR = (iso) => new Date(iso).toLocaleDateString("pt-BR");
@@ -179,7 +182,7 @@ function inicio() {
   if (!D.id) return primeiroUso();
   const u = ultimoPhq(), dev = phqDevido(), falta = u ? Math.max(0, DIAS_PHQ - dias(u.d)) : 0;
   const ultimos = D.hist.slice(-6).reverse();
-  $("tela").innerHTML = `<p class="rot">Olá, ${esc(D.id.nome.split(" ")[0])}</p><h1 class="tit">Como você está hoje?</h1>
+  $("tela").innerHTML = `<p class="rot">Olá${D.id.nome ? ", " + esc(D.id.nome.split(" ")[0]) : ""}</p><h1 class="tit">Como você está hoje?</h1>
     <div class="proximo">${dev
       ? `<h2>Hora do questionário</h2><p>${u ? `Já se passaram ${dias(u.d)} dias desde o último.` : "É o primeiro: ele serve de ponto de partida."} São 9 perguntas sobre as últimas 2 semanas, uns 3 minutos.</p><button class="btn pri larga" id="irPhq">Responder agora</button>`
       : `<h2>Check-in rápido</h2><p>Humor, sono e remédios, em 1 minuto. O próximo questionário completo é ${falta === 0 ? "hoje" : `daqui a ${falta} dia${falta > 1 ? "s" : ""}`}.</p><button class="btn pri larga" id="irCi">Fazer check-in</button>`}</div>
@@ -187,11 +190,11 @@ function inicio() {
     ${MOSTRAR_PONTUACAO ? `<div class="cartao"><p class="q-tit">Sua evolução</p><div class="grafico">${graficoSvg()}</div></div>` : ""}
     ${ultimos.length ? `<div class="cartao"><p class="q-tit">Últimos registros</p><ul class="hist">${ultimos.map((h) => `<li><span>${dataBR(h.d)} · ${h.t === "phq" ? "Questionário" : "Check-in"}</span><span>${h.t === "phq" ? (MOSTRAR_PONTUACAO ? `${h.total} pontos` : "enviado") : `humor ${h.humor}/10`}</span></li>`).join("")}</ul></div>` : ""}
     <p class="crise">Em crise, não espere a consulta: <b>188</b> (CVV, 24 h) ou <b>192</b> (SAMU).</p>
-    <button class="lnk" id="trocar">Não é ${esc(D.id.nome.split(" ")[0])}? Trocar a pessoa neste celular</button>`;
+    ${D.id.codigo ? "" : `<button class="lnk" id="trocar">Não é ${esc(D.id.nome.split(" ")[0])}? Trocar a pessoa neste celular</button>`}`;
   const b1 = $("irPhq") || $("irPhq2"); if (b1) b1.onclick = () => novo("phq");
   if ($("irPhq2")) $("irPhq2").onclick = () => novo("phq");
   if ($("irCi")) $("irCi").onclick = () => novo("ci");
-  $("trocar").onclick = () => { if (confirm("Apagar os dados e o histórico deste celular? O que já foi enviado continua com o Dr. Luis Felipe.")) { D = { id: null, hist: [] }; salvar(); inicio(); } };
+  if ($("trocar")) $("trocar").onclick = () => { if (confirm("Apagar os dados e o histórico deste celular? O que já foi enviado continua com o Dr. Luis Felipe.")) { D = { id: null, hist: [] }; salvar(); inicio(); } };
   window.scrollTo(0, 0);
 }
 function novo(m) { MODO = m; R = { itens: Array(9).fill(null), func: null, humor: null, sono: null, remedio: null, efeitos: [], morte: null, nota: "" }; (m === "phq" ? telaPhq : telaCheckin)(); }
@@ -222,13 +225,13 @@ function telaCheckin() {
   $("enviar").onclick = enviar; $("cancelar").onclick = doPhq ? telaPhq : inicio; window.scrollTo(0, 0);
 }
 function relatorio(reg) {
-  const id = D.id, nascBR = id.nasc.split("-").reverse().join("/"), cpfF = id.cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+  const id = D.id, nascBR = (id.nasc || "").split("-").reverse().join("/"), cpfF = (id.cpf || "").replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
   const tipo = reg.t === "phq" ? "PHQ-9" : "CHECK-IN";
-  const cab = `[${tipo}] ${id.nome} · CPF ${id.cpf} · nasc. ${nascBR} · ${id.tel}`;
+  const cab = `[${tipo}] ${id.nome}` + (id.cpf ? ` · CPF ${id.cpf}` : "") + (nascBR ? ` · nasc. ${nascBR}` : "") + (id.tel ? ` · ${id.tel}` : "") + (id.codigo ? ` · código ${id.codigo}` : "");
   const ci = [`Humor (0–10): ${reg.humor}`, `Sono: ${SONO[reg.sono] || "—"}`, `Remédios: ${REMEDIO[reg.remedio] || "—"}`,
     `Efeitos colaterais: ${reg.efeitos.map((i) => EFEITOS[i]).join(", ") || "—"}`].concat(reg.t === "ci" ? [`Pensamentos de morte ou de se ferir: ${reg.morte === 1 ? "SIM" : "Não"}`] : []).join("\n");
   const risco = reg.t === "phq" ? reg.itens[8] > 0 : reg.morte === 1;
-  const b = [["Identificação", `Nome completo: ${id.nome}\nCPF: ${cpfF}\nData de nascimento: ${nascBR}\nCelular com DDD: ${id.tel}`]];
+  const b = [["Identificação", [`Nome completo: ${id.nome}`, cpfF && `CPF: ${cpfF}`, nascBR && `Data de nascimento: ${nascBR}`, id.tel && `Celular com DDD: ${id.tel}`, id.codigo && `Link pessoal: ${id.codigo}`].filter(Boolean).join("\n")]];
   if (reg.t === "phq") {
     b.push(["PHQ-9 · últimas 2 semanas", PHQ.map((q, i) => `${i + 1}. ${q}: ${reg.itens[i]} (${FREQ[reg.itens[i]]})`).join("\n") + `\nTotal: ${reg.total} · sintomas ${faixa(reg.total)}`]);
     b.push(["Dificuldade funcional", FUNC[reg.func] || "—"]);
