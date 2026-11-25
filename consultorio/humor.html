@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Meu humor · Dr. Luis Felipe Jardim</title>
+<meta name="theme-color" content="#656635">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 110 155'%3E%3Cpath fill='%23E89925' d='M0 0H108V42L97 62 75 77 103 93 110 112V155H3V113L13 93 35 77 8 62 0 42Z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Marcellus&display=swap" rel="stylesheet">
+<style>
+/* Acompanhamento da depressão: PHQ-9 a cada 2 semanas + check-in rápido entre eles.
+   Identificação só no primeiro uso (fica no aparelho). Envia texto organizado ao formulário
+   "Pré-consulta por voz · recebimento"; o integrador da planilha localiza o paciente no V Saúde
+   e anexa um PDF com a evolução a cada PHQ-9. */
+:root{
+  --cafe:#83462D; --terracota:#C3622D; --ambar:#E89925; --oliva-dourado:#88764F; --oliva:#656635;
+  --verde-floresta:#38584B; --branco:#FFFFFF;
+  --paper:#F7F6F3; --paper-2:#EDEBE6; --ink:#2B2A22; --soft:#5E5A4C; --line:#D9D6CC;
+  --on-dark:#F2F1F0; --on-dark-soft:#DAD7CB; --alert-bg:#F7E6DA; --alert-line:#E9C9B4;
+  --f-display:"Optima LT Pro",Optima,"Optima nova","Marcellus",Candara,serif;
+  --f-body:Garet,"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.55 var(--f-body);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--oliva)}
+h1,h2,h3{font-family:var(--f-display);font-weight:500;margin:0;text-wrap:balance}
+p{margin:0}
+.in{max-width:620px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--oliva);color:var(--on-dark)}
+header.top .in{display:flex;align-items:center;gap:12px;min-height:58px}
+header.top svg.logo{width:13px;height:18px;fill:var(--ambar);flex:none}
+header.top b{font:500 17px var(--f-display);margin-right:auto}
+header.top .tag{font:600 10.5px var(--f-body);letter-spacing:.18em;text-transform:uppercase;color:var(--on-dark-soft)}
+.dita{background:#56572D;color:var(--on-dark)}
+header.top .dita .in{display:flex;align-items:center;gap:10px;min-height:40px;padding-block:6px}
+header.top .dita span{font:400 13.5px/1.35 var(--f-body);color:var(--on-dark)}
+header.top .dita b{font:700 13.5px/1.35 var(--f-body);margin:0;color:#fff}
+header.top svg.tecla{width:26px;height:26px;flex:none}
+svg.tecla rect{fill:#F2F1F0} svg.tecla path{fill:#2B2A22} svg.tecla path.t{fill:none;stroke:#2B2A22;stroke-width:1.8;stroke-linecap:round}
+main{padding-block:24px 120px}
+.rot{font:600 11px/1.4 var(--f-body);letter-spacing:.22em;text-transform:uppercase;color:var(--cafe)}
+.tit{font-size:clamp(28px,7vw,36px);line-height:1.12;margin:8px 0 6px}
+.sub{color:var(--soft);font-size:15px}
+.cartao{background:var(--branco);border:1px solid var(--line);border-radius:14px;padding:16px 14px;margin-top:14px}
+.cartao.erro{border-color:var(--cafe)}
+.q-tit{font-weight:600;font-size:16px;line-height:1.4}
+.q-desc{font-size:14px;color:var(--soft);margin-top:4px}
+.q-erro{display:none;font-size:13.5px;color:var(--cafe);font-weight:600;margin-top:8px}
+.erro .q-erro{display:block}
+input[type=text],input[type=tel],input[type=date],textarea{width:100%;font:16px var(--f-body);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-top:8px}
+textarea{min-height:80px;resize:vertical}
+textarea:focus,input:focus{outline:2px solid var(--ambar);outline-offset:1px;background:#fff}
+.n{display:inline-block;min-width:24px;font:700 14px var(--f-body);color:var(--cafe)}
+.freq{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:10px}
+.op{border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:9px 4px;font:600 13px/1.2 var(--f-body);cursor:pointer;min-height:48px;text-align:center}
+.op[aria-pressed="true"]{background:var(--verde-floresta);border-color:var(--verde-floresta);color:#fff}
+.ops{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.ops .op{padding:10px 14px;font-size:14.5px;text-align:left;min-height:44px}
+.escala{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:3px;margin-top:10px}
+.escala .op{padding:10px 0;min-height:44px}
+.escala-leg{display:flex;justify-content:space-between;font-size:12.5px;color:var(--soft);margin-top:6px}
+.alerta{background:var(--alert-bg);border:1px solid var(--alert-line);color:var(--cafe);border-radius:10px;padding:12px 14px;margin-top:12px;font-size:14.5px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 24px;border-radius:999px;font:600 13px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;border:1px solid transparent;cursor:pointer;text-decoration:none}
+.btn.pri{background:var(--ambar);color:var(--ink)}
+.btn.sec{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn.larga{width:100%}
+.btn:disabled{opacity:.5}
+.lnk{background:none;border:0;color:var(--cafe);text-decoration:underline;font:500 14px var(--f-body);cursor:pointer;padding:8px 0}
+.proximo{background:var(--verde-floresta);color:#fff;border-radius:16px;padding:18px 16px;margin-top:16px}
+.proximo h2{font-size:24px;color:#fff}
+.proximo p{color:#E6EDE8;font-size:15px;margin:6px 0 14px}
+.grafico{margin-top:10px}
+.grafico svg{width:100%;height:auto;display:block}
+.grafico .vazio{font-size:14px;color:var(--soft);padding:12px 0}
+.hist{margin:8px 0 0;padding:0;list-style:none}
+.hist li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.hist li span:last-child{color:var(--soft);text-align:right}
+.res{display:flex;align-items:baseline;gap:12px;margin-top:8px}
+.res b{font:500 52px/1 var(--f-display);color:var(--oliva)}
+.nota{font-size:13.5px;color:var(--soft)}
+.crise{font-size:14px;color:var(--soft);margin-top:16px}
+.fim{text-align:center;display:grid;gap:14px;justify-items:center;padding-top:24px}
+.fim h1{font-size:32px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="in"><svg class="logo" viewBox="0 0 110 155" aria-hidden="true"><path d="M0 0H108V42L97 62 75 77 103 93 110 112V155H3V113L13 93 35 77 8 62 0 42Z"/></svg><b>Dr. Luis Felipe Jardim</b><span class="tag">Meu humor</span></div>
+  <div class="dita"><div class="in"><svg class="tecla" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="6"/><path d="M14 6.5a3 3 0 0 0-3 3v4.5a3 3 0 0 0 6 0V9.5a3 3 0 0 0-3-3z"/><path class="t" d="M8.8 13.6a5.2 5.2 0 0 0 10.4 0M14 18.8v2.7"/></svg><span>Prefere falar? Toque na caixa de texto e use o <b>microfone do teclado</b> do celular.</span></div></div>
+</header>
+<main class="in" id="tela" aria-live="polite"></main>
+<script>
+// ====== CONFIGURAÇÃO ======
+const FORM_EXTRA = "https://docs.google.com/forms/d/e/1FAIpQLSdEgVRqms8zbmovVuGCF6k2milxv4Tac83b0YddnNUcPLOgqg/formResponse";
+const CAMPO_PACIENTE = "entry.2057517674", CAMPO_RESPOSTAS = "entry.929291522";
+const CHAVE = "humor.v1";
+const DIAS_PHQ = 14;               // intervalo do PHQ-9 (o questionário pergunta pelas últimas 2 semanas)
+const MOSTRAR_PONTUACAO = true;    // o paciente vê a própria pontuação e o gráfico da evolução
+
+// PHQ-9, versão brasileira (Santos et al., 2013). Uso livre (Pfizer).
+const PHQ = [
+  "Pouco interesse ou pouco prazer em fazer as coisas",
+  "Se sentir “para baixo”, deprimido(a) ou sem perspectiva",
+  "Dificuldade para pegar no sono ou permanecer dormindo, ou dormir mais do que de costume",
+  "Se sentir cansado(a) ou com pouca energia",
+  "Falta de apetite ou comendo demais",
+  "Se sentir mal consigo mesmo(a), ou achar que você é um fracasso ou que decepcionou sua família ou você mesmo(a)",
+  "Dificuldade para se concentrar nas coisas, como ler o jornal ou ver televisão",
+  "Lentidão para se movimentar ou falar, a ponto de as outras pessoas perceberem. Ou o oposto: estar tão agitado(a) ou irrequieto(a) que você fica andando de um lado para o outro muito mais do que de costume",
+  "Pensar em se ferir de alguma maneira ou que seria melhor estar morto(a)"];
+const FREQ = ["Nenhuma vez", "Vários dias", "Mais da metade dos dias", "Quase todos os dias"];
+const FUNC = ["Nenhuma dificuldade", "Alguma dificuldade", "Muita dificuldade", "Extrema dificuldade"];
+const FAIXAS = [[0, 4, "mínimos"], [5, 9, "leves"], [10, 14, "moderados"], [15, 19, "moderadamente graves"], [20, 27, "graves"]];
+const faixa = (t) => FAIXAS.find(([a, b]) => t >= a && t <= b)[2];
+// Check-in rápido
+const SONO = ["Dormi bem", "Dormi mais ou menos", "Dormi mal", "Quase não dormi"];
+const REMEDIO = ["Tomei todos os dias", "Esqueci 1 ou 2 vezes", "Esqueci várias vezes", "Parei de tomar", "Não uso remédio"];
+const EFEITOS = ["Náusea ou estômago", "Sonolência", "Insônia", "Ganho de peso ou mais fome", "Alteração sexual", "Tontura", "Dor de cabeça", "Agitação ou inquietação", "Boca seca", "Nenhum"];
+const CVV = "Se esses pensamentos estiverem fortes agora, não espere a consulta: ligue <b>188</b> (CVV, 24 h, gratuito), <b>192</b> (SAMU) ou procure o pronto-atendimento mais próximo, e avise a clínica.";
+
+// ====== ESTADO ======
+let D = { id: null, hist: [] }, R = null, MODO = null;
+try { const s = JSON.parse(localStorage.getItem(CHAVE) || "null"); if (s && Array.isArray(s.hist)) D = s; } catch (e) {}
+const salvar = () => { try { localStorage.setItem(CHAVE, JSON.stringify(D)); } catch (e) {} };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dataBR = (iso) => new Date(iso).toLocaleDateString("pt-BR");
+const dias = (iso) => Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+const phqs = () => D.hist.filter((h) => h.t === "phq");
+const ultimoPhq = () => phqs().slice(-1)[0];
+const phqDevido = () => { const u = ultimoPhq(); return !u || dias(u.d) >= DIAS_PHQ; };
+function cpfValido(c) {
+  c = String(c || "").replace(/\D/g, "");
+  if (c.length !== 11 || /^(\d)\1{10}$/.test(c)) return false;
+  for (const n of [9, 10]) { let s = 0; for (let i = 0; i < n; i++) s += +c[i] * (n + 1 - i); if ((s * 10 % 11) % 10 !== +c[n]) return false; }
+  return true;
+}
+const mascaraCpf = (v) => { const d = v.replace(/\D/g, "").slice(0, 11); return d.replace(/^(\d{3})(\d)/, "$1.$2").replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2"); };
+
+// ====== TELAS ======
+function primeiroUso() {
+  $("tela").innerHTML = `<p class="rot">Acompanhamento da depressão</p><h1 class="tit">Como você tem estado</h1>
+    <p class="sub">Aqui você registra, de tempos em tempos, como está o seu humor. O Dr. Luis Felipe acompanha a evolução entre as consultas e vê o que está ajudando.</p>
+    <div class="cartao"><p class="q-tit">Como funciona</p>
+      <p class="q-desc">• A cada <b>2 semanas</b>: um questionário de 9 perguntas (PHQ-9), uns 3 minutos.<br>• Entre um e outro, quando quiser: um <b>check-in</b> de 1 minuto (humor, sono, remédios).<br>• Seus dados são pedidos só agora, na primeira vez, e ficam guardados neste celular.</p></div>
+    ${[["nome", "Nome completo", "text"], ["cpf", "CPF", "cpf"], ["nasc", "Data de nascimento", "date"], ["tel", "Celular com DDD", "tel"]].map(([k, t, tp]) =>
+      `<div class="cartao" id="c${k}"><p class="q-tit">${t}</p><input id="q${k}" type="${tp === "cpf" ? "text" : tp}" ${tp === "cpf" ? 'inputmode="numeric" maxlength="14" placeholder="000.000.000-00" data-cpf="1"' : tp === "tel" ? 'inputmode="tel" autocomplete="tel"' : tp === "text" ? 'autocomplete="name"' : ""}><p class="q-erro">${k === "cpf" ? "Confira o CPF." : "Preencha este campo."}</p></div>`).join("")}
+    <button class="btn pri larga" style="margin-top:18px" id="salvarId">Continuar</button>
+    <p class="nota" style="margin-top:12px">Suas respostas vão só para o Dr. Luis Felipe e ficam no seu prontuário, sob sigilo médico e conforme a LGPD.</p>`;
+  $("salvarId").onclick = () => {
+    const v = (k) => $("q" + k).value.trim(); let ok = true;
+    ["nome", "cpf", "nasc", "tel"].forEach((k) => { const ruim = !v(k) || (k === "cpf" && !cpfValido(v(k))); $("c" + k).classList.toggle("erro", ruim); if (ruim) ok = false; });
+    if (!ok) return;
+    D.id = { nome: v("nome"), cpf: v("cpf").replace(/\D/g, ""), nasc: v("nasc"), tel: v("tel") }; salvar(); inicio();
+  };
+}
+function graficoSvg() {
+  const ps = phqs();
+  if (!ps.length) return `<p class="vazio">O gráfico aparece depois do primeiro questionário.</p>`;
+  const W = 340, H = 180, L = 30, Rr = 12, T = 10, B = 26, x = (i) => ps.length === 1 ? L + (W - L - Rr) / 2 : L + i * (W - L - Rr) / (ps.length - 1), y = (v) => T + (27 - v) * (H - T - B) / 27;
+  // Faixas de gravidade: um tom só, do claro (mínimo) ao escuro (grave).
+  const tons = ["#F3F1EA", "#ECE7D8", "#E3D9BF", "#D8C7A0", "#CDB585"];
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução da pontuação do PHQ-9">`;
+  FAIXAS.forEach(([a, b, n], i) => { s += `<rect x="${L}" y="${y(b + (i === 4 ? 0 : 1))}" width="${W - L - Rr}" height="${y(a) - y(b + (i === 4 ? 0 : 1))}" fill="${tons[i]}"/>`; });
+  [0, 5, 10, 15, 20, 27].forEach((v) => { s += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" font-size="10" fill="#5E5A4C">${v}</text>`; });
+  s += `<polyline fill="none" stroke="#38584B" stroke-width="2" stroke-linejoin="round" points="${ps.map((p, i) => `${x(i)},${y(p.total)}`).join(" ")}"/>`;
+  ps.forEach((p, i) => { s += `<circle cx="${x(i)}" cy="${y(p.total)}" r="5" fill="#38584B" stroke="#fff" stroke-width="2"><title>${dataBR(p.d)}: ${p.total} (${faixa(p.total)})</title></circle>`; });
+  const u = ps.length - 1; s += `<text x="${Math.min(x(u), W - Rr - 4)}" y="${y(ps[u].total) - 10}" text-anchor="${ps.length === 1 ? "middle" : "end"}" font-size="12" font-weight="700" fill="#2B2A22">${ps[u].total}</text>`;
+  [0, u].filter((v, i, a) => a.indexOf(v) === i).forEach((i) => { s += `<text x="${x(i)}" y="${H - 8}" text-anchor="${ps.length === 1 ? "middle" : i === 0 ? "start" : "end"}" font-size="10" fill="#5E5A4C">${dataBR(ps[i].d).slice(0, 5)}</text>`; });
+  return s + `</svg><p class="nota">Pontuação de 0 a 27: quanto mais baixa, menos sintomas. As faixas mais escuras são sintomas mais intensos.</p>`;
+}
+function inicio() {
+  if (!D.id) return primeiroUso();
+  const u = ultimoPhq(), dev = phqDevido(), falta = u ? Math.max(0, DIAS_PHQ - dias(u.d)) : 0;
+  const ultimos = D.hist.slice(-6).reverse();
+  $("tela").innerHTML = `<p class="rot">Olá, ${esc(D.id.nome.split(" ")[0])}</p><h1 class="tit">Como você está hoje?</h1>
+    <div class="proximo">${dev
+      ? `<h2>Hora do questionário</h2><p>${u ? `Já se passaram ${dias(u.d)} dias desde o último.` : "É o primeiro: ele serve de ponto de partida."} São 9 perguntas sobre as últimas 2 semanas, uns 3 minutos.</p><button class="btn pri larga" id="irPhq">Responder agora</button>`
+      : `<h2>Check-in rápido</h2><p>Humor, sono e remédios, em 1 minuto. O próximo questionário completo é ${falta === 0 ? "hoje" : `daqui a ${falta} dia${falta > 1 ? "s" : ""}`}.</p><button class="btn pri larga" id="irCi">Fazer check-in</button>`}</div>
+    ${dev ? "" : `<button class="lnk" id="irPhq2">Prefiro responder o questionário completo agora</button>`}
+    ${MOSTRAR_PONTUACAO ? `<div class="cartao"><p class="q-tit">Sua evolução</p><div class="grafico">${graficoSvg()}</div></div>` : ""}
+    ${ultimos.length ? `<div class="cartao"><p class="q-tit">Últimos registros</p><ul class="hist">${ultimos.map((h) => `<li><span>${dataBR(h.d)} · ${h.t === "phq" ? "Questionário" : "Check-in"}</span><span>${h.t === "phq" ? (MOSTRAR_PONTUACAO ? `${h.total} pontos` : "enviado") : `humor ${h.humor}/10`}</span></li>`).join("")}</ul></div>` : ""}
+    <p class="crise">Em crise, não espere a consulta: <b>188</b> (CVV, 24 h) ou <b>192</b> (SAMU).</p>
+    <button class="lnk" id="trocar">Não é ${esc(D.id.nome.split(" ")[0])}? Trocar a pessoa neste celular</button>`;
+  const b1 = $("irPhq") || $("irPhq2"); if (b1) b1.onclick = () => novo("phq");
+  if ($("irPhq2")) $("irPhq2").onclick = () => novo("phq");
+  if ($("irCi")) $("irCi").onclick = () => novo("ci");
+  $("trocar").onclick = () => { if (confirm("Apagar os dados e o histórico deste celular? O que já foi enviado continua com o Dr. Luis Felipe.")) { D = { id: null, hist: [] }; salvar(); inicio(); } };
+  window.scrollTo(0, 0);
+}
+function novo(m) { MODO = m; R = { itens: Array(9).fill(null), func: null, humor: null, sono: null, remedio: null, efeitos: [], morte: null, nota: "" }; (m === "phq" ? telaPhq : telaCheckin)(); }
+const botoes = (k, ops, atual, cls) => `<div class="${cls || "ops"}" role="group">${ops.map((o, i) => `<button type="button" class="op" data-k="${k}" data-v="${i}" aria-pressed="${atual === i}">${esc(o)}</button>`).join("")}</div>`;
+function telaPhq() {
+  $("tela").innerHTML = `<p class="rot">Questionário · PHQ-9</p><h1 class="tit">Nas últimas 2 semanas</h1>
+    <p class="sub">Com que frequência você foi incomodado(a) por cada um destes problemas?</p>
+    ${PHQ.map((q, i) => `<div class="cartao" id="ci${i}"><p class="q-tit"><span class="n">${i + 1}.</span>${esc(q)}</p>${botoes("i" + i, FREQ, R.itens[i], "freq")}<p class="q-erro">Escolha uma opção.</p>${i === 8 ? `<div class="alerta" id="al8" ${R.itens[8] > 0 ? "" : "hidden"}><b>Obrigado por contar.</b> O Dr. Luis Felipe vai ver isso com atenção. ${CVV}</div>` : ""}</div>`).join("")}
+    <div class="cartao" id="cfunc"><p class="q-tit">Se você marcou algum problema: quanta dificuldade eles causaram para fazer o seu trabalho, cuidar das coisas em casa ou se dar bem com as pessoas?</p>${botoes("func", FUNC, R.func)}</div>
+    <button class="btn pri larga" style="margin-top:18px" id="seguir">Continuar</button>
+    <button class="lnk" id="cancelar">Voltar sem salvar</button>`;
+  $("seguir").onclick = () => { const f = R.itens.findIndex((v) => v == null); document.querySelectorAll("[id^=ci]").forEach((c, i) => c.classList.toggle("erro", R.itens[i] == null));
+    if (f >= 0) return $("ci" + f).scrollIntoView({ behavior: "smooth", block: "center" }); telaCheckin(); };
+  $("cancelar").onclick = inicio; window.scrollTo(0, 0);
+}
+function telaCheckin() {
+  const doPhq = MODO === "phq";
+  $("tela").innerHTML = `<p class="rot">${doPhq ? "Para completar" : "Check-in rápido"}</p><h1 class="tit">${doPhq ? "Mais um pouco" : "Como você está?"}</h1>
+    <div class="cartao" id="chumor"><p class="q-tit">De 0 a 10, como está o seu humor ${doPhq ? "nos últimos dias" : "hoje"}?</p>${botoes("humor", ["0","1","2","3","4","5","6","7","8","9","10"], R.humor, "escala")}<div class="escala-leg"><span>muito mal</span><span>muito bem</span></div><p class="q-erro">Escolha um número.</p></div>
+    <div class="cartao"><p class="q-tit">Como tem sido o sono?</p>${botoes("sono", SONO, R.sono)}</div>
+    <div class="cartao"><p class="q-tit">E os remédios?</p>${botoes("remedio", REMEDIO, R.remedio)}</div>
+    <div class="cartao"><p class="q-tit">Algum efeito colateral incomodando?</p><p class="q-desc">Marque todos que se aplicam.</p>${`<div class="ops" role="group">${EFEITOS.map((o, i) => `<button type="button" class="op" data-k="efeitos" data-v="${i}" aria-pressed="${R.efeitos.includes(i)}">${esc(o)}</button>`).join("")}</div>`}</div>
+    ${doPhq ? "" : `<div class="cartao" id="cmorte"><p class="q-tit">Nos últimos dias, você teve pensamentos de que seria melhor estar morto(a) ou de se ferir?</p>${botoes("morte", ["Não", "Sim"], R.morte)}<p class="q-erro">Responda, por favor.</p><div class="alerta" id="almorte" ${R.morte === 1 ? "" : "hidden"}><b>Obrigado por contar.</b> ${CVV}</div></div>`}
+    <div class="cartao"><p class="q-tit">Quer contar algo ao Dr. Luis Felipe?</p><p class="q-desc">Opcional. O que melhorou, o que piorou, alguma dúvida.</p><textarea id="qnota">${esc(R.nota)}</textarea></div>
+    <button class="btn pri larga" style="margin-top:18px" id="enviar">Enviar</button>
+    <button class="lnk" id="cancelar">${doPhq ? "Voltar ao questionário" : "Voltar sem salvar"}</button>`;
+  $("qnota").oninput = (e) => (R.nota = e.target.value);
+  $("enviar").onclick = enviar; $("cancelar").onclick = doPhq ? telaPhq : inicio; window.scrollTo(0, 0);
+}
+function relatorio(reg) {
+  const id = D.id, nascBR = id.nasc.split("-").reverse().join("/"), cpfF = id.cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+  const tipo = reg.t === "phq" ? "PHQ-9" : "CHECK-IN";
+  const cab = `[${tipo}] ${id.nome} · CPF ${id.cpf} · nasc. ${nascBR} · ${id.tel}`;
+  const ci = [`Humor (0–10): ${reg.humor}`, `Sono: ${SONO[reg.sono] || "—"}`, `Remédios: ${REMEDIO[reg.remedio] || "—"}`,
+    `Efeitos colaterais: ${reg.efeitos.map((i) => EFEITOS[i]).join(", ") || "—"}`].concat(reg.t === "ci" ? [`Pensamentos de morte ou de se ferir: ${reg.morte === 1 ? "SIM" : "Não"}`] : []).join("\n");
+  const risco = reg.t === "phq" ? reg.itens[8] > 0 : reg.morte === 1;
+  const b = [["Identificação", `Nome completo: ${id.nome}\nCPF: ${cpfF}\nData de nascimento: ${nascBR}\nCelular com DDD: ${id.tel}`]];
+  if (reg.t === "phq") {
+    b.push(["PHQ-9 · últimas 2 semanas", PHQ.map((q, i) => `${i + 1}. ${q}: ${reg.itens[i]} (${FREQ[reg.itens[i]]})`).join("\n") + `\nTotal: ${reg.total} · sintomas ${faixa(reg.total)}`]);
+    b.push(["Dificuldade funcional", FUNC[reg.func] || "—"]);
+  }
+  b.push([reg.t === "phq" ? "Check-in" : "Check-in rápido", ci]);
+  b.push(["Observações do paciente", reg.nota.trim()]);
+  const corpo = (risco ? "⚠ ATENÇÃO: sinal de risco (pensamentos de morte ou de se ferir) nas respostas.\n\n" : "") +
+    `ACOMPANHAMENTO DA DEPRESSÃO · ${tipo} (respondido pelo paciente)\n${new Date(reg.d).toLocaleString("pt-BR")}\n\n` + b.map(([t, x]) => `## ${t}\n${x || "—"}`).join("\n\n");
+  return { cab, corpo };
+}
+async function enviar() {
+  const doPhq = MODO === "phq";
+  let falta = null;
+  if (R.humor == null) { $("chumor").classList.add("erro"); falta = $("chumor"); }
+  if (!doPhq && R.morte == null) { $("cmorte").classList.add("erro"); falta = falta || $("cmorte"); }
+  if (falta) return falta.scrollIntoView({ behavior: "smooth", block: "center" });
+  const reg = { t: doPhq ? "phq" : "ci", d: new Date().toISOString(), humor: R.humor, sono: R.sono, remedio: R.remedio, efeitos: R.efeitos.slice(), morte: R.morte, nota: R.nota };
+  if (doPhq) { reg.itens = R.itens.slice(); reg.total = R.itens.reduce((a, b) => a + b, 0); reg.func = R.func; }
+  const b = $("enviar"); b.disabled = true; b.textContent = "Enviando…";
+  const { cab, corpo } = relatorio(reg), fd = new URLSearchParams();
+  fd.append(CAMPO_PACIENTE, cab); fd.append(CAMPO_RESPOSTAS, corpo);
+  try {
+    await fetch(FORM_EXTRA, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: fd.toString() });
+  } catch (err) {
+    b.disabled = false; b.textContent = "Tentar enviar de novo";
+    return alert("Não foi possível enviar. Confira a internet e tente de novo.");
+  }
+  D.hist.push({ t: reg.t, d: reg.d, total: reg.total, humor: reg.humor, itens: reg.itens }); salvar();
+  concluido(reg);
+}
+function concluido(reg) {
+  const ps = phqs(), base = ps[0], risco = reg.t === "phq" ? reg.itens[8] > 0 : reg.morte === 1;
+  let msg = "";
+  if (reg.t === "phq" && MOSTRAR_PONTUACAO) {
+    msg = `<div class="cartao"><p class="q-tit">Resultado de hoje</p><div class="res"><b>${reg.total}</b><span class="sub">de 27 · sintomas ${faixa(reg.total)}</span></div>`;
+    if (ps.length > 1) { const dif = reg.total - ps[ps.length - 2].total;
+      msg += `<p class="q-desc" style="margin-top:8px">${dif < 0 ? `${-dif} ponto${dif < -1 ? "s" : ""} a menos que no último questionário.` : dif > 0 ? `${dif} ponto${dif > 1 ? "s" : ""} a mais que no último questionário. Vale conversar sobre isso na consulta.` : "Igual ao último questionário."}</p>`; }
+    msg += `<p class="nota" style="margin-top:8px">Este número ajuda a acompanhar a evolução; quem interpreta é o Dr. Luis Felipe, junto com tudo o que você conta.</p></div>`;
+  }
+  $("tela").innerHTML = `<section class="fim"><h1>Recebido, obrigado!</h1><p class="sub" style="max-width:40ch">Suas respostas chegaram ao Dr. Luis Felipe.</p></section>${msg}
+    ${risco ? `<div class="alerta">${CVV}</div>` : ""}
+    <button class="btn sec larga" style="margin-top:18px" id="voltar">Voltar ao início</button>`;
+  $("voltar").onclick = inicio; window.scrollTo(0, 0);
+}
+
+// ====== EVENTOS ======
+document.addEventListener("input", (ev) => { if (ev.target.dataset.cpf) ev.target.value = mascaraCpf(ev.target.value); });
+document.addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-k]"); if (!b || !R) return;
+  const k = b.dataset.k, v = +b.dataset.v;
+  if (k === "efeitos") {
+    const nenhum = EFEITOS.length - 1;
+    R.efeitos = R.efeitos.includes(v) ? R.efeitos.filter((x) => x !== v) : v === nenhum ? [nenhum] : [...R.efeitos.filter((x) => x !== nenhum), v];
+    b.parentElement.querySelectorAll(".op").forEach((x) => x.setAttribute("aria-pressed", R.efeitos.includes(+x.dataset.v))); return;
+  }
+  if (k[0] === "i" && k !== "func") R.itens[+k.slice(1)] = v; else R[k] = v;
+  b.parentElement.querySelectorAll(".op").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  b.closest(".cartao")?.classList.remove("erro");
+  if (k === "i8") $("al8").hidden = !(v > 0);
+  if (k === "morte") $("almorte").hidden = v !== 1;
+});
+inicio();
+</script>
+</body>
+</html>

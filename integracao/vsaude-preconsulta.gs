@@ -58,6 +58,11 @@ function processarLinha_(linha, silencioso) {
   const status = msg => sh.getRange(linha, col).setValue(msg);
   try {
     const d = interpretar(String(cab), String(corpo));
+    // Acompanhamento da depressão: o check-in só fica registrado na planilha (entra no próximo PDF do PHQ-9);
+    // sinal de risco (PHQ-9 item 9, ou "pensamentos de morte" no check-in) gera e-mail imediato.
+    if ((d.roteiro === "CHECK-IN" || d.roteiro === "PHQ-9") && d.risco && !silencioso) alertarRisco_(d, linha);
+    if (d.roteiro === "CHECK-IN") { status("✅ Check-in registrado · entra no próximo PDF do PHQ-9"); return; }
+    if (d.roteiro === "PHQ-9") d.historico = historicoHumor_(sh, d.cpf, d.nome, linha);
     const loc = localizar_(d);
     if (!loc.p) {
       const msg = "⚠ " + loc.erro;
@@ -69,7 +74,7 @@ function processarLinha_(linha, silencioso) {
     const p = loc.p;
     d.vsaude = { id: p.id, numero: p.sequentialNumber, nome: p.name, via: loc.via };
     const data = Utilities.formatDate(quando instanceof Date ? quando : new Date(), "America/Sao_Paulo", "dd-MM-yyyy");
-    const nomeArq = `${d.roteiro === "DIVA-5" ? "DIVA-5 (TDAH)" : "Pré-consulta"} – ${data}.pdf`;
+    const nomeArq = `${{ "DIVA-5": "DIVA-5 (TDAH)", "PHQ-9": "PHQ-9 (depressão)" }[d.roteiro] || "Pré-consulta"} – ${data}.pdf`;
     const pdf = HtmlService.createHtmlOutput(montarHtml(d)).getAs("application/pdf").setName(nomeArq);
     enviarArquivo_(p.id, nomeArq, pdf);
     status(`✅ Anexado em ${Utilities.formatDate(new Date(), "America/Sao_Paulo", "dd/MM HH:mm")} · ${p.sequentialNumber ? "paciente nº " + p.sequentialNumber + " · " : ""}localizado pelo ${loc.via}${loc.obs ? " · " + loc.obs : ""}`);
@@ -178,7 +183,7 @@ function colunaStatus_() {
 function avisar_(d, motivo, linha) {
   const para = Session.getEffectiveUser().getEmail(); if (!para) return;
   const quem = d ? `${d.nome || "(sem nome)"} · CPF ${d.cpfFmt || "—"}` : "(não identificado)";
-  MailApp.sendEmail(para, `${d && d.roteiro === "DIVA-5" ? "DIVA-5" : "Pré-consulta"} não anexada ao V Saúde: ${d ? d.nome : ""}`,
+  MailApp.sendEmail(para, `${d && (d.roteiro === "DIVA-5" || d.roteiro === "PHQ-9") ? d.roteiro : "Pré-consulta"} não anexada ao V Saúde: ${d ? d.nome : ""}`,
     `${motivo}\n\nPaciente: ${quem}\nLinha da planilha: ${linha}\n\n` +
     `O que fazer: confira se o paciente está cadastrado no V Saúde com este CPF, ou com o mesmo nome e data de nascimento (corrija ou complete o cadastro). ` +
     `A planilha tenta de novo a cada hora e anexa sozinha quando encontrar.\n\n` +
@@ -265,10 +270,73 @@ function divaHtml_(d) {
   <h3>Mapa dos sintomas</h3>${mapa(g.A)}${mapa(g.H)}`;
 }
 
+// ===================== ACOMPANHAMENTO DA DEPRESSÃO (PHQ-9) =====================
+const PHQ_CURTO = ["Pouco interesse ou prazer", "Para baixo, sem perspectiva", "Sono", "Cansaço, pouca energia", "Apetite",
+  "Sentir-se mal consigo, fracasso", "Concentração", "Lentidão ou agitação", "Pensar em se ferir ou em morrer"];
+const PHQ_FAIXAS = [[0, 4, "mínimos"], [5, 9, "leves"], [10, 14, "moderados"], [15, 19, "moderadamente graves"], [20, 27, "graves"]];
+const PHQ_TONS = ["#DCE6E0", "#B4CBBE", "#86A796", "#56806D", "#2F5A48"]; // um tom só: claro = mínimo, escuro = grave
+const phqFaixa_ = t => PHQ_FAIXAS.findIndex(([a, b]) => t >= a && t <= b);
+/** Lê um registro (PHQ-9 ou check-in) a partir do texto enviado pela página. */
+function registroHumor_(quando, cab, corpo) {
+  const tipo = (String(cab).match(/^\[([^\]]+)\]/) || [])[1], c = String(corpo), g = re => (c.match(re) || [])[1];
+  const r = { quando: quando instanceof Date ? quando : new Date(quando), tipo,
+    humor: g(/Humor \(0–10\): (\d+)/), sono: g(/\nSono: ([^\n]*)/), remedio: g(/\nRemédios: ([^\n]*)/),
+    efeitos: g(/\nEfeitos colaterais: ([^\n]*)/), morte: g(/Pensamentos de morte ou de se ferir: ([^\n]*)/),
+    nota: (c.split("## Observações do paciente\n")[1] || "").trim(), risco: /⚠ ATENÇÃO/.test(c) };
+  if (r.nota === "—") r.nota = "";
+  if (tipo === "PHQ-9") {
+    r.itens = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => +((c.match(new RegExp("\\n" + i + "\\. [^\\n]*: (\\d) \\(")) || [])[1] || 0));
+    r.total = +(g(/Total: (\d+)/) || 0); r.func = g(/## Dificuldade funcional\n([^\n]*)/);
+  }
+  return r;
+}
+/** Histórico do mesmo paciente na planilha (PHQ-9 e check-ins), até a linha atual. */
+function historicoHumor_(sh, cpf, nome, ateLinha) {
+  const n = Math.min(sh.getLastRow(), ateLinha);
+  if (n < 2) return [];
+  return sh.getRange(2, 1, n - 1, 3).getValues()
+    .filter(([q, cab]) => /^\[(PHQ-9|CHECK-IN)\]/.test(String(cab)) && (cpf ? String(cab).indexOf("CPF " + cpf + " ") >= 0 : norm_(String(cab).split(" · ")[0].replace(/^\[[^\]]+\] /, "")) === norm_(nome)))
+    .map(([q, cab, corpo]) => registroHumor_(q, cab, corpo)).sort((a, b) => a.quando - b.quando);
+}
+function alertarRisco_(d, linha) {
+  const para = Session.getEffectiveUser().getEmail(); if (!para) return;
+  MailApp.sendEmail(para, `⚠ Sinal de risco · ${d.roteiro} · ${d.nome}`,
+    `${d.nome} (CPF ${d.cpfFmt || "—"}, celular ${d.tel || "—"}) marcou pensamentos de morte ou de se ferir no ${d.roteiro === "PHQ-9" ? "PHQ-9 (item 9)" : "check-in"}.\n` +
+    `A página mostrou ao paciente a orientação do CVV 188 / SAMU 192.\n\nLinha da planilha: ${linha}\n${SpreadsheetApp.getActiveSpreadsheet().getUrl()}`);
+}
+function phqHtml_(d) {
+  const e = esc_, data = q => Utilities.formatDate(q, "America/Sao_Paulo", "dd/MM/yy");
+  const h = (d.historico || []).length ? d.historico : [], ps = h.filter(r => r.tipo === "PHQ-9");
+  const atual = ps[ps.length - 1], base = ps[0], ant = ps[ps.length - 2];
+  if (!atual) return "";
+  const desde = ant ? h.filter(r => r.tipo === "CHECK-IN" && r.quando > ant.quando) : h.filter(r => r.tipo === "CHECK-IN");
+  const varPct = base && base.total ? Math.round((atual.total - base.total) / base.total * 100) : null;
+  const resposta = ps.length > 1 && base.total > 0 && atual.total <= base.total / 2, remissao = atual.total < 5;
+  const barra = t => `<table class="pb"><tr><td style="width:${Math.max(t, 0.4) / 27 * 100}%;background:${PHQ_TONS[phqFaixa_(t)]}">&nbsp;</td><td style="background:#F1EFE8">&nbsp;</td></tr></table>`;
+  const ponto = v => v == null ? "—" : ["○", "◔", "◑", "●"][v];
+  return `<h2>Resultado de hoje</h2>
+  <table class="sint"><tr>
+   <td><b>PHQ-9</b><span style="font-size:20pt">${atual.total}</span> / 27<br>sintomas ${PHQ_FAIXAS[phqFaixa_(atual.total)][2]}</td>
+   <td><b>Em relação ao início</b>${ps.length > 1 ? `Basal ${base.total} (${data(base.quando)}) → ${atual.total}<br>${varPct <= 0 ? "Queda" : "Aumento"} de ${Math.abs(varPct)}%` : "Primeiro PHQ-9: ponto de partida"}</td>
+   <td><b>Resposta · remissão</b>Resposta (queda ≥ 50%): ${ps.length > 1 ? (resposta ? "<b style='display:inline;font-size:9pt;color:#2F5A48'>sim</b>" : "não") : "—"}<br>Remissão (PHQ-9 &lt; 5): ${remissao ? "<b style='display:inline;font-size:9pt;color:#2F5A48'>sim</b>" : "não"}<br><span class="mini">Dificuldade funcional: ${e(atual.func || "—")}</span></td></tr></table>
+  <h2>Evolução do PHQ-9</h2>
+  <div class="leg" style="margin:0 0 4px">Cada linha é um questionário. A cor da barra acompanha a faixa: ${PHQ_FAIXAS.map((f, i) => `<span style="display:inline-block;width:9px;height:9px;background:${PHQ_TONS[i]};border-radius:2px"></span> ${f[0]}–${f[1]} ${f[2]}`).join(" · ")}.</div>
+  <table class="graf">${ps.map((r, i) => `<tr><td class="dl">${data(r.quando)}</td><td>${barra(r.total)}</td><td class="dv"><b>${r.total}</b></td><td class="dk">${i ? (r.total - ps[i - 1].total > 0 ? "+" : "") + (r.total - ps[i - 1].total) + " desde o anterior" : "basal"}${r.itens[8] > 0 ? " · <b style='display:inline;color:#83462D'>item 9: " + r.itens[8] + "</b>" : ""}</td></tr>`).join("")}</table>
+  <h2>Itens</h2>
+  <table class="r"><tr><th style="text-align:left">Sintoma</th>${ps.length > 2 ? "<th>Basal</th>" : ""}${ant ? "<th>Anterior</th>" : ""}<th>Hoje</th></tr>
+  ${PHQ_CURTO.map((q, i) => `<tr class="${i === 8 && atual.itens[8] > 0 ? "rk" : atual.itens[i] >= 2 ? "g3" : ""}"><td>${i + 1}. ${e(q)}</td>${ps.length > 2 ? `<td class="c">${base.itens[i]}</td>` : ""}${ant ? `<td class="c">${ant.itens[i]}</td>` : ""}<td class="c"><b>${atual.itens[i]}</b></td></tr>`).join("")}</table>
+  <div class="leg">0 = nenhuma vez · 1 = vários dias · 2 = mais da metade dos dias · 3 = quase todos os dias.</div>
+  <h2>${ant ? "Check-ins desde o PHQ-9 anterior" : "Check-ins"} e hoje</h2>
+  <table class="r"><tr><th style="text-align:left">Data</th><th>Humor</th><th style="text-align:left">Sono</th><th style="text-align:left">Remédios</th><th style="text-align:left">Efeitos colaterais</th><th>Morte/ferir</th></tr>
+  ${desde.concat([atual]).map(r => `<tr class="${r.morte === "SIM" ? "rk" : ""}"><td>${data(r.quando)}${r.tipo === "PHQ-9" ? " (PHQ)" : ""}</td><td class="c">${e(r.humor || "—")}</td><td>${e(r.sono || "—")}</td><td>${e(r.remedio || "—")}</td><td>${e(r.efeitos || "—")}</td><td class="c">${r.tipo === "PHQ-9" ? "item 9: " + r.itens[8] : e(r.morte || "—")}</td></tr>`).join("")}</table>
+  ${desde.some(r => r.nota) ? `<h3>Notas dos check-ins</h3>${desde.filter(r => r.nota).map(r => `<p><b style="display:inline">${data(r.quando)}:</b> ${e(r.nota)}</p>`).join("")}` : ""}`;
+}
+
 function montarHtml(d) {
   const e = esc_, curto = q => q.split(/,| \(/)[0];
   const abertas = d.secoes.filter(s => s.titulo !== "Identificação" && s !== (d.rastreio && d.secoes.find(x => x.titulo === d.rastreio.titulo)) &&
-    !(d.impacto && s.titulo === d.impacto.titulo) && s.titulo !== "Motivação" && !/^Resumo para o médico/.test(s.titulo));
+    !(d.impacto && s.titulo === d.impacto.titulo) && s.titulo !== "Motivação" && !/^Resumo para o médico/.test(s.titulo) &&
+    (d.roteiro !== "PHQ-9" || s.titulo === "Observações do paciente"));
   const destaques = d.rastreio ? d.rastreio.itens.filter(it => it.v >= 3) : [];
   const frases = abertas.map(s => s.texto).join(" ").split(/(?<=[.!?])\s+/)
     .filter(f => /suicid|me matar|tirar a (minha |própria )?vida|sumir|morrer|me ferir|me cortar|acabar com tudo/i.test(f)).slice(0, 2);
@@ -310,12 +378,14 @@ function montarHtml(d) {
   table.sint td{width:33%;vertical-align:top;background:#F7F5EF;border:1px solid #e2dccb;border-radius:6px;padding:6px 8px;font-size:9pt}
   table.sint b{display:block;font-size:7.5pt;text-transform:uppercase;letter-spacing:.04em;color:#5f5d4c;margin-bottom:2px}
   .mini{font-size:8pt;color:#5f5d4c}
+  table.pb{width:100%;border-collapse:collapse;table-layout:fixed}
+  table.pb td{height:14px;padding:0;font-size:1pt;line-height:14px}
   table.mapa{border-collapse:collapse;margin-top:4px}
   table.mapa th{font-size:8pt;color:#5f5d4c;font-weight:normal;padding:1px 6px}
   table.mapa td.c{text-align:center;font-size:12pt;padding:0 6px;line-height:1.1}
   .nota{font-size:8pt;color:#5f5d4c;border-top:1px solid #e2dccb;margin-top:12px;padding-top:5px}
   </style></head><body>
-  <div class="cab"><h1>${d.roteiro === "DIVA-5" ? "DIVA-5 · TDAH em adultos" : "Pré-consulta"} <span class="tag">${e((d.roteiro || "").toUpperCase())}</span></h1>
+  <div class="cab"><h1>${{ "DIVA-5": "DIVA-5 · TDAH em adultos", "PHQ-9": "Acompanhamento da depressão" }[d.roteiro] || "Pré-consulta"} <span class="tag">${e((d.roteiro || "").toUpperCase())}</span></h1>
   <div class="dr">Dr. Luis Felipe Jardim · Psiquiatra<br>CRM-SC 12767 · RQE 22739<br>Recebida em ${e(d.enviado)}</div></div>
   <div class="id"><div class="nome">${e(d.nome)}</div><table><tr>
    <td><b>CPF</b>${e(d.cpfFmt)}</td><td><b>Nascimento · idade</b>${e(d.nasc)}${d.idade != null ? " · " + d.idade + " anos" : ""}</td><td><b>Celular</b>${e(d.tel)}</td></tr><tr>
@@ -324,7 +394,7 @@ function montarHtml(d) {
    <td><b>Tempo de preenchimento</b>${e(d.tempo || "—")}</td></tr></table></div>
   ${d.risco || d.riscoItens.length ? `<div class="alerta"><b>⚠ Sinal de risco.</b> ${d.riscoItens.map(it => `Rastreio: “${e(it.q)}” = <b>${FREQ[it.v]}</b>.`).join(" ")}
     ${frases.length ? " No relato: " + frases.map(f => "“" + e(f) + "”").join(" ") : ""} A orientação do CVV 188 / SAMU 192 foi exibida na tela.</div>` : ""}
-  ${d.roteiro === "DIVA-5" ? "" : `<h2>Visão rápida</h2>
+  ${d.roteiro === "DIVA-5" || d.roteiro === "PHQ-9" ? "" : `<h2>Visão rápida</h2>
   <table class="vr" style="width:100%;border-collapse:separate;border-spacing:6px 0"><tr>
    <td><b>Quanto atrapalha hoje</b>${d.impacto ? `<span class="big">${e(d.impacto.nota || "—")}</span> / 10<br>${e(d.impacto.areas.split(", ").join(" · "))}` : "—"}</td>
    <td><b>Motivação</b>Importância de resolver agora: <strong>${e(d.motivacao.imp || "—")}</strong>/10<br>Confiança de mudar com ajuda: <strong>${e(d.motivacao.conf || "—")}</strong>/10</td>
@@ -333,12 +403,13 @@ function montarHtml(d) {
   <table class="r"><tr><th></th><th style="text-align:left">Item</th>${FREQ.map(f => `<th>${f}</th>`).join("")}</tr>
   ${d.rastreio.itens.map((it, i) => `<tr class="${it.risco && it.v > 0 ? "rk" : it.v === 4 ? "g4" : it.v === 3 ? "g3" : ""}"><td style="color:#5f5d4c;text-align:right">${i + 1}</td><td>${e(it.q)}</td>${FREQ.map((_, j) => `<td class="c">${it.v === j ? "●" : ""}</td>`).join("")}</tr>`).join("")}</table>
   <div class="leg">Muito leve = 1–2 dias · Leve = vários dias · Moderado = mais da metade dos dias · Grave = quase todos os dias. Itens sem marcação: não respondidos.</div>` : ""}
-  ${d.roteiro === "DIVA-5" ? divaHtml_(d) : ""}
+  ${d.roteiro === "DIVA-5" ? divaHtml_(d) : d.roteiro === "PHQ-9" ? phqHtml_(d) : ""}
+  ${d.roteiro === "PHQ-9" ? (abertas[0] && abertas[0].texto ? `<h2>Observações do paciente</h2><div class="leg" style="margin:0 0 4px">Texto digitado ou ditado pelo paciente.</div>${abertas[0].texto.split("\n").map(l => `<p>${e(l)}</p>`).join("")}` : "") : `
   <h2>${d.roteiro === "DIVA-5" ? "Respostas, item por item" : "Respostas abertas"}</h2>
   <div class="leg" style="margin:0 0 4px">Texto ditado ou digitado por quem respondeu e revisado antes do envio. A oralidade foi preservada.</div>
-  ${abertas.map(s => `<h3>${e(s.titulo)}</h3>${s.texto ? s.texto.split("\n").map(l => `<p>${e(l)}</p>`).join("") : '<p class="vazio">Não respondido.</p>'}`).join("")}
-  <div class="nota">Documento gerado automaticamente a partir da pré-consulta on-line e anexado ao prontuário. Conteúdo sigiloso, protegido pelo sigilo médico e pela LGPD (Lei 13.709/2018).</div>
+  ${abertas.map(s => `<h3>${e(s.titulo)}</h3>${s.texto ? s.texto.split("\n").map(l => `<p>${e(l)}</p>`).join("") : '<p class="vazio">Não respondido.</p>'}`).join("")}`}
+  <div class="nota">Documento gerado automaticamente a partir do questionário on-line e anexado ao prontuário. Conteúdo sigiloso, protegido pelo sigilo médico e pela LGPD (Lei 13.709/2018).</div>
   </body></html>`;
 }
 
-if (typeof module !== "undefined") module.exports = { interpretar, montarHtml, localizar_, norm_, mesmoNome_ }; // testes locais
+if (typeof module !== "undefined") module.exports = { interpretar, montarHtml, localizar_, norm_, mesmoNome_, registroHumor_ }; // testes locais
