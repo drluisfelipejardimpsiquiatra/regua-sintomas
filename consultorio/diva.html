@@ -73,15 +73,6 @@ textarea:focus,input:focus{outline:2px solid var(--ambar);outline-offset:1px;bac
 .ops{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .op{border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:11px 18px;font:600 15px/1.2 var(--f-body);cursor:pointer;min-width:84px}
 .op[aria-pressed="true"]{background:var(--verde-floresta);border-color:var(--verde-floresta);color:#fff}
-.voz{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
-.mic{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 15px;border-radius:999px;border:1px solid var(--verde-floresta);background:#fff;color:var(--verde-floresta);font:600 14px var(--f-body);cursor:pointer}
-.mic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.mic.on{background:var(--terracota);border-color:var(--terracota);color:#fff}
-.mic.on .ponto{display:inline-block}
-.ponto{display:none;width:9px;height:9px;border-radius:50%;background:#fff;animation:pulsa 1s infinite}
-@keyframes pulsa{50%{opacity:.25}}
-.ouvindo{font-size:13.5px;color:var(--soft);font-style:italic}
-.dica-teclado{font-size:13px;color:var(--soft);margin-top:6px}
 details.ajuda{margin-top:12px;background:var(--paper-2);border-radius:10px;padding:2px 14px}
 details.ajuda summary{cursor:pointer;padding:10px 0;font-weight:600;color:var(--verde-floresta);font-size:14.5px}
 details.ajuda ol{margin:0 0 12px;padding-left:20px;font-size:14.5px}
@@ -93,7 +84,6 @@ nav.passos .in{display:flex;gap:10px;align-items:center;min-height:70px}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border-radius:999px;font:600 13px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;border:1px solid transparent;cursor:pointer;text-decoration:none}
 .btn.pri{background:var(--ambar);color:var(--ink);margin-left:auto}
 .btn.sec{background:transparent;border-color:var(--line);color:var(--ink)}
-.btn.mini{min-height:40px;padding:0 14px;font-size:11.5px}
 .btn:disabled{opacity:.5;cursor:default}
 .salvo{font-size:12.5px;color:var(--soft)}
 .capa{display:grid;gap:14px}
@@ -104,8 +94,6 @@ nav.passos .in{display:flex;gap:10px;align-items:center;min-height:70px}
 .nota{font-size:14px;color:var(--soft)}
 .aviso{background:var(--paper-2);border-radius:10px;padding:14px 16px;font-size:14.5px}
 .porque{background:#EEF2EC;border-left:4px solid var(--verde-floresta);border-radius:10px;padding:14px 16px;font-size:15px}
-.aviso-nav{background:#FFF4E0;border:1px solid #F1D39A;border-radius:10px;padding:12px 14px;font-size:14.5px}
-.aviso-nav-bt{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .rev-bloco{margin-top:20px}
 .rev-bloco h3{font-size:20px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .rev-bloco h3 button{font:600 12px var(--f-body);letter-spacing:.12em;text-transform:uppercase;background:none;border:0;color:var(--cafe);cursor:pointer;text-decoration:underline}
@@ -234,104 +222,9 @@ function cpfValido(c) {
 }
 const mascaraCpf = (v) => { const d = v.replace(/\D/g, "").slice(0, 11); return d.replace(/^(\d{3})(\d)/, "$1.$2").replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d{1,2})$/, ".$1-$2"); };
 
-/* ---------- ditado (mesmo motor da pré-consulta) ---------- */
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const UA = navigator.userAgent;
-const IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(UA));
-const ANDROID = /Android/i.test(UA);
-const INAPP = /FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Line\/|Telegram|MicroMessenger|; wv\)/i.test(UA) || (IOS && !/Safari\//.test(UA));
-const CUMULATIVO = IOS || (/Safari\//.test(UA) && !/Chrome|Chromium|Android/.test(UA));
-const MSG_TECLADO = IOS ? "Não estou recebendo a sua voz. Toque na caixa de texto e use o 🎤 do teclado do iPhone (ao lado da barra de espaço)."
-  : "Não estou recebendo a sua voz. Toque na caixa de texto e use o 🎤 do teclado do celular.";
-function textoSessao(results) {
-  let acc = "";
-  for (let i = 0; i < results.length; i++) {
-    const t = String(results[i][0].transcript || "").replace(/\s+/g, " ").trim(); if (!t) continue;
-    if (!CUMULATIVO) { acc = acc ? acc + " " + t : t; continue; }
-    const a = acc.toLowerCase(), tl = t.toLowerCase();
-    if (!a || tl.startsWith(a)) acc = t; else if (!a.endsWith(tl)) acc += " " + t;
-  }
-  return acc;
-}
-const juntarFala = (base, txt) => {
-  txt = String(txt || "").replace(/\s+/g, " ").trim(); base = String(base || "").replace(/\s+$/, "");
-  if (!txt) return base;
-  if (!base || /[.!?]$/.test(base)) txt = txt.charAt(0).toUpperCase() + txt.slice(1);
-  return (base ? base + " " : "") + txt;
-};
-let voz = null;
-function botaoMic() {
-  document.querySelectorAll(".mic").forEach((b) => {
-    const ativo = !!(voz && voz.ligado && b.dataset.mic === voz.e);
-    b.classList.toggle("on", ativo); b.setAttribute("aria-pressed", ativo);
-    b.querySelector(".rotulo").textContent = ativo ? "Parar" : "Falar";
-  });
-}
-const avisoVoz = (e, msg) => { const o = document.getElementById("o" + e); if (o) o.textContent = msg; };
-function escreverCampo(e, txt) {
-  S.r[e] = txt; salvar();
-  const ta = document.getElementById("q" + e); if (ta && ta.value !== txt) { ta.value = txt; ta.scrollTop = ta.scrollHeight; }
-}
-function pararVoz() { if (!voz) return; const v = voz; v.ligado = false; clearTimeout(v.vigia); if (v.rec) { try { v.rec.stop(); } catch (err) {} } botaoMic(); avisoVoz(v.e, ""); }
-function abortarVoz() { if (!voz) return; const v = voz; voz = null; v.ligado = false; clearTimeout(v.vigia); if (v.rec) { v.rec.morto = true; try { v.rec.abort(); } catch (err) {} } botaoMic(); avisoVoz(v.e, ""); }
-function novaSessao(v) {
-  const r = new SR(), base = String(S.r[v.e] || "");
-  r.lang = "pt-BR"; r.continuous = !ANDROID; r.interimResults = true; r.maxAlternatives = 1;
-  let texto = "";
-  r.onresult = (ev) => {
-    if (r.morto) return;
-    texto = textoSessao(ev.results); if (!texto) return;
-    v.ouviu = true; v.vazias = 0; clearTimeout(v.vigia);
-    escreverCampo(v.e, juntarFala(base, texto));
-    if (v.ligado) avisoVoz(v.e, "Ouvindo… pode continuar falando");
-  };
-  r.onerror = (ev) => {
-    if (r.morto || ev.error === "no-speech" || ev.error === "aborted") return;
-    v.ligado = false; clearTimeout(v.vigia); botaoMic();
-    if (ev.error === "not-allowed" || ev.error === "service-not-allowed")
-      avisoVoz(v.e, v.ouviu ? "O microfone pausou. Toque em Falar para continuar."
-        : INAPP ? "O ditado não funciona dentro deste aplicativo. Abra a página no " + (IOS ? "Safari" : "Chrome") + " ou use o 🎤 do teclado."
-        : IOS ? "O iPhone não liberou o reconhecimento de voz. Confira em Ajustes → Geral → Teclado → Ativar Ditado, ou use o 🎤 do teclado."
-        : "O microfone não foi liberado. Toque no cadeado ao lado do endereço da página, permita o microfone e toque em Falar de novo. Ou use o 🎤 do teclado.");
-    else if (ev.error === "network") avisoVoz(v.e, "O reconhecimento de voz precisa de internet. Confira a conexão ou use o 🎤 do teclado.");
-    else avisoVoz(v.e, MSG_TECLADO);
-  };
-  r.onend = () => {
-    if (r.morto || voz !== v || v.rec !== r) return;
-    if (!texto) v.vazias++;
-    if (v.ligado && v.vazias <= 8) { try { v.rec = novaSessao(v); v.rec.start(); return; } catch (err) {} }
-    if (v.ligado) avisoVoz(v.e, v.ouviu ? "Parei de ouvir por silêncio. Toque em Falar para continuar." : MSG_TECLADO);
-    v.ligado = false; clearTimeout(v.vigia); botaoMic();
-  };
-  return r;
-}
-function iniciarVoz(e) {
-  if (!SR) return;
-  if (voz && voz.ligado && voz.e === e) { pararVoz(); return; }
-  abortarVoz();
-  const v = voz = { e, ligado: true, rec: null, vazias: 0, ouviu: false, vigia: null };
-  try { v.rec = novaSessao(v); v.rec.start(); }
-  catch (err) { v.ligado = false; botaoMic(); avisoVoz(e, MSG_TECLADO); return; }
-  botaoMic(); avisoVoz(e, "Ouvindo… pode falar");
-  v.vigia = setTimeout(() => { if (voz === v && v.ligado && !v.ouviu) avisoVoz(e, MSG_TECLADO); }, 8000);
-}
-function avisoNavegador() {
-  if (SR && !INAPP) return "";
-  const link = location.href.split("#")[0];
-  if (INAPP) {
-    const chrome = ANDROID ? `<a class="btn sec mini" href="intent://${esc(link.replace(/^https?:\/\//, ""))}#Intent;scheme=https;package=com.android.chrome;end">Abrir no Chrome</a>` : "";
-    return `<div class="aviso-nav"><b>Para o botão Falar funcionar,</b> abra esta página no ${IOS ? "Safari: toque em <b>⋯</b> ou no ícone de compartilhar e escolha <b>Abrir no Safari</b>" : "Chrome"}. Se preferir ficar aqui, use o 🎤 do teclado.
-      <div class="aviso-nav-bt">${chrome}<button type="button" class="btn sec mini" data-copiar="${esc(link)}">Copiar link</button></div></div>`;
-  }
-  return `<div class="aviso-nav">Neste navegador o botão Falar não está disponível. Para responder falando, toque na caixa de texto e use o 🎤 do teclado.</div>`;
-}
-
 /* ---------- peças de tela ---------- */
-const MIC_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
 function caixaTexto(e, rotulo, rows) {
-  const mic = SR ? `<div class="voz"><button type="button" class="mic" data-mic="${e}" aria-pressed="false">${MIC_SVG}<span class="ponto"></span><span class="rotulo">Falar</span></button><span class="ouvindo" id="o${e}" role="status"></span></div>`
-    : `<p class="dica-teclado">Para falar em vez de digitar, toque no campo e use o 🎤 do teclado.</p>`;
-  return `<div class="outros"><label for="q${e}">${rotulo}</label><textarea id="q${e}" data-txt="${e}" rows="${rows || 2}">${esc(S.r[e] || "")}</textarea>${mic}</div>`;
+  return `<div class="outros"><label for="q${e}">${rotulo}</label><textarea id="q${e}" data-txt="${e}" rows="${rows || 2}">${esc(S.r[e] || "")}</textarea></div>`;
 }
 const exemplos = (k, opcoes) => `<div class="exs" role="group">${opcoes.map((o, i) => `<button type="button" class="ex" data-ex="${k}" data-i="${i}" aria-pressed="${lista(k).includes(i)}">${esc(o)}</button>`).join("")}</div>`;
 const simNao = (k, rotulo, opcoes) => `<div class="pres" id="c${k}"><p class="q-tit">${rotulo} <span class="obr">*</span></p><div class="ops" role="group">${(opcoes || ["Sim", "Não"]).map((o) => `<button type="button" class="op" data-sn="${k}" data-v="${o}" aria-pressed="${S.r[k] === o}">${o}</button>`).join("")}</div><p class="q-erro">Marque Sim ou Não.</p></div>`;
@@ -347,24 +240,22 @@ function coluna(it, lado) {
 
 /* ---------- telas ---------- */
 function capa() {
-  pararVoz();
   const tem = Object.keys(S.r).length > 0;
   $("nav").hidden = true; $("progresso").style.width = "0"; $("contador").textContent = "DIVA-5";
   $("tela").innerHTML = `<section class="capa">
     <p class="rot">Questionário sobre atenção e agitação</p>
     <h1>DIVA-5: entrevista para TDAH em adultos</h1>
     <p class="porque">Este questionário é usado no mundo todo para investigar sintomas de TDAH. Ele <b>não dá diagnóstico sozinho</b>: suas respostas serão revisadas e conversadas comigo na consulta. Não existe resposta certa ou errada; o mais útil é responder com sinceridade, sem aumentar nem diminuir nada.</p>
-    ${avisoNavegador()}
     <ul>
       <li><b class="n">1</b><span>São <b>18 perguntas</b>, uma por tela. Cada uma tem duas partes: <b>como você é hoje</b> (últimos 6 meses ou mais) e <b>como você era na infância</b> (dos 5 aos 12 anos).</span></li>
-      <li><b class="n">2</b><span>Toque nos exemplos que combinam com você. Não é preciso marcar todos para o sintoma contar. Se você se reconhece de outro jeito, toque em <b>Falar</b> e conte com suas palavras.</span></li>
+      <li><b class="n">2</b><span>Toque nos exemplos que combinam com você. Não é preciso marcar todos para o sintoma contar. Se você se reconhece de outro jeito, escreva com suas palavras em “Outros”. Se preferir falar, use o 🎤 do teclado do celular.</span></li>
       <li><b class="n">3</b><span>No fim de cada parte, diga se o sintoma está presente. Há uma explicação de <b>quando marcar “Sim”</b> em cada tela.</span></li>
     </ul>
     <div class="aviso"><b>Dicas para lembrar da infância.</b> Pense em situações concretas: a série em que estava, professores, colegas, boletins, bilhetes na agenda, castigos, apelidos, o que seus pais e professores diziam sobre você. É comum lembrar melhor dos 10 aos 12 anos do que dos primeiros anos de escola.<br><br><b>Se possível, responda a parte da infância junto com mãe, pai ou um irmão mais velho.</b> Quem conviveu com você na época costuma lembrar de coisas que nós mesmos esquecemos. Se tiver boletins ou relatórios escolares antigos, traga para a consulta.</div>
     <p class="aviso">Leva de <b>40 a 60 minutos</b>. Você pode parar e continuar depois: o que já respondeu fica guardado neste aparelho até o envio.</p>
     <button class="btn pri" type="button" id="comecar" style="margin-left:0;justify-self:start">${tem ? "Continuar de onde parei" : "Começar"}</button>
     ${tem ? '<button class="btn sec" type="button" id="recomecar" style="justify-self:start">Apagar respostas e recomeçar</button>' : ""}
-    <p class="nota">A transcrição por voz usa o serviço do próprio celular (Google ou Apple). O consultório não guarda gravações: recebe apenas o texto revisado, sob sigilo médico e conforme a LGPD.</p>
+    <p class="nota">Suas respostas vão só para o Dr. Luis Felipe, sob sigilo médico e conforme a LGPD.</p>
     <p class="rodape">DIVA-5 © DIVA Foundation (Haia, Holanda). J.J.S. Kooij, M.H. Francken & T.I. Bron, 2019. Adaptação brasileira: Prof. Dr. Mario R. Louzã (PRODATH/IPq-HCFMUSP). Orientações de preenchimento: Dr. Luis Felipe Coutinho Jardim, CRM SC 12767.</p>
   </section>`;
   $("comecar").onclick = () => { if (!S.inicio) S.inicio = Date.now(); ir(S.etapa >= 0 && S.etapa < TOTAL ? S.etapa : 0); };
@@ -403,7 +294,6 @@ function telaFinal() {
     <div class="cartao">${caixaTexto("extra", "Outras informações que queira acrescentar", 5)}</div>`;
 }
 function ir(n) {
-  pararVoz();
   S.etapa = n; salvar();
   if (n >= TOTAL) return revisao();
   const et = ETAPAS[n];
@@ -411,7 +301,7 @@ function ir(n) {
   $("progresso").style.width = (n / TOTAL * 100) + "%";
   $("nav").hidden = false;
   $("avancar").textContent = n === TOTAL - 1 ? "Revisar" : "Continuar";
-  $("tela").innerHTML = (n === 0 ? avisoNavegador() : "") + (et.tipo === "ident" ? telaIdent() : et.tipo === "item" ? telaItem(et.it, n) : et.tipo === "B" ? telaB() : et.tipo === "C" ? telaC(et.lado) : telaFinal());
+  $("tela").innerHTML = (et.tipo === "ident" ? telaIdent() : et.tipo === "item" ? telaItem(et.it, n) : et.tipo === "B" ? telaB() : et.tipo === "C" ? telaC(et.lado) : telaFinal());
   window.scrollTo(0, 0);
 }
 function valida(n) {
@@ -474,7 +364,6 @@ function relatorio() {
   return { cab, corpo };
 }
 function revisao() {
-  pararVoz();
   $("contador").textContent = "Revisão"; $("progresso").style.width = "100%";
   $("nav").hidden = false; $("avancar").textContent = "Enviar ao Dr. Luis Felipe";
   const linha = (rot, v) => `<div class="rev-item"><b>${rot}</b> ${v ? esc(v) : '<span class="vazio">sem resposta</span>'}</div>`;
@@ -518,11 +407,9 @@ async function enviar() {
 document.addEventListener("input", (ev) => {
   const t = ev.target, k = t.dataset.txt; if (!k) return;
   if (t.dataset.cpf) t.value = mascaraCpf(t.value);
-  if (voz && voz.e === k) abortarVoz();
   S.r[k] = t.value; $("c" + k)?.classList.remove("erro"); salvar();
 });
 document.addEventListener("click", (ev) => {
-  const mic = ev.target.closest("[data-mic]"); if (mic) { iniciarVoz(mic.dataset.mic); return; }
   const ex = ev.target.closest("[data-ex]");
   if (ex) { const k = ex.dataset.ex, i = +ex.dataset.i, a = lista(k); S.r[k] = a.includes(i) ? a.filter((x) => x !== i) : [...a, i]; ex.setAttribute("aria-pressed", S.r[k].includes(i)); salvar(); return; }
   const sn = ev.target.closest("[data-sn]");
@@ -531,12 +418,10 @@ document.addEventListener("click", (ev) => {
     $("c" + k)?.classList.remove("erro"); sn.closest(".coluna")?.classList.remove("erro");
     if (k === "B.p") $("Bidade").hidden = S.r[k] !== "Não";
     salvar(); return; }
-  const cp = ev.target.closest("[data-copiar]");
-  if (cp) { const l = cp.dataset.copiar; (navigator.clipboard ? navigator.clipboard.writeText(l) : Promise.reject()).then(() => (cp.textContent = "Link copiado ✓"), () => prompt("Copie o link:", l)); return; }
   const ed = ev.target.closest("[data-edit]"); if (ed) { ir(+ed.dataset.edit); return; }
 });
 $("avancar").onclick = () => { if (S.etapa >= TOTAL) return enviar(); if (!valida(S.etapa)) return; ir(S.etapa + 1); };
-$("voltar").onclick = () => { if (S.etapa >= TOTAL) return ir(TOTAL - 1); if (S.etapa <= 0) { pararVoz(); return capa(); } ir(S.etapa - 1); };
+$("voltar").onclick = () => { if (S.etapa >= TOTAL) return ir(TOTAL - 1); if (S.etapa <= 0) return capa(); ir(S.etapa - 1); };
 capa();
 </script>
 </body>
