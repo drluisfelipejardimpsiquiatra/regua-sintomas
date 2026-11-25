@@ -49,3 +49,11 @@ Faça isto uma vez, no computador (no celular o editor do Google não funciona b
 A página `consultorio/diva.html` envia para o mesmo formulário de recebimento. Com este programa instalado,
 o paciente é localizado pelo CPF e o PDF entra nos Arquivos com o nome `DIVA-5 (TDAH) – DD-MM-AAAA.pdf`,
 com o resumo de pontuação no início.
+
+## Acompanhamento da depressão (PHQ-9)
+A página `consultorio/humor.html` também envia para o formulário de recebimento.
+- **PHQ-9** (a cada 2 semanas): o paciente é localizado no V Saúde e entra nos Arquivos o PDF
+  `PHQ-9 (depressão) – DD-MM-AAAA.pdf`, com a pontuação de hoje, resposta (queda ≥ 50% do basal),
+  remissão (< 5), o gráfico da evolução, os itens comparados e os check-ins do período.
+- **Check-in** (entre os PHQ-9): fica só na planilha e aparece no próximo PDF.
+- **Risco** (item 9 do PHQ-9 acima de 0, ou "Sim" em pensamentos de morte no check-in): o senhor recebe um e-mail na hora.
