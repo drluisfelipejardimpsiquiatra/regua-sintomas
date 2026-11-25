@@ -224,10 +224,51 @@ function interpretar(cab, corpo) {
 
 function esc_(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
+// ===================== DIVA-5: GRÁFICO DO RESULTADO =====================
+// Tabelas simples (o conversor de PDF do Google não roda JavaScript).
+// Cor = fase: azul = hoje (adulto), terracota = infância (5–12 anos). Paleta conferida para daltonismo.
+const DIVA_COR = { ad: "#2F55B5", inf: "#C3622D" };
+function divaDados_(d) {
+  const it = d.secoes.filter(s => /^(A|H\/I )\d · /.test(s.titulo)).map(s => ({
+    cod: s.titulo.split(" · ")[0], nome: s.titulo.split(" · ")[1],
+    ad: /^Adulto: SIM/m.test(s.texto), inf: /^Infância: SIM/m.test(s.texto) }));
+  const A = it.filter(x => x.cod[0] === "A"), H = it.filter(x => x.cod[0] === "H");
+  const res = (d.secoes.find(s => /^Resumo para o médico/.test(s.titulo)) || {}).texto || "";
+  const area = l => { const m = res.match(new RegExp("áreas com prejuízo: " + l + " (\\d)/5 \\(([^)]*)\\)")); return m ? { n: +m[1], quais: m[2] } : { n: 0, quais: "" }; };
+  return { A, H, B: (res.match(/Critério B \(antes dos 12 anos\): ([^\n]*)/) || [])[1] || "—",
+    Cad: area("adulto"), Cinf: area("infância") };
+}
+function divaHtml_(d) {
+  const e = esc_, g = divaDados_(d);
+  const n = (xs, f) => xs.filter(x => x[f]).length;
+  const linhas = [["Déficit de atenção", g.A], ["Hiperatividade / impulsividade", g.H]];
+  const fase = { ad: ["Hoje", 5], inf: ["Infância", 6] };
+  const barra = (xs, f) => {
+    const k = n(xs, f), lim = fase[f][1], ok = k >= lim;
+    return `<tr><td class="dl">${fase[f][0]}</td><td><table class="seg"><tr>${[1,2,3,4,5,6,7,8,9].map(i =>
+      `<td style="${i <= k ? "background:" + DIVA_COR[f] : "background:#ECEAE3"}${i === lim ? ";border-left:2.5px solid #2B2A22" : ""}">&nbsp;</td>`).join("")}</tr></table></td>
+      <td class="dv"><b>${k}</b>/9</td><td class="dk">${ok ? "atinge o limiar (≥ " + lim + ")" : "abaixo do limiar (≥ " + lim + ")"}</td></tr>`;
+  };
+  const apres = (f, lim) => { const a = n(g.A, f) >= lim, h = n(g.H, f) >= lim;
+    return a && h ? "combinada" : a ? "predominantemente desatenta" : h ? "predominantemente hiperativa/impulsiva" : "abaixo do limiar nas duas dimensões"; };
+  const mapa = (xs) => `<table class="mapa"><tr><th></th>${xs.map(x => `<th title="${e(x.nome)}">${e(x.cod.replace("H/I ", "HI"))}</th>`).join("")}</tr>
+    ${["ad", "inf"].map(f => `<tr><td class="dl">${fase[f][0]}</td>${xs.map(x => `<td class="c">${x[f] ? `<span style="color:${DIVA_COR[f]}">●</span>` : '<span style="color:#C9C5B8">○</span>'}</td>`).join("")}</tr>`).join("")}</table>
+    <div class="leg">${xs.map(x => `${e(x.cod.replace("H/I ", "HI"))} ${e(x.nome.toLowerCase())}`).join(" · ")}</div>`;
+  return `<h2>Resultado</h2>
+  <div class="leg" style="margin:0 0 6px">Autorrelato do paciente; não é diagnóstico. Cada quadrado é um sintoma marcado como presente. A linha preta marca o limiar do DSM-5 (adulto ≥ 5; infância ≥ 6 sintomas).</div>
+  <table class="dv-leg"><tr><td><span style="background:${DIVA_COR.ad}"></span> Hoje (últimos 6 meses)</td><td><span style="background:${DIVA_COR.inf}"></span> Infância (5 a 12 anos)</td><td><i></i> limiar DSM-5</td></tr></table>
+  ${linhas.map(([t, xs]) => `<h3>${t}</h3><table class="graf">${barra(xs, "ad")}${barra(xs, "inf")}</table>`).join("")}
+  <table class="sint"><tr>
+   <td><b>Apresentação pelo autorrelato</b>Hoje: ${apres("ad", 5)}<br>Infância: ${apres("inf", 6)}</td>
+   <td><b>Início antes dos 12 anos (B)</b>${e(g.B)}</td>
+   <td><b>Prejuízo em 2 ou mais contextos (C/D)</b>Hoje: ${g.Cad.n}/5 áreas ${g.Cad.n >= 2 ? "· sim" : "· não"}${g.Cad.quais && g.Cad.quais !== "nenhuma" ? "<br><span class='mini'>" + e(g.Cad.quais) + "</span>" : ""}<br>Infância: ${g.Cinf.n}/5 áreas ${g.Cinf.n >= 2 ? "· sim" : "· não"}${g.Cinf.quais && g.Cinf.quais !== "nenhuma" ? "<br><span class='mini'>" + e(g.Cinf.quais) + "</span>" : ""}</td></tr></table>
+  <h3>Mapa dos sintomas</h3>${mapa(g.A)}${mapa(g.H)}`;
+}
+
 function montarHtml(d) {
   const e = esc_, curto = q => q.split(/,| \(/)[0];
   const abertas = d.secoes.filter(s => s.titulo !== "Identificação" && s !== (d.rastreio && d.secoes.find(x => x.titulo === d.rastreio.titulo)) &&
-    !(d.impacto && s.titulo === d.impacto.titulo) && s.titulo !== "Motivação");
+    !(d.impacto && s.titulo === d.impacto.titulo) && s.titulo !== "Motivação" && !/^Resumo para o médico/.test(s.titulo));
   const destaques = d.rastreio ? d.rastreio.itens.filter(it => it.v >= 3) : [];
   const frases = abertas.map(s => s.texto).join(" ").split(/(?<=[.!?])\s+/)
     .filter(f => /suicid|me matar|tirar a (minha |própria )?vida|sumir|morrer|me ferir|me cortar|acabar com tudo/i.test(f)).slice(0, 2);
@@ -255,13 +296,30 @@ function montarHtml(d) {
   .leg{font-size:7.8pt;color:#5f5d4c;margin-top:3px}
   h3{font-size:10.3pt;color:#38584B;margin:9px 0 2px} p{margin:0 0 3px;text-align:justify}
   .vazio{color:#5f5d4c;font-style:italic}
+  table.graf{width:100%;border-collapse:collapse;margin:2px 0 4px}
+  table.graf td{padding:3px 4px;vertical-align:middle}
+  td.dl{width:62px;font-size:9pt;color:#5f5d4c}
+  td.dv{width:40px;font-size:10pt;text-align:right}
+  td.dk{width:150px;font-size:8.5pt;color:#5f5d4c}
+  table.seg{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:2px 0}
+  table.seg td{width:11.1%;height:15px;padding:0;border-radius:2px;font-size:1pt;line-height:15px}
+  table.dv-leg td{font-size:8.5pt;color:#2B2A22;padding-right:16px}
+  table.dv-leg span{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px}
+  table.dv-leg i{display:inline-block;width:0;height:11px;border-left:2.5px solid #2B2A22;vertical-align:-1px;margin:0 3px}
+  table.sint{width:100%;border-collapse:separate;border-spacing:6px 0;margin:8px -6px 0}
+  table.sint td{width:33%;vertical-align:top;background:#F7F5EF;border:1px solid #e2dccb;border-radius:6px;padding:6px 8px;font-size:9pt}
+  table.sint b{display:block;font-size:7.5pt;text-transform:uppercase;letter-spacing:.04em;color:#5f5d4c;margin-bottom:2px}
+  .mini{font-size:8pt;color:#5f5d4c}
+  table.mapa{border-collapse:collapse;margin-top:4px}
+  table.mapa th{font-size:8pt;color:#5f5d4c;font-weight:normal;padding:1px 6px}
+  table.mapa td.c{text-align:center;font-size:12pt;padding:0 6px;line-height:1.1}
   .nota{font-size:8pt;color:#5f5d4c;border-top:1px solid #e2dccb;margin-top:12px;padding-top:5px}
   </style></head><body>
   <div class="cab"><h1>${d.roteiro === "DIVA-5" ? "DIVA-5 · TDAH em adultos" : "Pré-consulta"} <span class="tag">${e((d.roteiro || "").toUpperCase())}</span></h1>
   <div class="dr">Dr. Luis Felipe Jardim · Psiquiatra<br>CRM-SC 12767 · RQE 22739<br>Recebida em ${e(d.enviado)}</div></div>
   <div class="id"><div class="nome">${e(d.nome)}</div><table><tr>
    <td><b>CPF</b>${e(d.cpfFmt)}</td><td><b>Nascimento · idade</b>${e(d.nasc)}${d.idade != null ? " · " + d.idade + " anos" : ""}</td><td><b>Celular</b>${e(d.tel)}</td></tr><tr>
-   <td><b>Respondido por</b>${e(d.respondente)}${d.cuidador ? "<br>" + e(d.cuidador) : ""}</td>
+   <td><b>${d.roteiro === "DIVA-5" ? "Ajuda com a infância" : "Respondido por"}</b>${e(d.roteiro === "DIVA-5" ? (d.ident["Quem ajudou com a infância"] || "—") : d.respondente)}${d.cuidador ? "<br>" + e(d.cuidador) : ""}</td>
    <td><b>Cadastro V Saúde</b>${d.vsaude ? "Paciente nº " + e(d.vsaude.numero) + " · localizado pelo " + e(d.vsaude.via || "CPF") : "—"}</td>
    <td><b>Tempo de preenchimento</b>${e(d.tempo || "—")}</td></tr></table></div>
   ${d.risco || d.riscoItens.length ? `<div class="alerta"><b>⚠ Sinal de risco.</b> ${d.riscoItens.map(it => `Rastreio: “${e(it.q)}” = <b>${FREQ[it.v]}</b>.`).join(" ")}
@@ -275,7 +333,8 @@ function montarHtml(d) {
   <table class="r"><tr><th></th><th style="text-align:left">Item</th>${FREQ.map(f => `<th>${f}</th>`).join("")}</tr>
   ${d.rastreio.itens.map((it, i) => `<tr class="${it.risco && it.v > 0 ? "rk" : it.v === 4 ? "g4" : it.v === 3 ? "g3" : ""}"><td style="color:#5f5d4c;text-align:right">${i + 1}</td><td>${e(it.q)}</td>${FREQ.map((_, j) => `<td class="c">${it.v === j ? "●" : ""}</td>`).join("")}</tr>`).join("")}</table>
   <div class="leg">Muito leve = 1–2 dias · Leve = vários dias · Moderado = mais da metade dos dias · Grave = quase todos os dias. Itens sem marcação: não respondidos.</div>` : ""}
-  <h2>${d.roteiro === "DIVA-5" ? "Respostas" : "Respostas abertas"}</h2>
+  ${d.roteiro === "DIVA-5" ? divaHtml_(d) : ""}
+  <h2>${d.roteiro === "DIVA-5" ? "Respostas, item por item" : "Respostas abertas"}</h2>
   <div class="leg" style="margin:0 0 4px">Texto ditado ou digitado por quem respondeu e revisado antes do envio. A oralidade foi preservada.</div>
   ${abertas.map(s => `<h3>${e(s.titulo)}</h3>${s.texto ? s.texto.split("\n").map(l => `<p>${e(l)}</p>`).join("") : '<p class="vazio">Não respondido.</p>'}`).join("")}
   <div class="nota">Documento gerado automaticamente a partir da pré-consulta on-line e anexado ao prontuário. Conteúdo sigiloso, protegido pelo sigilo médico e pela LGPD (Lei 13.709/2018).</div>
