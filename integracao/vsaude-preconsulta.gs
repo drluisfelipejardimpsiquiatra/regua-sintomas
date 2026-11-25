@@ -70,7 +70,7 @@ function processarLinha_(linha, silencioso) {
     const p = achados[0];
     d.vsaude = { id: p.id, numero: p.sequentialNumber, nome: p.name };
     const data = Utilities.formatDate(quando instanceof Date ? quando : new Date(), "America/Sao_Paulo", "dd-MM-yyyy");
-    const nomeArq = `Pré-consulta – ${data}.pdf`;
+    const nomeArq = `${d.roteiro === "DIVA-5" ? "DIVA-5 (TDAH)" : "Pré-consulta"} – ${data}.pdf`;
     const pdf = HtmlService.createHtmlOutput(montarHtml(d)).getAs("application/pdf").setName(nomeArq);
     enviarArquivo_(p.id, nomeArq, pdf);
     status(`✅ Anexado em ${Utilities.formatDate(new Date(), "America/Sao_Paulo", "dd/MM HH:mm")} · paciente nº ${p.sequentialNumber}`);
@@ -205,7 +205,7 @@ function montarHtml(d) {
   .vazio{color:#5f5d4c;font-style:italic}
   .nota{font-size:8pt;color:#5f5d4c;border-top:1px solid #e2dccb;margin-top:12px;padding-top:5px}
   </style></head><body>
-  <div class="cab"><h1>Pré-consulta <span class="tag">${e((d.roteiro || "").toUpperCase())}</span></h1>
+  <div class="cab"><h1>${d.roteiro === "DIVA-5" ? "DIVA-5 · TDAH em adultos" : "Pré-consulta"} <span class="tag">${e((d.roteiro || "").toUpperCase())}</span></h1>
   <div class="dr">Dr. Luis Felipe Jardim · Psiquiatra<br>CRM-SC 12767 · RQE 22739<br>Recebida em ${e(d.enviado)}</div></div>
   <div class="id"><div class="nome">${e(d.nome)}</div><table><tr>
    <td><b>CPF</b>${e(d.cpfFmt)}</td><td><b>Nascimento · idade</b>${e(d.nasc)}${d.idade != null ? " · " + d.idade + " anos" : ""}</td><td><b>Celular</b>${e(d.tel)}</td></tr><tr>
@@ -214,16 +214,16 @@ function montarHtml(d) {
    <td><b>Tempo de preenchimento</b>${e(d.tempo || "—")}</td></tr></table></div>
   ${d.risco || d.riscoItens.length ? `<div class="alerta"><b>⚠ Sinal de risco.</b> ${d.riscoItens.map(it => `Rastreio: “${e(it.q)}” = <b>${FREQ[it.v]}</b>.`).join(" ")}
     ${frases.length ? " No relato: " + frases.map(f => "“" + e(f) + "”").join(" ") : ""} A orientação do CVV 188 / SAMU 192 foi exibida na tela.</div>` : ""}
-  <h2>Visão rápida</h2>
+  ${d.roteiro === "DIVA-5" ? "" : `<h2>Visão rápida</h2>
   <table class="vr" style="width:100%;border-collapse:separate;border-spacing:6px 0"><tr>
    <td><b>Quanto atrapalha hoje</b>${d.impacto ? `<span class="big">${e(d.impacto.nota || "—")}</span> / 10<br>${e(d.impacto.areas.split(", ").join(" · "))}` : "—"}</td>
    <td><b>Motivação</b>Importância de resolver agora: <strong>${e(d.motivacao.imp || "—")}</strong>/10<br>Confiança de mudar com ajuda: <strong>${e(d.motivacao.conf || "—")}</strong>/10</td>
-   <td><b>Rastreio: moderado ou grave</b>${destaques.length ? destaques.map(it => "• " + e(curto(it.q))).join("<br>") : "Nenhum item"}</td></tr></table>
+   <td><b>Rastreio: moderado ou grave</b>${destaques.length ? destaques.map(it => "• " + e(curto(it.q))).join("<br>") : "Nenhum item"}</td></tr></table>`}
   ${d.rastreio ? `<h2>Rastreio · ${e(d.rastreio.titulo.toLowerCase())}</h2>
   <table class="r"><tr><th></th><th style="text-align:left">Item</th>${FREQ.map(f => `<th>${f}</th>`).join("")}</tr>
   ${d.rastreio.itens.map((it, i) => `<tr class="${it.risco && it.v > 0 ? "rk" : it.v === 4 ? "g4" : it.v === 3 ? "g3" : ""}"><td style="color:#5f5d4c;text-align:right">${i + 1}</td><td>${e(it.q)}</td>${FREQ.map((_, j) => `<td class="c">${it.v === j ? "●" : ""}</td>`).join("")}</tr>`).join("")}</table>
   <div class="leg">Muito leve = 1–2 dias · Leve = vários dias · Moderado = mais da metade dos dias · Grave = quase todos os dias. Itens sem marcação: não respondidos.</div>` : ""}
-  <h2>Respostas abertas</h2>
+  <h2>${d.roteiro === "DIVA-5" ? "Respostas" : "Respostas abertas"}</h2>
   <div class="leg" style="margin:0 0 4px">Texto ditado ou digitado por quem respondeu e revisado antes do envio. A oralidade foi preservada.</div>
   ${abertas.map(s => `<h3>${e(s.titulo)}</h3>${s.texto ? s.texto.split("\n").map(l => `<p>${e(l)}</p>`).join("") : '<p class="vazio">Não respondido.</p>'}`).join("")}
   <div class="nota">Documento gerado automaticamente a partir da pré-consulta on-line e anexado ao prontuário. Conteúdo sigiloso, protegido pelo sigilo médico e pela LGPD (Lei 13.709/2018).</div>

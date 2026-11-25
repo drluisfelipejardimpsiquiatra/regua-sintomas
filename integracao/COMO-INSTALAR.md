@@ -35,3 +35,8 @@ Faça isto uma vez, no computador (no celular o editor do Google não funciona b
 2. Responda a pré-consulta pelo link usando esse CPF.
 3. Confira a coluna "Status V Saúde" e a pasta de Arquivos do paciente TESTE.
 4. Apague o paciente TESTE e a linha da planilha.
+
+## DIVA-5
+A página `consultorio/diva.html` envia para o mesmo formulário de recebimento. Com este programa instalado,
+o paciente é localizado pelo CPF e o PDF entra nos Arquivos com o nome `DIVA-5 (TDAH) – DD-MM-AAAA.pdf`,
+com o resumo de pontuação no início.
