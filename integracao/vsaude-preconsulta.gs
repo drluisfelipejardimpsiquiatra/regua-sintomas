@@ -72,7 +72,7 @@ function processarLinha_(linha, silencioso) {
     const nomeArq = `${d.roteiro === "DIVA-5" ? "DIVA-5 (TDAH)" : "Pré-consulta"} – ${data}.pdf`;
     const pdf = HtmlService.createHtmlOutput(montarHtml(d)).getAs("application/pdf").setName(nomeArq);
     enviarArquivo_(p.id, nomeArq, pdf);
-    status(`✅ Anexado em ${Utilities.formatDate(new Date(), "America/Sao_Paulo", "dd/MM HH:mm")} · paciente nº ${p.sequentialNumber} · localizado pelo ${loc.via}${loc.obs ? " · " + loc.obs : ""}`);
+    status(`✅ Anexado em ${Utilities.formatDate(new Date(), "America/Sao_Paulo", "dd/MM HH:mm")} · ${p.sequentialNumber ? "paciente nº " + p.sequentialNumber + " · " : ""}localizado pelo ${loc.via}${loc.obs ? " · " + loc.obs : ""}`);
   } catch (err) {
     status("⚠ Erro: " + String(err.message || err).slice(0, 180) + " · tentando de hora em hora");
     if (!silencioso) avisar_(null, String(err.message || err), linha);
@@ -320,7 +320,7 @@ function montarHtml(d) {
   <div class="id"><div class="nome">${e(d.nome)}</div><table><tr>
    <td><b>CPF</b>${e(d.cpfFmt)}</td><td><b>Nascimento · idade</b>${e(d.nasc)}${d.idade != null ? " · " + d.idade + " anos" : ""}</td><td><b>Celular</b>${e(d.tel)}</td></tr><tr>
    <td><b>${d.roteiro === "DIVA-5" ? "Ajuda com a infância" : "Respondido por"}</b>${e(d.roteiro === "DIVA-5" ? (d.ident["Quem ajudou com a infância"] || "—") : d.respondente)}${d.cuidador ? "<br>" + e(d.cuidador) : ""}</td>
-   <td><b>Cadastro V Saúde</b>${d.vsaude ? "Paciente nº " + e(d.vsaude.numero) + " · localizado pelo " + e(d.vsaude.via || "CPF") : "—"}</td>
+   <td><b>Cadastro V Saúde</b>${d.vsaude ? (d.vsaude.numero ? "Paciente nº " + e(d.vsaude.numero) + " · l" : "L") + "ocalizado pelo " + e(d.vsaude.via || "CPF") : "—"}</td>
    <td><b>Tempo de preenchimento</b>${e(d.tempo || "—")}</td></tr></table></div>
   ${d.risco || d.riscoItens.length ? `<div class="alerta"><b>⚠ Sinal de risco.</b> ${d.riscoItens.map(it => `Rastreio: “${e(it.q)}” = <b>${FREQ[it.v]}</b>.`).join(" ")}
     ${frases.length ? " No relato: " + frases.map(f => "“" + e(f) + "”").join(" ") : ""} A orientação do CVV 188 / SAMU 192 foi exibida na tela.</div>` : ""}
