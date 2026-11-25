@@ -60,9 +60,12 @@ function processarLinha_(linha, silencioso) {
     const d = interpretar(String(cab), String(corpo));
     // Acompanhamento da depressão: o check-in só fica registrado na planilha (entra no próximo PDF do PHQ-9);
     // sinal de risco (PHQ-9 item 9, ou "pensamentos de morte" no check-in) gera e-mail imediato.
-    if ((d.roteiro === "CHECK-IN" || d.roteiro === "PHQ-9") && d.risco && !silencioso) alertarRisco_(d, linha);
-    if (d.roteiro === "CHECK-IN") { status("✅ Check-in registrado · entra no próximo PDF do PHQ-9"); return; }
+    if (d.roteiro === "CHECK-IN") {
+      if (d.risco && !silencioso) { try { localizar_(d); } catch (e) {} alertarRisco_(d, linha); } // localizar completa nome, CPF e celular
+      status("✅ Check-in registrado · entra no próximo PDF do PHQ-9"); return;
+    }
     const loc = localizar_(d);
+    if (d.roteiro === "PHQ-9" && d.risco && !silencioso) alertarRisco_(d, linha);
     if (!loc.p) {
       const msg = "⚠ " + loc.erro;
       const anterior = String(sh.getRange(linha, col).getValue());
@@ -73,7 +76,7 @@ function processarLinha_(linha, silencioso) {
     const p = loc.p;
     if (d.roteiro === "PHQ-9") d.historico = historicoHumor_(sh, d.cpf, d.nome, linha, d.codigo);
     d.vsaude = { id: p.id, numero: p.sequentialNumber, nome: p.name, via: loc.via };
-    const data = Utilities.formatDate(quando instanceof Date ? quando : new Date(), "America/Sao_Paulo", "dd-MM-yyyy");
+    const data = Utilities.formatDate(ehData_(quando) ? quando : new Date(), "America/Sao_Paulo", "dd-MM-yyyy");
     const nomeArq = `${{ "DIVA-5": "DIVA-5 (TDAH)", "PHQ-9": "PHQ-9 (depressão)" }[d.roteiro] || "Pré-consulta"} – ${data}.pdf`;
     const pdf = HtmlService.createHtmlOutput(montarHtml(d)).getAs("application/pdf").setName(nomeArq);
     enviarArquivo_(p.id, nomeArq, pdf);
@@ -190,6 +193,8 @@ function linkPessoal_(codigo) {
   // Coluna B: o ID do cadastro (busca no app) ou, quando o link foi criado só com o CPF, o CPF.
   return /^[0-9a-f-]{36}$/i.test(v) ? { id: v } : dig.length === 11 ? { cpf: dig } : null;
 }
+
+const ehData_ = v => Object.prototype.toString.call(v) === "[object Date]" && !isNaN(v);
 
 function enviarArquivo_(pacienteId, nome, blob) {
   const q = `?parent=${PASTA_RAIZ}&ownerPatient=${pacienteId}&fileName=${encodeURIComponent(nome)}`;
@@ -309,7 +314,7 @@ const phqFaixa_ = t => PHQ_FAIXAS.findIndex(([a, b]) => t >= a && t <= b);
 /** Lê um registro (PHQ-9 ou check-in) a partir do texto enviado pela página. */
 function registroHumor_(quando, cab, corpo) {
   const tipo = (String(cab).match(/^\[([^\]]+)\]/) || [])[1], c = String(corpo), g = re => (c.match(re) || [])[1];
-  const r = { quando: quando instanceof Date ? quando : new Date(quando), tipo,
+  const r = { quando: ehData_(quando) ? quando : new Date(quando), tipo,
     humor: g(/Humor \(0–10\): (\d+)/), sono: g(/\nSono: ([^\n]*)/), remedio: g(/\nRemédios: ([^\n]*)/),
     efeitos: g(/\nEfeitos colaterais: ([^\n]*)/), morte: g(/Pensamentos de morte ou de se ferir: ([^\n]*)/),
     nota: (c.split("## Observações do paciente\n")[1] || "").trim(), risco: /⚠ ATENÇÃO/.test(c) };

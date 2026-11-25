@@ -17,6 +17,8 @@
 const fs = require("fs"), vm = require("vm"), path = require("path"), os = require("os"), cp = require("child_process");
 const [, , ENTRADA, SAIDA, ...flags] = process.argv;
 const SIMULAR = flags.includes("--simular");
+// --prefixo "TESTE – " acrescenta um prefixo ao nome do arquivo anexado (para testes no prontuário real).
+const PREFIXO = (flags.find((f) => f.startsWith("--prefixo=")) || "").slice(10);
 const BASE = "https://public-api.vsaude.com.br/api/services/app";
 const dados = JSON.parse(fs.readFileSync(ENTRADA, "utf8"));
 const linhas = dados.linhas.map((l) => [l[0], l[1] || "", l[2] || "", l[3] || ""]);
@@ -72,6 +74,7 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "vsaude-preconsulta.g
 // Envio do PDF: multipart pelo curl (no Apps Script é o UrlFetchApp com o blob).
 vm.runInContext("enviarArquivo_ = (id, nome, blob) => __enviar(id, nome, blob);", Object.assign(ctx, {
   __enviar: (id, nome, blob) => {
+    nome = PREFIXO + nome;
     saida.anexos.push({ paciente: id, nome, simulado: SIMULAR });
     if (SIMULAR) { fs.copyFileSync(blob.pdf, path.join(path.dirname(path.resolve(SAIDA)), nome.replace(/[\/\\]/g, "-"))); return {}; }
     const q = `?parent=00000000-0000-0000-0000-000000000000&ownerPatient=${id}&fileName=${encodeURIComponent(nome)}`;
