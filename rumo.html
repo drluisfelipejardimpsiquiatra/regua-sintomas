@@ -30,8 +30,8 @@ header p{margin:6px 0 0;color:var(--on-bg-soft);line-height:1.45;font-size:15px}
 .pl span{font-size:12px;color:var(--soft);font-weight:600}
 .pl.alt b{color:var(--brand)}
 /* cofrinho */
-.cofre{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center}
-.cofre svg{width:120px;height:auto;display:block}
+.cofre{display:grid;grid-template-columns:132px 1fr;gap:14px;align-items:center}
+.cofre svg{width:132px;height:auto;display:block}
 .saldo{font:800 34px/1 var(--f-body);color:var(--ink);font-variant-numeric:tabular-nums}
 .barra{height:12px;border-radius:8px;background:var(--track);overflow:hidden;margin-top:8px}
 .barra i{display:block;height:100%;background:var(--accent);border-radius:8px;transition:width .8s}
@@ -146,9 +146,9 @@ ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
 
     <section class="card" aria-label="Meu cofrinho">
       <div class="cofre">
-        <svg viewBox="0 0 120 140" id="pote" role="img" aria-label="Cofrinho"></svg>
+        <svg viewBox="0 0 140 118" id="pote" role="img" aria-label="Porquinho"></svg>
         <div style="min-width:0">
-          <div class="sub">No meu cofrinho</div>
+          <div class="sub">No meu porquinho</div>
           <div class="saldo" id="kSaldo">R$ 0</div>
           <div class="premio" id="kPremio"></div>
           <div class="barra" id="kBarraBox"><i id="kBarra" style="width:0"></i></div>
@@ -159,19 +159,16 @@ ul.lista{padding-left:20px;margin:8px 0;line-height:1.5}
       <button class="lnk" id="bPremio">Escolher meu prêmio</button>
     </section>
 
-    <section class="card" aria-label="Quanto a cocaína custa" id="cCusto" hidden>
-      <h2>Quanto a cocaína custa</h2>
+    <section class="card" aria-label="Cocaína ou porquinho" id="cCusto" hidden>
+      <h2>Cocaína × porquinho</h2>
       <div class="sub" id="custoSub"></div>
-      <div id="custoVazio" class="ajuda" hidden>Para ver a sua conta, preencha em <button class="lnk" id="bCustoPlano" style="padding:0">Meu plano</button> quantos gramas você usava por dia de uso e quantos dias por semana.</div>
+      <div id="custoVazio" class="ajuda" hidden></div>
       <div id="custoBox">
-        <div class="placar" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
-          <div class="pl"><b id="cPerda" style="font-size:19px;white-space:nowrap;color:var(--bad-text)">—</b><span>se continuasse usando</span></div>
-          <div class="pl"><b id="cGasto" style="font-size:19px;white-space:nowrap;color:var(--bad-text)">—</b><span>gastei nos lapsos</span></div>
-          <div class="pl"><b id="cGanho" style="font-size:19px;white-space:nowrap">—</b><span>ganhei</span></div>
-        </div>
+        <div class="placar" id="custoTiles" style="margin-top:10px"></div>
         <div id="custoGraf" style="margin-top:10px"></div>
-        <div class="leg"><span><i style="border-top:3px dashed var(--bad);height:0;border-radius:0;width:16px"></i>se continuasse usando</span><span><i style="background:var(--bad)"></i>gastei nos lapsos</span><span><i style="background:var(--ok)"></i>ganhei: o que não gastei + cofrinho</span></div>
+        <div class="leg" id="custoLeg"></div>
         <div class="ajuda" id="custoFrase" style="margin-top:10px"></div>
+        <button class="lnk" id="bCustoPlano">Ajustar quanto eu usava e o preço do grama</button>
       </div>
     </section>
 
@@ -372,15 +369,23 @@ function calcula() {
 
 /* ---------- desenho ---------- */
 function pote(saldo, meta) {
+  // porquinho: o corpo enche de âmbar (com moedas) conforme o saldo se aproxima do prêmio
   const p = meta ? Math.max(0, Math.min(saldo / meta, 1)) : Math.min(saldo / 600, 1);
-  const top = 40, base = 128, h = (base - top) * p, y = base - h;
-  let moedas = ""; const n = Math.min(Math.floor(saldo / 25), 24);
-  for (let i = 0; i < n; i++) { const cx = 30 + (i % 4) * 20 + (Math.floor(i / 4) % 2) * 10, cy = base - 8 - Math.floor(i / 4) * 9; if (cy > y - 2) moedas += `<ellipse cx="${cx}" cy="${cy}" rx="9" ry="4" fill="var(--ambar)" stroke="var(--cafe)" stroke-width="1"/>`; }
-  return `<defs><clipPath id="vidro"><path d="M22 40 Q16 44 16 56 V122 Q16 132 28 132 H92 Q104 132 104 122 V56 Q104 44 98 40 Z"/></clipPath></defs>
-  <rect x="30" y="20" width="60" height="14" rx="4" fill="var(--oliva-dourado)"/><rect x="50" y="24" width="20" height="4" rx="2" fill="var(--cafe)"/>
-  <g clip-path="url(#vidro)"><rect x="0" y="${y}" width="120" height="${h + 10}" fill="var(--ambar)" opacity=".28"/>${moedas}</g>
-  <path d="M22 40 Q16 44 16 56 V122 Q16 132 28 132 H92 Q104 132 104 122 V56 Q104 44 98 40 Z" fill="none" stroke="var(--oliva)" stroke-width="3"/>
-  <path d="M26 58 V110" stroke="var(--off-white)" stroke-width="4" stroke-linecap="round" opacity=".7"/>`;
+  const top = 30, base = 104, h = (base - top) * p, y = base - h;
+  let moedas = ""; const n = Math.min(Math.floor(saldo / 25), 30);
+  for (let i = 0; i < n; i++) { const fila = Math.floor(i / 6), cx = 28 + (i % 6) * 15 + (fila % 2) * 7, cy = base - 6 - fila * 8; if (cy > y - 2) moedas += `<ellipse cx="${cx}" cy="${cy}" rx="7.5" ry="3.4" fill="var(--ambar)" stroke="var(--cafe)" stroke-width=".9"/>`; }
+  const corpo = "M18 66 C18 40 40 28 68 28 C92 28 108 38 114 52 L124 54 C130 55 132 60 132 66 C132 72 130 77 124 78 L114 80 C108 94 92 104 68 104 C40 104 18 92 18 66 Z";
+  return `<defs><clipPath id="barriga"><path d="${corpo}"/></clipPath></defs>
+  <rect x="34" y="96" width="12" height="16" rx="4" fill="#E9B3A1" stroke="var(--cafe)" stroke-width="2"/><rect x="88" y="96" width="12" height="16" rx="4" fill="#E9B3A1" stroke="var(--cafe)" stroke-width="2"/>
+  <path d="M20 60 C10 58 8 48 14 46 C20 44 20 54 12 54" fill="none" stroke="var(--cafe)" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="${corpo}" fill="#F4C9BA"/>
+  <g clip-path="url(#barriga)"><rect x="0" y="${y}" width="140" height="${h + 12}" fill="var(--ambar)" opacity=".35"/>${moedas}</g>
+  <path d="${corpo}" fill="none" stroke="var(--cafe)" stroke-width="2.6"/>
+  <path d="M92 32 L100 14 L108 38 Z" fill="#E9B3A1" stroke="var(--cafe)" stroke-width="2.2" stroke-linejoin="round"/>
+  <rect x="54" y="24" width="28" height="6" rx="3" fill="var(--cafe)"/>
+  <circle cx="104" cy="56" r="3.2" fill="var(--cafe)"/>
+  <ellipse cx="125" cy="66" rx="6" ry="8" fill="#E9B3A1" stroke="var(--cafe)" stroke-width="2"/><circle cx="123.5" cy="63" r="1.4" fill="var(--cafe)"/><circle cx="123.5" cy="69" r="1.4" fill="var(--cafe)"/>
+  <path d="M30 52 C34 44 42 40 50 39" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".6"/>`;
 }
 function desenha() {
   const C = calcula(), P = H.plano;
@@ -415,52 +420,58 @@ function desenha() {
 
 /* ---------- custo da cocaína: perda x ganho ---------- */
 function custo(C) {
-  const P = H.plano, g = +P.gr || 0, ds = Math.min(+P.ds || 0, 7), pg = +P.pg || CFG.precoG;
-  if (!(g > 0 && ds > 0) || !C.semanas.length) return null;
-  const base = g * ds * pg, h = hoje();
-  let proj = 0, gasto = 0, evit = 0, cof = 0;
-  const pts = [{ w: C.semanas[0].w, proj: 0, gasto: 0, ganho: 0 }];
+  // gasto real = dias de uso relatados (ou 1 dia por teste positivo) × gramas por dia × preço do grama
+  const P = H.plano, pg = +P.pg || CFG.precoG, gInf = +P.gr > 0, g = gInf ? +P.gr : 1, ds = Math.min(+P.ds || 0, 7);
+  if (!C.semanas.length) return null;
+  const base = ds > 0 ? g * ds * pg : 0, h = hoje();
+  let proj = 0, gasto = 0, evit = 0, cof = 0, diasUso = 0;
+  const pts = [{ w: C.semanas[0].w, proj: 0, gasto: 0, cof: 0 }];
   C.semanas.forEach((x) => {
     const fim = somaDias(x.w, 6), frac = fim < h ? 1 : Math.min(7, (dataDe(h) - dataDe(x.w)) / 864e5 + 1) / 7;
     let dias = Math.min(H.regs.filter((r) => segDe(r.d) === x.w).reduce((a, r) => a + (+(r.v && r.v.us) || 0), 0), 7);
     if (!dias && x.sl.some((s) => s.st === "pos")) dias = 1;
     const sem = base * frac, gastoSem = dias * g * pg;
-    proj += sem; gasto += gastoSem; evit += Math.max(0, sem - gastoSem); cof += x.sl.reduce((a, s) => a + (s.val || 0), 0);
-    pts.push({ w: somaDias(x.w, 7), proj, gasto, ganho: evit + cof });
+    diasUso += dias; proj += sem; gasto += gastoSem; evit += Math.max(0, sem - gastoSem); cof += x.sl.reduce((a, s) => a + (s.val || 0), 0);
+    pts.push({ w: somaDias(x.w, 7), proj, gasto, cof });
   });
-  return { base, pg, g, proj, gasto, evit, cof, ganho: evit + cof, gramas: evit / pg, pts };
+  return { base, pg, g, gInf, ds, proj, gasto, evit, cof, diasUso, gramas: evit / pg, pts };
 }
 function desenhaCusto(K, C) {
   const mostra = CFG.subs.includes("coc") || (+H.plano.gr > 0);
   $("cCusto").hidden = !mostra; if (!mostra) return;
   const pg = +H.plano.pg || CFG.precoG;
-  $("custoSub").textContent = `Com o grama a ${real(pg)}. A linha tracejada mostra quanto você gastaria se continuasse usando como antes; o verde é o que ficou com você.`;
-  $("custoVazio").hidden = !!K; $("custoBox").hidden = !K;
-  if (!C.semanas.length && !K) { $("custoVazio").hidden = false; $("custoVazio").innerHTML = "O gráfico aparece a partir do primeiro teste. Enquanto isso, preencha em “Meu plano” como era o seu uso de cocaína."; return; }
-  if (!K) return;
-  $("cPerda").textContent = real(K.proj); $("cGasto").textContent = real(K.gasto); $("cGanho").textContent = real(K.ganho);
+  if (!K) { $("custoBox").hidden = true; $("custoVazio").hidden = false; $("custoVazio").textContent = "O gráfico aparece a partir do primeiro teste. Ele compara o que vai para a cocaína com o que vai para o seu porquinho."; $("custoSub").textContent = `Grama a ${real(pg)}.`; return; }
+  $("custoBox").hidden = false; $("custoVazio").hidden = true;
+  $("custoSub").textContent = `Cada dia de uso custa cerca de ${real(K.g * pg)} (${String(K.g).replace(".", ",")} g a ${real(pg)} o grama)${K.gInf ? "" : ", uma estimativa: ajuste abaixo"}. Cada teste negativo enche o porquinho.`;
+  const tiles = [["Gastei com cocaína", K.gasto, "var(--bad-text)"], ["Guardei no porquinho", K.cof, "var(--ok)"]];
+  if (K.base) tiles.push(["Deixei de gastar", K.evit, "var(--brand)"]);
+  $("custoTiles").style.gridTemplateColumns = `repeat(${tiles.length},1fr)`;
+  $("custoTiles").innerHTML = tiles.map(([l, v, c]) => `<div class="pl"><b style="font-size:19px;white-space:nowrap;color:${c}">${real(v)}</b><span>${l}</span></div>`).join("");
   const pts = K.pts, W = 520, Hh = 210, pl = 50, pr = 14, pt = 14, pb = 26;
-  const max = Math.max(K.proj, K.ganho, K.gasto, 100), passo = Math.pow(10, Math.floor(Math.log10(max))) * (max / Math.pow(10, Math.floor(Math.log10(max))) > 5 ? 2 : max / Math.pow(10, Math.floor(Math.log10(max))) > 2 ? 1 : 0.5);
+  const max = Math.max(K.gasto, K.cof, 100), ord = Math.pow(10, Math.floor(Math.log10(max))), passo = ord * (max / ord > 5 ? 2 : max / ord > 2 ? 1 : 0.5);
   const top = Math.ceil(max / passo) * passo;
   const x = (i) => pl + i / Math.max(pts.length - 1, 1) * (W - pl - pr), y = (v) => pt + (1 - v / top) * (Hh - pt - pb);
   let g = "";
   for (let v = 0; v <= top + 0.1; v += passo) g += `<line x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl - 6}" y="${y(v) + 4}" text-anchor="end">${v >= 1000 ? (v / 1000).toLocaleString("pt-BR") + " mil" : v}</text>`;
   const caminho = (k) => pts.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + "," + y(p[k]).toFixed(1)).join("");
-  const area = (k, cor) => `<path d="${caminho(k)}L${x(pts.length - 1)},${y(0)}L${x(0)},${y(0)}Z" fill="var(--${cor})" opacity=".14"/>`;
-  g += area("ganho", "ok") + area("gasto", "bad");
-  g += `<path d="${caminho("proj")}" fill="none" stroke="var(--bad)" stroke-width="2.5" stroke-dasharray="6 5"/>`;
-  g += `<path d="${caminho("gasto")}" fill="none" stroke="var(--bad)" stroke-width="3"/><path d="${caminho("ganho")}" fill="none" stroke="var(--ok)" stroke-width="3.5"/>`;
+  const area = (k, cor) => `<path d="${caminho(k)}L${x(pts.length - 1)},${y(0)}L${x(0)},${y(0)}Z" fill="var(--${cor})" opacity=".16"/>`;
+  g += area("cof", "ok") + area("gasto", "bad");
+  g += `<path d="${caminho("gasto")}" fill="none" stroke="var(--bad)" stroke-width="3.2"/><path d="${caminho("cof")}" fill="none" stroke="var(--ok)" stroke-width="3.6"/>`;
   const u = pts.length - 1;
-  g += `<circle cx="${x(u)}" cy="${y(K.ganho)}" r="5" fill="var(--ok)"/><circle cx="${x(u)}" cy="${y(K.proj)}" r="4" fill="var(--bad)"/>`;
+  g += `<circle cx="${x(u)}" cy="${y(K.cof)}" r="5.5" fill="var(--ok)"/><circle cx="${x(u)}" cy="${y(K.gasto)}" r="4.5" fill="var(--bad)"/>`;
   const n = Math.min(pts.length, 5);
   [...new Set(Array.from({ length: n }, (_, i) => Math.round(i * u / Math.max(n - 1, 1))))].forEach((i) => (g += `<text x="${x(i)}" y="${Hh - 8}" text-anchor="${i === u && u ? "end" : i === 0 ? "start" : "middle"}">${dBR(pts[i].w)}</text>`));
-  $("custoGraf").innerHTML = `<svg viewBox="0 0 ${W} ${Hh}" style="width:100%;height:auto;display:block" role="img" aria-label="Gráfico: quanto a cocaína custaria e quanto você ganhou">${g}</svg>`;
-  const ano = K.base * 52, gr = K.gramas;
-  $("custoFrase").innerHTML = `Usando como antes, a cocaína custaria <b>${real(K.base)} por semana</b> e <b>${real(ano)} em um ano</b>. ` +
-    (gr >= 1 ? `Até agora, cerca de <b>${Math.round(gr).toLocaleString("pt-BR")} gramas</b> deixaram de entrar no seu corpo. ` : "") +
-    (K.ganho > K.proj ? "Somando o cofrinho, os seus ganhos já passaram do que a cocaína teria custado." : `Cada semana livre põe ${real(K.base)} de volta no seu bolso, mais o cofrinho.`);
+  $("custoGraf").innerHTML = `<svg viewBox="0 0 ${W} ${Hh}" style="width:100%;height:auto;display:block" role="img" aria-label="Gráfico: gasto com cocaína e dinheiro no porquinho">${g}</svg>`;
+  $("custoLeg").innerHTML = `<span><i style="background:var(--bad)"></i>gasto com cocaína</span><span><i style="background:var(--ok)"></i>no porquinho</span>`;
+  const frases = [];
+  if (K.cof > K.gasto) frases.push(`O porquinho está ganhando: <b>${real(K.cof - K.gasto)}</b> a mais no porquinho do que na cocaína.`);
+  else if (K.gasto > 0) frases.push(`A cocaína já levou <b>${real(K.gasto)}</b> (${K.diasUso} dia${K.diasUso === 1 ? "" : "s"} de uso). Cada teste negativo daqui para a frente vira o jogo para o porquinho.`);
+  else frases.push("Nenhum real para a cocaína até agora. Todo o dinheiro está indo para você.");
+  if (K.base) frases.push(`Usando como antes, seriam <b>${real(K.base)} por semana</b> e <b>${real(K.base * 52)} em um ano</b>.${K.gramas >= 1 ? ` Cerca de <b>${Math.round(K.gramas).toLocaleString("pt-BR")} gramas</b> deixaram de entrar no seu corpo.` : ""}`);
+  else frases.push("Preencha em “Meu plano” quantos dias por semana você usava para ver também quanto deixou de gastar.");
+  $("custoFrase").innerHTML = frases.join(" ");
 }
-$("bCustoPlano").onclick = () => { $("plano").open = true; $("pGr").focus(); $("plano").scrollIntoView({ behavior: "smooth" }); };
+$("bCustoPlano").onclick = () => { $("plano").open = true; $("plano").scrollIntoView({ behavior: "smooth" }); setTimeout(() => $("pGr").focus(), 400); };
 
 /* ---------- formulário ---------- */
 const sel = { res: {}, quem: null, md: null, apoio: new Set(), gat: new Set(), semTeste: false };
@@ -528,6 +539,7 @@ $("send").onclick = async () => {
   if (comTeste) { partes.push("t=" + CFG.subs.map((s) => s + "." + sel.res[s]).join(",")); if (sel.quem) partes.push("q=" + sel.quem); }
   ITENS.forEach((it) => partes.push(it[0] + "=" + V[it[0]]));
   if (sel.md) partes.push("md=" + sel.md);
+  if (+H.plano.gr > 0) partes.push("gr=" + H.plano.gr); if (+H.plano.ds > 0) partes.push("ds=" + H.plano.ds); if (+H.plano.pg > 0) partes.push("pg=" + H.plano.pg);
   if (sel.apoio.size) partes.push("ap=" + [...sel.apoio].join(","));
   if (sel.gat.size) partes.push("gt=" + [...sel.gat].join(","));
   const obs = $("obs").value.trim(); if (obs) partes.push("obs=" + limpa(obs, 500));
