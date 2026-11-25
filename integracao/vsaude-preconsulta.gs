@@ -118,6 +118,11 @@ function localizar_(d) {
   // Link pessoal (gerado pelo consultório para um cadastro do V Saúde): vale mais que qualquer busca.
   if (d.codigo) {
     const l = linkPessoal_(d.codigo);
+    if (l && l.cpf) {
+      const a = buscarPorCpf_(l.cpf);
+      if (a.length !== 1) return { erro: a.length ? `${a.length} cadastros com o CPF do link ${d.codigo}` : `CPF do link ${d.codigo} não encontrado no V Saúde` };
+      l.id = a[0].id;
+    }
     if (l) {
       const p = vs_("GET", "/PatientService/Get?Id=" + l.id);
       if (!p) return { erro: `Link ${d.codigo}: cadastro não existe mais no V Saúde` };
@@ -180,7 +185,10 @@ function linkPessoal_(codigo) {
   const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Links");
   if (!aba || aba.getLastRow() < 2) return null;
   const l = aba.getRange(2, 1, aba.getLastRow() - 1, 2).getValues().find(r => String(r[0]).trim().toUpperCase() === codigo);
-  return l && l[1] ? { id: String(l[1]).trim() } : null;
+  if (!l || !l[1]) return null;
+  const v = String(l[1]).trim(), dig = v.replace(/\D/g, "");
+  // Coluna B: o ID do cadastro (busca no app) ou, quando o link foi criado só com o CPF, o CPF.
+  return /^[0-9a-f-]{36}$/i.test(v) ? { id: v } : dig.length === 11 ? { cpf: dig } : null;
 }
 
 function enviarArquivo_(pacienteId, nome, blob) {
