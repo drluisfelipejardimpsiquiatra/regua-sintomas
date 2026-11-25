@@ -105,6 +105,14 @@ nav.passos .in{display:flex;gap:10px;align-items:center;min-height:70px}
 .fim h1{font-size:34px}
 .crise{font-size:14px;color:var(--soft)}
 .rodape{font-size:12px;color:var(--soft);margin-top:24px}
+.dita{background:#56572D;color:var(--on-dark);font-size:13px;line-height:1.35}
+header.top .dita .in{display:flex;align-items:center;gap:10px;min-height:40px;padding-block:6px}
+header.top .dita span{font:400 13.5px/1.35 var(--f-body);letter-spacing:0;text-transform:none;color:var(--on-dark)}
+header.top .dita b{font:700 13.5px/1.35 var(--f-body);margin:0;color:#fff}
+header.top svg.tecla{width:26px;height:26px;flex:none}
+svg.tecla rect{fill:#F2F1F0}
+svg.tecla path{fill:#2B2A22}
+svg.tecla path.t{fill:none;stroke:#2B2A22;stroke-width:1.8;stroke-linecap:round}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -113,6 +121,7 @@ nav.passos .in{display:flex;gap:10px;align-items:center;min-height:70px}
 <header class="top">
   <div class="in"><svg viewBox="0 0 110 155" aria-hidden="true"><path d="M0 0H108V42L97 62 75 77 103 93 110 112V155H3V113L13 93 35 77 8 62 0 42Z"/></svg><b>Dr. Luis Felipe Jardim</b><span id="contador">DIVA-5</span></div>
   <div class="barra" aria-hidden="true"><i id="progresso"></i></div>
+  <div class="dita"><div class="in"><svg class="tecla" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="6"/><path d="M14 6.5a3 3 0 0 0-3 3v4.5a3 3 0 0 0 6 0V9.5a3 3 0 0 0-3-3z"/><path class="t" d="M8.8 13.6a5.2 5.2 0 0 0 10.4 0M14 18.8v2.7"/></svg><span>Prefere falar? Toque na caixa de texto e use o <b>microfone do teclado</b> do celular.</span></div></div>
 </header>
 <main class="in" id="tela" aria-live="polite"></main>
 <nav class="passos" id="nav" hidden>
@@ -248,7 +257,7 @@ function capa() {
     <p class="porque">Este questionário é usado no mundo todo para investigar sintomas de TDAH. Ele <b>não dá diagnóstico sozinho</b>: suas respostas serão revisadas e conversadas comigo na consulta. Não existe resposta certa ou errada; o mais útil é responder com sinceridade, sem aumentar nem diminuir nada.</p>
     <ul>
       <li><b class="n">1</b><span>São <b>18 perguntas</b>, uma por tela. Cada uma tem duas partes: <b>como você é hoje</b> (últimos 6 meses ou mais) e <b>como você era na infância</b> (dos 5 aos 12 anos).</span></li>
-      <li><b class="n">2</b><span>Toque nos exemplos que combinam com você. Não é preciso marcar todos para o sintoma contar. Se você se reconhece de outro jeito, escreva com suas palavras em “Outros”. Se preferir falar, use o 🎤 do teclado do celular.</span></li>
+      <li><b class="n">2</b><span>Toque nos exemplos que combinam com você. Não é preciso marcar todos para o sintoma contar. Se você se reconhece de outro jeito, escreva com suas palavras em “Outros”. Se preferir falar, use o microfone do teclado do celular.</span></li>
       <li><b class="n">3</b><span>No fim de cada parte, diga se o sintoma está presente. Há uma explicação de <b>quando marcar “Sim”</b> em cada tela.</span></li>
     </ul>
     <div class="aviso"><b>Dicas para lembrar da infância.</b> Pense em situações concretas: a série em que estava, professores, colegas, boletins, bilhetes na agenda, castigos, apelidos, o que seus pais e professores diziam sobre você. É comum lembrar melhor dos 10 aos 12 anos do que dos primeiros anos de escola.<br><br><b>Se possível, responda a parte da infância junto com mãe, pai ou um irmão mais velho.</b> Quem conviveu com você na época costuma lembrar de coisas que nós mesmos esquecemos. Se tiver boletins ou relatórios escolares antigos, traga para a consulta.</div>
