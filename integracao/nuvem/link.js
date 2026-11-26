@@ -23,7 +23,7 @@ const lista = Object.values(vistos).map((p) => {
 if (lista.length !== 1) { console.log(JSON.stringify({ encontrados: lista }, null, 2)); process.exit(lista.length ? 0 : 2); }
 const p = lista[0], AB = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const codigo = Array.from(crypto.randomBytes(8), (x) => AB[x % AB.length]).join("");
-const primeiro = encodeURIComponent(p.nome.split(" ")[0]), base = "https://drluisfelipejardimpsiquiatra.github.io/regua-sintomas/consultorio/";
+const primeiro = encodeURIComponent(p.nome.split(" ")[0]), base = "https://drluisfelipejardimpsiquiatra.github.io/consultorio/";
 const links = { humor: `${base}humor.html?c=${codigo}&n=${primeiro}`, diva: `${base}diva.html?c=${codigo}&n=${primeiro}` };
 console.log(JSON.stringify({ paciente: p, codigo, links: app ? { [app]: links[app] } : links,
   linhaAbaLinks: [codigo, p.id, p.nome, app === "diva" ? "DIVA-5" : app === "humor" ? "Meu humor" : "Meu humor e DIVA-5", new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })] }, null, 2));
