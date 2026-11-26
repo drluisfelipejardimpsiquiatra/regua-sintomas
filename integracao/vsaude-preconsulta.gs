@@ -393,6 +393,31 @@ function historicoYbocs_(sh, cpf, nome, ateLinha, codigo) {
     .filter(([q, cab]) => /^\[Y-BOCS\]/.test(String(cab)) && ((codigo && String(cab).indexOf("código " + codigo) >= 0) || (cpf && String(cab).indexOf("CPF " + cpf + " ") >= 0) || (!cpf && !codigo && norm_(String(cab).split(" · ")[0].replace(/^\[[^\]]+\] /, "")) === norm_(nome))))
     .map(([q, cab, corpo]) => registroYbocs_(q, cab, corpo)).sort((a, b) => a.quando - b.quando);
 }
+/* Linhas sobrepostas no mesmo eixo (0–40 pontos): total, obsessões (0–20) e compulsões (0–20).
+   Cores validadas para daltonismo (terracota × azul; total em tinta neutra, mais grossa). ps: [{d|quando, total, obs, comp}] */
+function YB_LINHAS(ps, dataCurta) {
+  const S = [["Total", "total", "#2B2A22", 2.6], ["Obsessões", "obs", "#C3622D", 2], ["Compulsões", "comp", "#2F55B5", 2]];
+  const W = 360, H = 200, L = 30, Rr = 40, T = 12, B = 26, n = ps.length;
+  const x = (i) => n === 1 ? L + (W - L - Rr) / 2 : L + i * (W - L - Rr) / (n - 1), y = (v) => T + (40 - v) * (H - T - B) / 40;
+  const tons = ["#F6F4EE", "#F1EDE2", "#EBE4D3", "#E4D9C1", "#DCCDAE"], fx = [[0, 7], [8, 15], [16, 23], [24, 31], [32, 40]];
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Evolução da Y-BOCS: total, obsessões e compulsões" style="width:100%;height:auto;display:block;font-family:Arial,Helvetica,sans-serif">`;
+  fx.forEach(([a, b], i) => { const t = y(i === 4 ? b : b + 1); s += `<rect x="${L}" y="${t}" width="${W - L - Rr}" height="${y(a) - t}" fill="${tons[i]}"/>`; });
+  [0, 8, 16, 24, 32, 40].forEach((v) => { s += `<text x="${L - 6}" y="${y(v) + 3.5}" text-anchor="end" font-size="9.5" fill="#5E5A4C">${v}</text>`; });
+  const passo = Math.max(1, Math.ceil(n / 6));
+  ps.forEach((p, i) => { if (i % passo === 0 || i === n - 1) s += `<text x="${x(i)}" y="${H - 8}" text-anchor="${n === 1 ? "middle" : i === 0 ? "start" : i === n - 1 ? "end" : "middle"}" font-size="9.5" fill="#5E5A4C">${dataCurta(p)}</text>`; });
+  S.forEach(([, k, cor, w]) => {
+    if (n > 1) s += `<polyline fill="none" stroke="${cor}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" points="${ps.map((p, i) => `${x(i).toFixed(1)},${y(p[k]).toFixed(1)}`).join(" ")}"/>`;
+    ps.forEach((p, i) => { s += `<circle cx="${x(i).toFixed(1)}" cy="${y(p[k]).toFixed(1)}" r="${k === "total" ? 4.5 : 4}" fill="${cor}" stroke="#fff" stroke-width="2"><title>${dataCurta(p)} · ${k === "total" ? "Total" : k === "obs" ? "Obsessões" : "Compulsões"}: ${p[k]}</title></circle>`; });
+  });
+  // valores do último ponto, à direita, sem sobrepor (texto na cor de texto; a cor da série fica no traço ao lado)
+  const u = ps[n - 1], lab = S.map(([nome, k, cor]) => ({ k, cor, v: u[k], y: y(u[k]) })).sort((a, b) => a.y - b.y);
+  for (let i = 1; i < lab.length; i++) if (lab[i].y - lab[i - 1].y < 12) lab[i].y = lab[i - 1].y + 12;
+  lab.forEach((l) => { const x0 = x(n - 1) + 8; s += `<line x1="${x0}" x2="${x0 + 7}" y1="${l.y}" y2="${l.y}" stroke="${l.cor}" stroke-width="2.5"/><text x="${x0 + 10}" y="${l.y + 3.5}" font-size="10.5" font-weight="700" fill="#2B2A22">${l.v}</text>`; });
+  return s + `</svg>`;
+}
+const YB_LEGENDA = (tam) => `<div style="display:flex;flex-wrap:wrap;gap:4px 14px;font-size:${tam};color:#2B2A22;margin-top:4px">` +
+  [["Total (0–40)", "#2B2A22", 3], ["Obsessões (0–20)", "#C3622D", 2.5], ["Compulsões (0–20)", "#2F55B5", 2.5]].map(([t, c, w]) =>
+    `<span style="white-space:nowrap"><span style="display:inline-block;width:16px;height:0;border-top:${w}px solid ${c};vertical-align:middle;margin-right:5px"></span>${t}</span>`).join("") + `</div>`;
 function ybocsHtml_(d) {
   const e = esc_, data = q => Utilities.formatDate(q, "America/Sao_Paulo", "dd/MM/yy");
   const ps = (d.historico || []).length ? d.historico : [], atual = ps[ps.length - 1], base = ps[0], ant = ps[ps.length - 2];
@@ -409,6 +434,7 @@ function ybocsHtml_(d) {
    <td><b>Em relação ao início</b>${ps.length > 1 ? `Basal ${base.total} (${data(base.quando)}) → ${atual.total}<br>${queda >= 0 ? "Queda" : "Aumento"} de ${Math.abs(queda)}%` : "Primeira avaliação: ponto de partida"}</td>
    <td><b>Resposta · remissão</b>Resposta: ${resp}<br>Remissão (Y-BOCS ≤ 12): ${remissao ? "<b style='display:inline;font-size:9pt;color:#2F5A48'>sim</b>" : "não"}<br><span class="mini">Critérios de consenso (Mataix-Cols et al., 2016); confirmar com a impressão clínica.</span></td></tr></table>
   <h2>Evolução da Y-BOCS</h2>
+  ${ps.length > 1 ? `<div style="max-width:150mm">${YB_LINHAS(ps, r => Utilities.formatDate(r.quando, "America/Sao_Paulo", "dd/MM"))}</div>${YB_LEGENDA("8.5pt")}<div style="height:8px"></div>` : ""}
   <div class="leg" style="margin:0 0 4px">Cada linha é uma avaliação (0–40). Faixas: ${YB_FAIXAS.map((f, i) => `<span style="display:inline-block;width:9px;height:9px;background:${PHQ_TONS[i]};border-radius:2px"></span> ${f[0]}–${f[1]} ${f[2]}`).join(" · ")}.</div>
   <table class="graf">${ps.map((r, i) => `<tr><td class="dl">${data(r.quando)}</td><td>${barra(r.total)}</td><td class="dv"><b>${r.total}</b></td><td class="dk">O ${r.obs} · C ${r.comp} · ${i ? (r.total - ps[i - 1].total > 0 ? "+" : "") + (r.total - ps[i - 1].total) + " desde a anterior" : "basal"}${/^SIM/.test(r.morte) ? " · <b style='display:inline;color:#83462D'>vontade de morrer</b>" : ""}</td></tr>`).join("")}</table>
   <h2>Itens</h2>
