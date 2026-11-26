@@ -46,12 +46,12 @@ Faça isto uma vez, no computador (no celular o editor do Google não funciona b
 4. Apague o paciente TESTE e a linha da planilha.
 
 ## DIVA-5
-A página `consultorio/diva.html` envia para o mesmo formulário de recebimento. Com este programa instalado,
+A página `diva.html` (repositório `consultorio`) envia para o mesmo formulário de recebimento. Com este programa instalado,
 o paciente é localizado pelo CPF e o PDF entra nos Arquivos com o nome `DIVA-5 (TDAH) – DD-MM-AAAA.pdf`,
 com o resumo de pontuação no início.
 
 ## Acompanhamento da depressão (PHQ-9)
-A página `consultorio/humor.html` também envia para o formulário de recebimento.
+A página `humor.html` (repositório `consultorio`) também envia para o formulário de recebimento.
 - **PHQ-9** (a cada 2 semanas): o paciente é localizado no V Saúde e entra nos Arquivos o PDF
   `PHQ-9 (depressão) – DD-MM-AAAA.pdf`, com a pontuação de hoje, resposta (queda ≥ 50% do basal),
   remissão (< 5), o gráfico da evolução, os itens comparados e os check-ins do período.
