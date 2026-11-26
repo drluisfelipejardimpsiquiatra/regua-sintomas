@@ -2,7 +2,9 @@
 
 > **Pode instalar.** Funciona para tudo o que chega à planilha "Pré-consulta por voz · recebimento":
 > **DIVA-5**, pré-consulta de **criança/adolescente** e de **idoso**.
-> A pré-consulta de **adulto** vai para outra planilha (formulário 10/2026) e ainda não passa por aqui.
+> A pré-consulta de **adulto** continua indo para a planilha do formulário 10/2026 e, com o ajuste de `nuvem/pre-consulta-adulto.patch`
+> aplicado na página (repositório `consultorio`), manda também uma cópia organizada para cá: vira PDF com a escala transversal
+> do DSM-5 pontuada por domínio.
 
 ## Como o paciente é encontrado no V Saúde
 1. Pelo **CPF** informado.

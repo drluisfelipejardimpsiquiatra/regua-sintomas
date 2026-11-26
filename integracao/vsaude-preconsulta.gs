@@ -264,6 +264,58 @@ function interpretar(cab, corpo) {
 
 function esc_(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
+// ===================== PRÉ-CONSULTA ADULTO: ESCALA TRANSVERSAL DSM-5 (NÍVEL 1) =====================
+// A grade "Como você tem estado" do adulto é a Medida Transversal de Sintomas de Nível 1 do DSM-5
+// (itens 1–20; os 3 de substâncias são cobertos pelas perguntas de hábitos). Regra do DSM-5: o domínio
+// pede investigação (Nível 2) se o MAIOR item do domínio atinge "Leve" (2), ou "Muito leve" (1) em
+// ideação suicida, psicose e uso de substâncias. Itens reconhecidos pelo texto, não pela posição.
+const TRANSVERSAL = [
+  ["Depressão", /interesse ou prazer|desanimado, deprimido/, 2, "PROMIS Depressão ou PHQ-9 (Meu humor)"],
+  ["Raiva", /mais irritado, mal-humorado/, 2, "PROMIS Raiva"],
+  ["Mania", /dormiu menos do que o usual|muito mais projetos/, 2, "ASRM (Altman)"],
+  ["Ansiedade", /nervoso, ansioso|sentiu panico|evitou situacoes/, 2, "PROMIS Ansiedade ou GAD-7"],
+  ["Sintomas somáticos", /dores e sofrimento|nao estao sendo levadas/, 2, "PHQ-15"],
+  ["Ideação suicida", /ferir a si mesmo/, 1, "Avaliação direta do risco (C-SSRS)"],
+  ["Psicose", /ouviu coisas|ouvir seus pensamentos/, 1, "Avaliação clínica direta"],
+  ["Sono", /problemas com o sono/, 2, "PROMIS Sono ou ISI"],
+  ["Memória", /problemas com a memoria/, 2, "Avaliação cognitiva (MoCA)"],
+  ["Pensamentos e comportamentos repetitivos", /impulsos ou imagens desagradaveis|compelido a realizar/, 2, "FOCI ou Y-BOCS"],
+  ["Dissociação", /desligado ou distante/, 2, "Avaliação clínica (DES-II)"],
+  ["Funcionamento da personalidade", /quem voce realmente e|proximo a outras pessoas/, 2, "PID-5 breve"]];
+const semAcento_ = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+/** Domínios da escala transversal; null se a grade não for a do adulto (criança e idoso têm outra). */
+function transversal_(d) {
+  if (!d.rastreio) return null;
+  const itens = d.rastreio.itens.map((it, i) => Object.assign({ n: i + 1, k: semAcento_(it.q) }, it));
+  const dom = TRANSVERSAL.map(([nome, re, lim, n2]) => {
+    const its = itens.filter(it => re.test(it.k)), resp = its.filter(it => it.v >= 0);
+    const max = resp.length ? Math.max(...resp.map(it => it.v)) : -1;
+    return { nome, lim, n2, itens: its.map(it => it.n), max, acima: max >= lim, resp: resp.length };
+  });
+  if (dom.reduce((s, x) => s + x.itens.length, 0) < 15) return null;
+  // Substâncias (domínio XIII): pelas respostas de hábitos, não pela grade.
+  const linha = re => { for (const s of d.secoes) for (const l of (s.texto || "").split("\n")) if (re.test(semAcento_(l))) return l.slice(l.indexOf("?:") >= 0 ? l.indexOf("?:") + 2 : l.lastIndexOf(": ") + 1).trim(); return ""; };
+  const alc = linha(/^quantas doses de bebida alcoolica/), fumo = linha(/^fuma tabaco/), drog = linha(/^usa ou ja usou outras drogas/);
+  const motivos = [];
+  const nAlc = (alc.match(/\d+/g) || []).map(Number).pop();
+  if (/8 a 14|mais de 14/i.test(alc) || (/^\d+$/.test(alc) && nAlc >= 8)) motivos.push("álcool: " + alc + " doses/semana");
+  if (/fumo/i.test(semAcento_(fumo))) motivos.push("tabaco: " + fumo.toLowerCase());
+  if (drog && !/^(nunca|nao|nenhum)/.test(semAcento_(drog))) motivos.push("outras drogas: " + drog);
+  const subst = { nome: "Uso de substâncias", lim: 1, n2: "ASSIST (NIDA) ou AUDIT", itens: [], acima: motivos.length > 0,
+    habitos: alc || fumo || drog ? motivos.length ? motivos.join(" · ") : "sem sinal nas respostas de hábitos" : "" };
+  return dom.concat([subst]);
+}
+function transversalHtml_(t) {
+  const e = esc_;
+  return `<h2>Escala transversal do DSM-5 (Nível 1) · por domínio</h2>
+  <div class="leg" style="margin:0 0 4px">Conta o maior item de cada domínio. Limiar do DSM-5 para aprofundar a investigação (Nível 2): Leve ou mais; Muito leve ou mais em ideação suicida, psicose e substâncias. Rastreio, não diagnóstico.</div>
+  <table class="r"><tr><th style="text-align:left">Domínio</th><th>Itens</th><th>Maior</th><th>Limiar</th><th style="text-align:left">Situação</th><th style="text-align:left">Aprofundar com</th></tr>
+  ${t.map(x => `<tr class="${x.acima && (x.lim === 1) ? "rk" : x.acima ? "g4" : ""}"><td>${e(x.nome)}</td><td class="c">${x.itens.length ? x.itens.join(", ") : "hábitos"}</td>
+   <td class="c" style="white-space:nowrap">${x.itens.length ? (x.max >= 0 ? FREQ[x.max] : "—") : ""}</td><td class="c" style="white-space:nowrap">${FREQ[x.lim]}</td>
+   <td>${x.itens.length ? (x.resp ? (x.acima ? "Acima do limiar" : "Abaixo") : "Não respondido") : e(x.habitos || "Não respondido") + (x.acima ? " · <b>acima do limiar</b>" : "")}</td>
+   <td>${x.acima ? e(x.n2) : ""}</td></tr>`).join("")}</table>`;
+}
+
 // ===================== DIVA-5: GRÁFICO DO RESULTADO =====================
 // Tabelas simples (o conversor de PDF do Google não roda JavaScript).
 // Cor = fase: azul = hoje (adulto), terracota = infância (5–12 anos). Paleta conferida para daltonismo.
@@ -373,6 +425,7 @@ function montarHtml(d) {
     !(d.impacto && s.titulo === d.impacto.titulo) && s.titulo !== "Motivação" && !/^Resumo para o médico/.test(s.titulo) &&
     (d.roteiro !== "PHQ-9" || s.titulo === "Observações do paciente"));
   const destaques = d.rastreio ? d.rastreio.itens.filter(it => it.v >= 3) : [];
+  const transv = transversal_(d), acima = transv ? transv.filter(x => x.acima) : [];
   const frases = abertas.map(s => s.texto).join(" ").split(/(?<=[.!?])\s+/)
     .filter(f => /suicid|me matar|tirar a (minha |própria )?vida|sumir|morrer|me ferir|me cortar|acabar com tudo/i.test(f)).slice(0, 2);
   return `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -433,7 +486,9 @@ function montarHtml(d) {
   <table class="vr" style="width:100%;border-collapse:separate;border-spacing:6px 0"><tr>
    <td><b>Quanto atrapalha hoje</b>${d.impacto ? `<span class="big">${e(d.impacto.nota || "—")}</span> / 10<br>${e(d.impacto.areas.split(", ").join(" · "))}` : "—"}</td>
    <td><b>Motivação</b>Importância de resolver agora: <strong>${e(d.motivacao.imp || "—")}</strong>/10<br>Confiança de mudar com ajuda: <strong>${e(d.motivacao.conf || "—")}</strong>/10</td>
-   <td><b>Rastreio: moderado ou grave</b>${destaques.length ? destaques.map(it => "• " + e(curto(it.q))).join("<br>") : "Nenhum item"}</td></tr></table>`}
+   ${transv ? `<td><b>Acima do limiar DSM-5 · ${acima.length} de ${transv.length}</b>${acima.length ? acima.map(x => "• " + e(x.nome)).join("<br>") : "Nenhum domínio"}</td>`
+     : `<td><b>Rastreio: moderado ou grave</b>${destaques.length ? destaques.map(it => "• " + e(curto(it.q))).join("<br>") : "Nenhum item"}</td>`}</tr></table>`}
+  ${transv ? transversalHtml_(transv) : ""}
   ${d.rastreio ? `<h2>Rastreio · ${e(d.rastreio.titulo.toLowerCase())}</h2>
   <table class="r"><tr><th></th><th style="text-align:left">Item</th>${FREQ.map(f => `<th>${f}</th>`).join("")}</tr>
   ${d.rastreio.itens.map((it, i) => `<tr class="${it.risco && it.v > 0 ? "rk" : it.v === 4 ? "g4" : it.v === 3 ? "g3" : ""}"><td style="color:#5f5d4c;text-align:right">${i + 1}</td><td>${e(it.q)}</td>${FREQ.map((_, j) => `<td class="c">${it.v === j ? "●" : ""}</td>`).join("")}</tr>`).join("")}</table>

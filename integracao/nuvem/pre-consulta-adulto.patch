@@ -1,0 +1,56 @@
+--- a/pre-consulta.html
++++ b/pre-consulta.html
+@@ -665,6 +665,11 @@
+   fd.append("fvv", "1"); fd.append("fbzx", FBZX); fd.append("pageHistory", "0,1,2,3,4,5,6,7");
+   try {
+     await fetch(FORM, { method: "POST", mode: "no-cors", body: fd });
++    // Cópia organizada para o formulário de recebimento → PDF no prontuário do V Saúde.
++    try { const { cab, corpo } = textoAdulto(), fx = new URLSearchParams();
++      fx.append(CAMPO_PACIENTE, cab); fx.append(CAMPO_RESPOSTAS, corpo);
++      await fetch(FORM_EXTRA, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: fx.toString() });
++    } catch (err) { console.warn("cópia para o V Saúde não enviada", err); }
+     concluido();
+   } catch (err) {
+     b.disabled = false; b.textContent = "Tentar enviar de novo";
+@@ -694,6 +699,41 @@
+     blocos.map(([t, x]) => `## ${t}\n${x || "—"}`).join("\n\n");
+   return { cab, corpo };
+ }
++// Adulto: além do formulário oficial (campo a campo), vai o mesmo texto organizado em seções "## ..."
++// que criança e idoso usam, para o integrador gerar o PDF e anexar no V Saúde.
++function textoAdulto() {
++  const dataBR = (d) => d ? d.split("-").reverse().join("/") : "";
++  const r1 = (v) => String(v == null ? "" : v).trim().replace(/\s*\n+\s*/g, " / ");
++  const rot = (q) => String(q.q).trim().replace(/:$/, "");
++  const freq = (q) => { const i = q.o.indexOf(S.resp[q.e]); return i >= 0 ? FREQ_CURTO[i] : "—"; };
++  const MOTIV = [380135455, 438179701], IDENT = [451530768, 302491566, 1356641035, 271042664];
++  const min = S.inicio ? Math.round((Date.now() - S.inicio) / 60000) : null;
++  const tempo = min == null ? "" : min <= 120 ? `${Math.max(1, min)} min` : "em mais de uma sessão";
++  const v = (e) => S.resp[e], blocos = [];
++  STEPS.forEach((st, i) => {
++    if (i === MULHER && S.pularMulher) return;
++    const qs = st.q.filter((q) => visivelSe(q) && !MOTIV.includes(q.e));
++    if (i === 0) {
++      blocos.push(["Identificação", qs.map((q) => `${rot(q)}: ${r1(q.t === "date" ? dataBR(v(q.e)) : v(q.e))}`).join("\n") + `\nE-mail: ${S.email}`]);
++    } else if (st.grade) {
++      blocos.push([st.n, qs.map((q) => `${rot(q)}: ${freq(q)}`).join("\n")]);
++    } else {
++      const imp = qs.filter((q) => q.e === 2047008911 || q.e === 216020722), resto = qs.filter((q) => !imp.includes(q));
++      blocos.push([st.n, resto.map((q) => { const t = r1(textoResp(q)); return q.det && !t ? "" : `${rot(q)}: ${t || "—"}`; }).filter(Boolean).join("\n")]);
++      if (imp.length) blocos.push(["Impacto no dia a dia", `Áreas: ${r1(textoResp(QA[2047008911])).split(" · ").join(", ") || "—"}\nQuanto atrapalha (0–10): ${v(216020722) || "—"}`]);
++    }
++  });
++  blocos.push(["Motivação", `Importância de resolver agora (0–10): ${v(380135455) || "—"}\nConfiança de mudar com ajuda (0–10): ${v(438179701) || "—"}`]);
++  const livre = Object.values(S.resp).filter((x) => typeof x === "string").join(" ").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
++  const ri = QA[770691408], rv = v(770691408);
++  const risco = (rv && rv !== ri.o[0]) || /(suicid|me matar|tirar (a )?(minha|propria) vida|nao quero mais viver|quero morrer|acabar com tudo|me ferir|me cortar)/.test(livre);
++  const cpf = String(v(302491566) || "").replace(/\D/g, "");
++  const cab = `[Adulto] ${r1(v(451530768))} · CPF ${cpf || "—"} · nasc. ${dataBR(v(1356641035)) || "—"} · ${r1(v(271042664))}`;
++  const corpo = (risco ? "⚠ ATENÇÃO: sinal de risco (autolesão/suicídio) nas respostas.\n\n" : "") +
++    "PRÉ-CONSULTA · ADULTO (texto revisado por quem respondeu)\n" + new Date().toLocaleString("pt-BR") + (tempo ? `\nTempo de preenchimento: ${tempo}` : "") + "\n\n" +
++    blocos.map(([t, x]) => `## ${t}\n${x || "—"}`).join("\n\n");
++  return { cab, corpo };
++}
+ async function enviarExtra(b) {
+   const { cab, corpo } = textoExtra(), fd = new URLSearchParams();
+   fd.append(CAMPO_PACIENTE, cab); fd.append(CAMPO_RESPOSTAS, corpo);
