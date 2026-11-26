@@ -65,7 +65,7 @@ function processarLinha_(linha, silencioso) {
       status("✅ Check-in registrado · entra no próximo PDF do PHQ-9"); return;
     }
     const loc = localizar_(d);
-    if (d.roteiro === "PHQ-9" && d.risco && !silencioso) alertarRisco_(d, linha);
+    if ((d.roteiro === "PHQ-9" || d.roteiro === "Y-BOCS") && d.risco && !silencioso) alertarRisco_(d, linha);
     if (!loc.p) {
       const msg = "⚠ " + loc.erro;
       const anterior = String(sh.getRange(linha, col).getValue());
@@ -75,9 +75,10 @@ function processarLinha_(linha, silencioso) {
     }
     const p = loc.p;
     if (d.roteiro === "PHQ-9") d.historico = historicoHumor_(sh, d.cpf, d.nome, linha, d.codigo);
+    if (d.roteiro === "Y-BOCS") d.historico = historicoYbocs_(sh, d.cpf, d.nome, linha, d.codigo);
     d.vsaude = { id: p.id, numero: p.sequentialNumber, nome: p.name, via: loc.via };
     const data = Utilities.formatDate(ehData_(quando) ? quando : new Date(), "America/Sao_Paulo", "dd-MM-yyyy");
-    const nomeArq = `${{ "DIVA-5": "DIVA-5 (TDAH)", "PHQ-9": "PHQ-9 (depressão)" }[d.roteiro] || "Pré-consulta"} – ${data}.pdf`;
+    const nomeArq = `${{ "DIVA-5": "DIVA-5 (TDAH)", "PHQ-9": "PHQ-9 (depressão)", "Y-BOCS": "Y-BOCS (TOC)" }[d.roteiro] || "Pré-consulta"} – ${data}.pdf`;
     const pdf = HtmlService.createHtmlOutput(montarHtml(d)).getAs("application/pdf").setName(nomeArq);
     enviarArquivo_(p.id, nomeArq, pdf);
     status(`✅ Anexado em ${Utilities.formatDate(new Date(), "America/Sao_Paulo", "dd/MM HH:mm")} · ${p.sequentialNumber ? "paciente nº " + p.sequentialNumber + " · " : ""}localizado pelo ${loc.via}${loc.obs ? " · " + loc.obs : ""}`);
@@ -217,7 +218,7 @@ function colunaStatus_() {
 function avisar_(d, motivo, linha) {
   const para = Session.getEffectiveUser().getEmail(); if (!para) return;
   const quem = d ? `${d.nome || "(sem nome)"} · CPF ${d.cpfFmt || "—"}` : "(não identificado)";
-  MailApp.sendEmail(para, `${d && (d.roteiro === "DIVA-5" || d.roteiro === "PHQ-9") ? d.roteiro : "Pré-consulta"} não anexada ao V Saúde: ${d ? d.nome : ""}`,
+  MailApp.sendEmail(para, `${d && (d.roteiro === "DIVA-5" || d.roteiro === "PHQ-9" || d.roteiro === "Y-BOCS") ? d.roteiro : "Pré-consulta"} não anexada ao V Saúde: ${d ? d.nome : ""}`,
     `${motivo}\n\nPaciente: ${quem}\nLinha da planilha: ${linha}\n\n` +
     `O que fazer: confira se o paciente está cadastrado no V Saúde com este CPF, ou com o mesmo nome e data de nascimento (corrija ou complete o cadastro). ` +
     `A planilha tenta de novo a cada hora e anexa sozinha quando encontrar.\n\n` +
@@ -336,7 +337,7 @@ function historicoHumor_(sh, cpf, nome, ateLinha, codigo) {
 function alertarRisco_(d, linha) {
   const para = Session.getEffectiveUser().getEmail(); if (!para) return;
   MailApp.sendEmail(para, `⚠ Sinal de risco · ${d.roteiro} · ${d.nome}`,
-    `${d.nome} (CPF ${d.cpfFmt || "—"}, celular ${d.tel || "—"}) marcou pensamentos de morte ou de se ferir no ${d.roteiro === "PHQ-9" ? "PHQ-9 (item 9)" : "check-in"}.\n` +
+    `${d.nome} (CPF ${d.cpfFmt || "—"}, celular ${d.tel || "—"}) ${d.roteiro === "Y-BOCS" ? "marcou vontade de morrer ou de tirar a própria vida no questionário de acompanhamento do TOC (Y-BOCS)" : "marcou pensamentos de morte ou de se ferir no " + (d.roteiro === "PHQ-9" ? "PHQ-9 (item 9)" : "check-in")}.\n` +
     `A página mostrou ao paciente a orientação do CVV 188 / SAMU 192.\n\nLinha da planilha: ${linha}\n${SpreadsheetApp.getActiveSpreadsheet().getUrl()}`);
 }
 function phqHtml_(d) {
@@ -367,11 +368,63 @@ function phqHtml_(d) {
   ${desde.some(r => r.nota) ? `<h3>Notas dos check-ins</h3>${desde.filter(r => r.nota).map(r => `<p><b style="display:inline">${data(r.quando)}:</b> ${e(r.nota)}</p>`).join("")}` : ""}`;
 }
 
+// ===================== ACOMPANHAMENTO DO TOC (Y-BOCS) =====================
+// Página consultorio/toc.html: Y-BOCS autoaplicável a cada 2 semanas; lista de sintomas na 1ª avaliação.
+const YB_CURTO = ["Tempo com obsessões", "Interferência das obsessões", "Aflição das obsessões", "Resistência às obsessões", "Controle das obsessões",
+  "Tempo com compulsões", "Interferência das compulsões", "Aflição se impedido de compulsões", "Resistência às compulsões", "Controle das compulsões"];
+const YB_FAIXAS = [[0, 7, "subclínicos"], [8, 15, "leves"], [16, 23, "moderados"], [24, 31, "graves"], [32, 40, "extremos"]];
+const ybFaixa_ = t => YB_FAIXAS.findIndex(([a, b]) => t >= a && t <= b);
+/** Lê uma avaliação Y-BOCS a partir do texto enviado pela página. */
+function registroYbocs_(quando, cab, corpo) {
+  const c = String(corpo), g = re => (c.match(re) || [])[1], sec = t => ((c.split("## " + t + "\n")[1] || "").split("\n\n## ")[0] || "").trim();
+  const r = { quando: ehData_(quando) ? quando : new Date(quando), tipo: "Y-BOCS",
+    itens: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => +((c.match(new RegExp("\\n" + i + "\\. [^\\n]*: (\\d) \\(")) || [])[1] || 0)),
+    obs: +(g(/Obsessões \(itens 1–5\): (\d+)/) || 0), comp: +(g(/Compulsões \(itens 6–10\): (\d+)/) || 0), total: +(g(/Total: (\d+)\/40/) || 0),
+    morte: g(/Vontade de morrer ou de tirar a própria vida: ([^\n]*)/) || "—", lista: sec("Lista de sintomas (atuais)"),
+    alvo: sec("Sintomas que mais atrapalham"), nota: sec("Observações do paciente") };
+  ["lista", "alvo", "nota"].forEach(k => { if (r[k] === "—") r[k] = ""; });
+  return r;
+}
+/** Histórico do mesmo paciente na planilha (avaliações Y-BOCS), até a linha atual. */
+function historicoYbocs_(sh, cpf, nome, ateLinha, codigo) {
+  const n = Math.min(sh.getLastRow(), ateLinha);
+  if (n < 2) return [];
+  return sh.getRange(2, 1, n - 1, 3).getValues()
+    .filter(([q, cab]) => /^\[Y-BOCS\]/.test(String(cab)) && ((codigo && String(cab).indexOf("código " + codigo) >= 0) || (cpf && String(cab).indexOf("CPF " + cpf + " ") >= 0) || (!cpf && !codigo && norm_(String(cab).split(" · ")[0].replace(/^\[[^\]]+\] /, "")) === norm_(nome))))
+    .map(([q, cab, corpo]) => registroYbocs_(q, cab, corpo)).sort((a, b) => a.quando - b.quando);
+}
+function ybocsHtml_(d) {
+  const e = esc_, data = q => Utilities.formatDate(q, "America/Sao_Paulo", "dd/MM/yy");
+  const ps = (d.historico || []).length ? d.historico : [], atual = ps[ps.length - 1], base = ps[0], ant = ps[ps.length - 2];
+  if (!atual) return "";
+  const queda = ps.length > 1 && base.total > 0 ? Math.round((base.total - atual.total) / base.total * 100) : null;
+  const resp = queda == null ? "—" : queda >= 35 ? "<b style='display:inline;font-size:9pt;color:#2F5A48;text-transform:none;letter-spacing:0'>sim (queda ≥ 35%)</b>" : queda >= 25 ? "parcial (queda de 25 a 34%)" : "não";
+  const remissao = atual.total <= 12;
+  const barra = t => `<table class="pb"><tr><td style="width:${Math.max(t, 0.4) / 40 * 100}%;background:${PHQ_TONS[ybFaixa_(t)]}">&nbsp;</td><td style="background:#F1EFE8">&nbsp;</td></tr></table>`;
+  const comLista = ps.filter(r => r.lista).slice(-1)[0];
+  const lista = comLista ? comLista.lista.split("\n").map(l => /^(OBSESSÕES|COMPULSÕES)$/.test(l) ? `<h3>${e(l.charAt(0) + l.slice(1).toLowerCase())}</h3>` : `<p>${e(l)}</p>`).join("") : "";
+  return `<h2>Resultado de hoje</h2>
+  <table class="sint"><tr>
+   <td><b>Y-BOCS total</b><span style="font-size:20pt">${atual.total}</span> / 40<br>sintomas ${YB_FAIXAS[ybFaixa_(atual.total)][2]}<br><span class="mini">Obsessões ${atual.obs}/20 · Compulsões ${atual.comp}/20</span></td>
+   <td><b>Em relação ao início</b>${ps.length > 1 ? `Basal ${base.total} (${data(base.quando)}) → ${atual.total}<br>${queda >= 0 ? "Queda" : "Aumento"} de ${Math.abs(queda)}%` : "Primeira avaliação: ponto de partida"}</td>
+   <td><b>Resposta · remissão</b>Resposta: ${resp}<br>Remissão (Y-BOCS ≤ 12): ${remissao ? "<b style='display:inline;font-size:9pt;color:#2F5A48'>sim</b>" : "não"}<br><span class="mini">Critérios de consenso (Mataix-Cols et al., 2016); confirmar com a impressão clínica.</span></td></tr></table>
+  <h2>Evolução da Y-BOCS</h2>
+  <div class="leg" style="margin:0 0 4px">Cada linha é uma avaliação (0–40). Faixas: ${YB_FAIXAS.map((f, i) => `<span style="display:inline-block;width:9px;height:9px;background:${PHQ_TONS[i]};border-radius:2px"></span> ${f[0]}–${f[1]} ${f[2]}`).join(" · ")}.</div>
+  <table class="graf">${ps.map((r, i) => `<tr><td class="dl">${data(r.quando)}</td><td>${barra(r.total)}</td><td class="dv"><b>${r.total}</b></td><td class="dk">O ${r.obs} · C ${r.comp} · ${i ? (r.total - ps[i - 1].total > 0 ? "+" : "") + (r.total - ps[i - 1].total) + " desde a anterior" : "basal"}${/^SIM/.test(r.morte) ? " · <b style='display:inline;color:#83462D'>vontade de morrer</b>" : ""}</td></tr>`).join("")}</table>
+  <h2>Itens</h2>
+  <table class="r"><tr><th style="text-align:left">Item</th>${ps.length > 2 ? "<th>Basal</th>" : ""}${ant ? "<th>Anterior</th>" : ""}<th>Hoje</th></tr>
+  ${YB_CURTO.map((q, i) => `${i === 5 ? `<tr><td colspan="4" style="border-bottom:1.5px solid #656635;padding:0"></td></tr>` : ""}<tr class="${atual.itens[i] >= 3 ? "g3" : ""}"><td>${i + 1}. ${e(q)}</td>${ps.length > 2 ? `<td class="c">${base.itens[i]}</td>` : ""}${ant ? `<td class="c">${ant.itens[i]}</td>` : ""}<td class="c"><b>${atual.itens[i]}</b></td></tr>`).join("")}
+  <tr><td><b style="display:inline">Obsessões (1–5) · Compulsões (6–10)</b></td>${ps.length > 2 ? `<td class="c">${base.obs} · ${base.comp}</td>` : ""}${ant ? `<td class="c">${ant.obs} · ${ant.comp}</td>` : ""}<td class="c"><b>${atual.obs} · ${atual.comp}</b></td></tr></table>
+  <div class="leg">Cada item de 0 (nenhum) a 4 (extremo), sobre a última semana. Versão autoaplicável (Y-BOCS-SR), tradução de trabalho.</div>
+  ${comLista ? `<h2>Lista de sintomas atuais</h2><div class="leg" style="margin:0 0 4px">Marcada pelo paciente em ${data(comLista.quando)}${comLista === atual ? " (hoje)" : ""}.</div>${lista}
+  ${comLista.alvo ? `<h3>Sintomas que mais atrapalham (nas palavras do paciente)</h3>${comLista.alvo.split("\n").map(l => `<p>${e(l)}</p>`).join("")}` : ""}` : ""}`;
+}
+
 function montarHtml(d) {
   const e = esc_, curto = q => q.split(/,| \(/)[0];
   const abertas = d.secoes.filter(s => s.titulo !== "Identificação" && s !== (d.rastreio && d.secoes.find(x => x.titulo === d.rastreio.titulo)) &&
     !(d.impacto && s.titulo === d.impacto.titulo) && s.titulo !== "Motivação" && !/^Resumo para o médico/.test(s.titulo) &&
-    (d.roteiro !== "PHQ-9" || s.titulo === "Observações do paciente"));
+    ((d.roteiro !== "PHQ-9" && d.roteiro !== "Y-BOCS") || s.titulo === "Observações do paciente"));
   const destaques = d.rastreio ? d.rastreio.itens.filter(it => it.v >= 3) : [];
   const frases = abertas.map(s => s.texto).join(" ").split(/(?<=[.!?])\s+/)
     .filter(f => /suicid|me matar|tirar a (minha |própria )?vida|sumir|morrer|me ferir|me cortar|acabar com tudo/i.test(f)).slice(0, 2);
@@ -420,16 +473,16 @@ function montarHtml(d) {
   table.mapa td.c{text-align:center;font-size:12pt;padding:0 6px;line-height:1.1}
   .nota{font-size:8pt;color:#5f5d4c;border-top:1px solid #e2dccb;margin-top:12px;padding-top:5px}
   </style></head><body>
-  <div class="cab"><h1>${{ "DIVA-5": "DIVA-5 · TDAH em adultos", "PHQ-9": "Acompanhamento da depressão" }[d.roteiro] || "Pré-consulta"} <span class="tag">${e((d.roteiro || "").toUpperCase())}</span></h1>
+  <div class="cab"><h1>${{ "DIVA-5": "DIVA-5 · TDAH em adultos", "PHQ-9": "Acompanhamento da depressão", "Y-BOCS": "Acompanhamento do TOC" }[d.roteiro] || "Pré-consulta"} <span class="tag">${e((d.roteiro || "").toUpperCase())}</span></h1>
   <div class="dr">Dr. Luis Felipe Jardim · Psiquiatra<br>CRM-SC 12767 · RQE 22739<br>Recebida em ${e(d.enviado)}</div></div>
   <div class="id"><div class="nome">${e(d.nome)}</div><table><tr>
    <td><b>CPF</b>${e(d.cpfFmt)}</td><td><b>Nascimento · idade</b>${e(d.nasc)}${d.idade != null ? " · " + d.idade + " anos" : ""}</td><td><b>Celular</b>${e(d.tel)}</td></tr><tr>
    <td><b>${d.roteiro === "DIVA-5" ? "Ajuda com a infância" : "Respondido por"}</b>${e(d.roteiro === "DIVA-5" ? (d.ident["Quem ajudou com a infância"] || "—") : d.respondente)}${d.cuidador ? "<br>" + e(d.cuidador) : ""}</td>
    <td><b>Cadastro V Saúde</b>${d.vsaude ? (d.vsaude.numero ? "Paciente nº " + e(d.vsaude.numero) + " · l" : "L") + "ocalizado pelo " + e(d.vsaude.via || "CPF") : "—"}</td>
    <td><b>Tempo de preenchimento</b>${e(d.tempo || "—")}</td></tr></table></div>
-  ${d.risco || d.riscoItens.length ? `<div class="alerta"><b>⚠ Sinal de risco.</b> ${d.riscoItens.map(it => `Rastreio: “${e(it.q)}” = <b>${FREQ[it.v]}</b>.`).join(" ")}
+  ${d.risco || d.riscoItens.length ? `<div class="alerta"><b>⚠ Sinal de risco.</b> ${d.roteiro === "Y-BOCS" ? "O paciente marcou <b>vontade de morrer ou de tirar a própria vida</b> nos últimos dias." : ""}${d.riscoItens.map(it => `Rastreio: “${e(it.q)}” = <b>${FREQ[it.v]}</b>.`).join(" ")}
     ${frases.length ? " No relato: " + frases.map(f => "“" + e(f) + "”").join(" ") : ""} A orientação do CVV 188 / SAMU 192 foi exibida na tela.</div>` : ""}
-  ${d.roteiro === "DIVA-5" || d.roteiro === "PHQ-9" ? "" : `<h2>Visão rápida</h2>
+  ${d.roteiro === "DIVA-5" || d.roteiro === "PHQ-9" || d.roteiro === "Y-BOCS" ? "" : `<h2>Visão rápida</h2>
   <table class="vr" style="width:100%;border-collapse:separate;border-spacing:6px 0"><tr>
    <td><b>Quanto atrapalha hoje</b>${d.impacto ? `<span class="big">${e(d.impacto.nota || "—")}</span> / 10<br>${e(d.impacto.areas.split(", ").join(" · "))}` : "—"}</td>
    <td><b>Motivação</b>Importância de resolver agora: <strong>${e(d.motivacao.imp || "—")}</strong>/10<br>Confiança de mudar com ajuda: <strong>${e(d.motivacao.conf || "—")}</strong>/10</td>
@@ -438,8 +491,8 @@ function montarHtml(d) {
   <table class="r"><tr><th></th><th style="text-align:left">Item</th>${FREQ.map(f => `<th>${f}</th>`).join("")}</tr>
   ${d.rastreio.itens.map((it, i) => `<tr class="${it.risco && it.v > 0 ? "rk" : it.v === 4 ? "g4" : it.v === 3 ? "g3" : ""}"><td style="color:#5f5d4c;text-align:right">${i + 1}</td><td>${e(it.q)}</td>${FREQ.map((_, j) => `<td class="c">${it.v === j ? "●" : ""}</td>`).join("")}</tr>`).join("")}</table>
   <div class="leg">Muito leve = 1–2 dias · Leve = vários dias · Moderado = mais da metade dos dias · Grave = quase todos os dias. Itens sem marcação: não respondidos.</div>` : ""}
-  ${d.roteiro === "DIVA-5" ? divaHtml_(d) : d.roteiro === "PHQ-9" ? phqHtml_(d) : ""}
-  ${d.roteiro === "PHQ-9" ? (abertas[0] && abertas[0].texto ? `<h2>Observações do paciente</h2><div class="leg" style="margin:0 0 4px">Texto digitado ou ditado pelo paciente.</div>${abertas[0].texto.split("\n").map(l => `<p>${e(l)}</p>`).join("")}` : "") : `
+  ${d.roteiro === "DIVA-5" ? divaHtml_(d) : d.roteiro === "PHQ-9" ? phqHtml_(d) : d.roteiro === "Y-BOCS" ? ybocsHtml_(d) : ""}
+  ${d.roteiro === "PHQ-9" || d.roteiro === "Y-BOCS" ? (abertas[0] && abertas[0].texto ? `<h2>Observações do paciente</h2><div class="leg" style="margin:0 0 4px">Texto digitado ou ditado pelo paciente.</div>${abertas[0].texto.split("\n").map(l => `<p>${e(l)}</p>`).join("")}` : "") : `
   <h2>${d.roteiro === "DIVA-5" ? "Respostas, item por item" : "Respostas abertas"}</h2>
   <div class="leg" style="margin:0 0 4px">Texto ditado ou digitado por quem respondeu e revisado antes do envio. A oralidade foi preservada.</div>
   ${abertas.map(s => `<h3>${e(s.titulo)}</h3>${s.texto ? s.texto.split("\n").map(l => `<p>${e(l)}</p>`).join("") : '<p class="vazio">Não respondido.</p>'}`).join("")}`}
@@ -447,4 +500,4 @@ function montarHtml(d) {
   </body></html>`;
 }
 
-if (typeof module !== "undefined") module.exports = { interpretar, montarHtml, localizar_, norm_, mesmoNome_, registroHumor_ }; // testes locais
+if (typeof module !== "undefined") module.exports = { interpretar, montarHtml, localizar_, norm_, mesmoNome_, registroHumor_, registroYbocs_ }; // testes locais

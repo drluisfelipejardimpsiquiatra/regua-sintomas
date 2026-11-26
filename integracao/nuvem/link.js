@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Gera o link pessoal de um paciente do V Saúde para os apps (Meu humor, DIVA-5).
- * Uso: node link.js <CPF ou nome> [humor|diva]
+ * Gera o link pessoal de um paciente do V Saúde para os apps (Meu humor, DIVA-5, Y-BOCS/TOC).
+ * Uso: node link.js <CPF ou nome> [humor|diva|toc]
  * Mostra os cadastros encontrados; com um único cadastro, imprime o código, os links e a linha para a aba "Links".
  * A linha da aba "Links" é gravada por quem chama (conector do Google Sheets).
  */
 const cp = require("child_process"), crypto = require("crypto");
 const [, , termo, app] = process.argv;
-if (!termo) { console.error("Uso: node link.js <CPF ou nome> [humor|diva]"); process.exit(1); }
+if (!termo) { console.error("Uso: node link.js <CPF ou nome> [humor|diva|toc]"); process.exit(1); }
 const API = "https://public-api.vsaude.com.br/api/services/app/PatientService";
 const req = (m, url) => JSON.parse(cp.execFileSync("curl", ["-s", "--max-time", "30", "-X", m, url]).toString());
 const digitos = termo.replace(/\D/g, "");
@@ -24,6 +24,6 @@ if (lista.length !== 1) { console.log(JSON.stringify({ encontrados: lista }, nul
 const p = lista[0], AB = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const codigo = Array.from(crypto.randomBytes(8), (x) => AB[x % AB.length]).join("");
 const primeiro = encodeURIComponent(p.nome.split(" ")[0]), base = "https://drluisfelipejardimpsiquiatra.github.io/consultorio/";
-const links = { humor: `${base}humor.html?c=${codigo}&n=${primeiro}`, diva: `${base}diva.html?c=${codigo}&n=${primeiro}` };
+const links = { humor: `${base}humor.html?c=${codigo}&n=${primeiro}`, diva: `${base}diva.html?c=${codigo}&n=${primeiro}`, toc: `${base}toc.html?c=${codigo}&n=${primeiro}` };
 console.log(JSON.stringify({ paciente: p, codigo, links: app ? { [app]: links[app] } : links,
-  linhaAbaLinks: [codigo, p.id, p.nome, app === "diva" ? "DIVA-5" : app === "humor" ? "Meu humor" : "Meu humor e DIVA-5", new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })] }, null, 2));
+  linhaAbaLinks: [codigo, p.id, p.nome, app === "diva" ? "DIVA-5" : app === "humor" ? "Meu humor" : app === "toc" ? "Y-BOCS (TOC)" : "Meu humor, DIVA-5 e Y-BOCS", new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })] }, null, 2));
