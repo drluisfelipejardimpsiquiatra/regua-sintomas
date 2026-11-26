@@ -15,9 +15,15 @@ Teste local sem anexar nada: `node processar.js linhas.json saida.json --simular
 
 ## Link pessoal (o consultório escolhe o paciente no V Saúde)
 1. O médico pede no chat: "manda o Meu humor para o CPF ...".
-2. `node link.js <CPF ou nome> [humor|diva]` busca no V Saúde e gera um código aleatório e os links
-   (`humor.html?c=CÓDIGO&n=PrimeiroNome`, `diva.html?c=...`).
+2. `node link.js <CPF ou nome> [humor|diva|toc]` busca no V Saúde e gera um código aleatório e os links
+   (`humor.html?c=CÓDIGO&n=PrimeiroNome`, `diva.html?c=...`, `toc.html?c=...` para a Y-BOCS).
 3. A linha do código vai para a aba **Links** da planilha (código | ID do paciente no V Saúde | nome | app | data).
 4. O paciente abre já identificado, sem digitar CPF. A resposta chega com "código ..." e o processador
    anexa direto no cadastro daquele ID ("localizado pelo link pessoal").
 Os links sem código continuam funcionando como antes (o paciente informa o CPF).
+
+## Y-BOCS (acompanhamento do TOC)
+Página `consultorio/toc.html`: Y-BOCS autoaplicável (Y-BOCS-SR) a cada 14 dias, com a lista de sintomas na 1ª avaliação.
+Chega à mesma planilha com o cabeçalho `[Y-BOCS]`. Cada avaliação vira o PDF "Y-BOCS (TOC) – data.pdf" no V Saúde, com a
+evolução desde a primeira (total, obsessões e compulsões, itens, resposta ≥ 35% e remissão ≤ 12) e a lista de sintomas mais recente.
+"Vontade de morrer ou de tirar a própria vida: SIM" gera o e-mail de sinal de risco, como o item 9 do PHQ-9.
