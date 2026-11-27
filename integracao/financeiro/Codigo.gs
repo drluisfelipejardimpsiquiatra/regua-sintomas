@@ -130,7 +130,7 @@ function doGet(e) {
     '<meta name="viewport" content="width=device-width,initial-scale=1"><div style="font:16px system-ui;padding:40px 20px;text-align:center;color:#2B2A22">' +
     '<h2 style="font-weight:500">Link inválido</h2><p>Peça o link do caixa ao Dr. Luis Felipe.</p></div>').setTitle("Financeiro");
   const c = String((e.parameter && e.parameter.c) || "");
-  const t = HtmlService.createTemplateFromFile(papel === "MEDICO" && !CLINICAS[c] ? "Painel" : "Caixa");
+  const t = HtmlService.createTemplate(arquivo_(papel === "MEDICO" && !CLINICAS[c] ? "Painel" : "Caixa"));
   t.k = k;
   t.clin = papel === "MEDICO" ? c : papel;
   t.medico = papel === "MEDICO";
@@ -141,7 +141,13 @@ function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-function include(nome) { return HtmlService.createHtmlOutputFromFile(nome).getContent(); }
+function include(nome) { return arquivo_(nome); }
+
+/** Telas: embutidas (versão de arquivo único, ARQUIVOS_) ou nos arquivos HTML do projeto. */
+function arquivo_(nome) {
+  if (typeof ARQUIVOS_ !== "undefined" && ARQUIVOS_[nome]) return ARQUIVOS_[nome];
+  return HtmlService.createHtmlOutputFromFile(nome).getContent();
+}
 
 // ===================== CAIXA DA SECRETÁRIA =====================
 

@@ -17,12 +17,13 @@ Faça isto uma vez, no computador. Leva uns 15 minutos.
 ## 1. Criar a planilha e colar o programa
 1. No Google Drive: **Novo → Planilhas Google**. Dê o nome **Financeiro do consultório**. Não compartilhe com ninguém.
 2. Menu **Extensões → Apps Script**.
-3. No editor, apague o que houver em `Código.gs` e cole o conteúdo de **`Codigo.gs`**.
-4. Clique em **+** (Arquivos) → **HTML** e crie três arquivos com estes nomes exatos, colando cada conteúdo:
-   - `Caixa` ← `Caixa.html`
-   - `Painel` ← `Painel.html`
-   - `Estilo` ← `Estilo.html`
-5. **Salvar** (disquete).
+3. Abra o arquivo **`Financeiro-completo.gs`** (é um arquivo só, com tudo dentro), selecione tudo e copie.
+   Pelo navegador: [Financeiro-completo.gs (texto puro)](https://raw.githubusercontent.com/drluisfelipejardimpsiquiatra/regua-sintomas/claude/affectionate-ramanujan-7ucttm/integracao/financeiro/Financeiro-completo.gs)
+   → Ctrl+A → Ctrl+C.
+4. No editor do Apps Script, apague o que houver em `Código.gs`, cole (Ctrl+V) e clique em **Salvar** (disquete).
+
+(Para quem for mexer no código: `Codigo.gs`, `Caixa.html`, `Painel.html` e `Estilo.html` são as fontes;
+`node montar-arquivo-unico.js` gera de novo o `Financeiro-completo.gs`.)
 
 ## 2. Chave do V Saúde e fuso
 Engrenagem **Configurações do projeto**:
