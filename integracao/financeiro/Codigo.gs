@@ -323,6 +323,7 @@ function conferenciaDiaria() {
   if (!ags) blocos.push("<i>Não consegui ler a agenda do V Saúde agora; conferi só a planilha.</i>");
   const quem = Session.getEffectiveUser().getEmail();
   const html = (algum ? blocos.join("") : "Nenhum atendimento hoje nas três clínicas.") +
+    (function () { try { const A = anual_(hoje.slice(0, 4)); return "<p>Acumulado de " + A.ano + ": <b>" + brl_(A.total) + "</b> (média " + brl_(A.media) + "/mês)</p>"; } catch (e) { return ""; } })() +
     '<p><a href="' + SpreadsheetApp.getActiveSpreadsheet().getUrl() + '">Abrir a planilha</a></p>';
   MailApp.sendEmail({ to: quem, subject: "Caixa do dia " + hoje.slice(8, 10) + "/" + hoje.slice(5, 7) + " · conferência das 18:30", htmlBody: html });
 }
@@ -388,11 +389,31 @@ function painel(k, mes) {
       infusoes: soma("infusoes"), formas: formas,
       faltasVS: clinicas.reduce((s, x) => s + x.faltasVS.faltas, 0), atendidosVS: clinicas.reduce((s, x) => s + x.faltasVS.atendidos, 0),
       perdida: clinicas.reduce((s, x) => s + x.faltasVS.perdida, 0) },
-    clinicas: clinicas, pendencias: pend, buscaAtiva: reinc,
+    clinicas: clinicas, pendencias: pend, buscaAtiva: reinc, ano: anual_(mes.slice(0, 4)),
   };
 }
 
 // ===================== CÁLCULOS =====================
+
+/**
+ * Entradas do ano mês a mês: lançamentos diários + aba "Histórico mensal" (totais de meses
+ * anteriores ao sistema, só para dias que não têm lançamento diário).
+ */
+function anual_(ano) {
+  const meses = [];
+  for (let m = 1; m <= 12; m++) meses.push({ mes: ano + "-" + ("0" + m).slice(-2), total: 0, porClinica: {} });
+  const soma = (mes, clinica, v) => {
+    const M = meses[+mes.slice(5, 7) - 1]; if (!M || !v) return;
+    M.total += v; M.porClinica[clinica] = (M.porClinica[clinica] || 0) + v;
+  };
+  linhas_("Lançamentos").forEach(r => { if (String(r.Data).slice(0, 4) === ano) soma(String(r.Data).slice(0, 7), r["Clínica"], lancOut_(r).total); });
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Histórico mensal");
+  if (sh) linhas_("Histórico mensal").forEach(r => { const m = String(r["Mês"]); if (m.slice(0, 4) === ano) soma(m.slice(0, 7), r["Clínica"], num_(r.Recebido)); });
+  meses.forEach(M => { M.total = Math.round(M.total * 100) / 100; });
+  const comValor = meses.filter(M => M.total > 0);
+  const total = comValor.reduce((s, M) => s + M.total, 0);
+  return { ano: ano, meses: meses, total: total, media: comValor.length ? total / comValor.length : 0, nMeses: comValor.length };
+}
 
 function resumoClinica_(nome, mes) {
   const lanc = linhas_("Lançamentos").filter(r => r["Clínica"] === nome && String(r.Data).slice(0, 7) === mes).map(lancOut_);

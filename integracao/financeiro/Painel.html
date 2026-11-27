@@ -22,14 +22,29 @@
 .barra i{display:block;height:100%}
 .leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--soft)}
 .leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.topo{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.topo>div:first-child{flex:1 1 360px}
+.ano{background:var(--card);border-radius:16px;padding:12px 14px 10px;box-shadow:var(--shadow-card);flex:0 1 330px;min-width:260px;margin-top:10px}
+.ano .v{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.ano .s{font-size:12px;color:var(--soft);margin-top:2px;min-height:16px}
+.barras{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;align-items:end;height:56px;margin-top:8px}
+.barras button{all:unset;cursor:pointer;height:100%;display:flex;align-items:flex-end;border-radius:4px}
+.barras button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.barras i{display:block;width:100%;background:var(--brand);border-radius:4px 4px 0 0;min-height:0}
+.barras button.on i{background:var(--accent)}
+.barras button.vazio i{background:var(--line);height:2px!important}
+.meses{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;font-size:10px;color:var(--soft);text-align:center;margin-top:3px}
 @media (max-width:860px){.clins{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <div class="marca-faixa"><svg viewBox="0 0 110 155" aria-hidden="true"><path d="M0 0H108V42L97 62 75 77 103 93 110 112V155H3V113L13 93 35 77 8 62 0 42Z"/></svg><p class="nome">Dr. Luis Felipe Jardim</p><div class="cargo">Financeiro do consultório</div></div>
 <div class="wrap largo">
-  <h1>Painel financeiro</h1>
-  <p class="sub-h">Praia Grande, Sombrio (Cardiovitta) e Torres (Vida Multiclínica) somados. Só este link vê tudo.</p>
+  <div class="topo">
+    <div><h1>Painel financeiro</h1>
+    <p class="sub-h">Praia Grande, Sombrio (Cardiovitta) e Torres (Vida Multiclínica) somados. Só este link vê tudo.</p></div>
+    <div class="ano" id="ano" hidden></div>
+  </div>
   <div class="nav" style="max-width:420px"><button id="mAnt" aria-label="Mês anterior">‹</button><input type="month" id="mes"><button id="mProx" aria-label="Próximo mês">›</button></div>
   <div id="box"><div class="carregando">Calculando o mês…</div></div>
   <footer>Custos fixos e preços: abas “Custos fixos” e “Preços” da planilha. “Convênio” = sessões pela Unimed, repassadas depois pelo hospital.</footer>
@@ -49,7 +64,25 @@ async function carregar() {
   try { render(await call("painel", K, $("mes").value)); }
   catch (e) { $("box").innerHTML = '<div class="erro">' + esc(msgErro(e)) + "</div>"; }
 }
+const MES3 = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+function renderAno(A, mesAtual) {
+  if (!A) return;
+  const max = Math.max(1, ...A.meses.map((m) => m.total));
+  const legenda = "média " + R$(A.media) + " por mês · " + A.nMeses + (A.nMeses === 1 ? " mês" : " meses") + " com entradas";
+  $("ano").hidden = false;
+  $("ano").innerHTML = '<div class="muted">Acumulado de ' + A.ano + '</div><div class="v">' + R$(A.total) + '</div><div class="s" id="anoS">' + legenda + "</div>" +
+    '<div class="barras" role="list">' + A.meses.map((m, i) => '<button type="button" role="listitem" data-mesano="' + m.mes + '" class="' + (m.mes === mesAtual ? "on " : "") + (m.total ? "" : "vazio") +
+      '" aria-label="' + MESES[i] + ": " + R$(m.total) + '" data-dica="' + MES3[i] + ": " + R$(m.total) + '"><i style="height:' + (m.total / max * 100).toFixed(1) + '%"></i></button>').join("") + "</div>" +
+    '<div class="meses" aria-hidden="true">' + MES3.map((x) => "<span>" + x[0].toUpperCase() + "</span>").join("") + "</div>";
+  const S = $("anoS");
+  $("ano").querySelectorAll("[data-dica]").forEach((b) => {
+    const mostra = () => { S.textContent = b.dataset.dica; }, volta = () => { S.textContent = legenda; };
+    b.addEventListener("mouseenter", mostra); b.addEventListener("focus", mostra);
+    b.addEventListener("mouseleave", volta); b.addEventListener("blur", volta);
+  });
+}
 function render(P) {
+  renderAno(P.ano, P.mes);
   const T = P.total, margem = T.entradas ? Math.round(T.resultado / T.entradas * 100) : 0;
   let h = '<div class="kpis">' +
     '<div class="kpi"><div class="muted">Entradas</div><div class="v">' + R$(T.entradas) + '</div><div class="s">' + esc(mesBR(P.mes)) + "</div></div>" +
@@ -108,6 +141,7 @@ function render(P) {
 }
 document.addEventListener("click", (ev) => {
   const t = ev.target.closest("button"); if (!t) return;
+  if (t.dataset.mesano) { $("mes").value = t.dataset.mesano; carregar(); return; }
   if (t.id === "mAnt") { $("mes").value = somaMes($("mes").value, -1); carregar(); }
   if (t.id === "mProx") { $("mes").value = somaMes($("mes").value, 1); carregar(); }
 });
