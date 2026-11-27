@@ -92,6 +92,7 @@ function render() {
 }
 function preco(proc, forma) {
   const P = D.precos;
+  if (forma === "Convênio") return P["ECT · repasse do hospital (Unimed)"] || 0;
   if (/infus|escetamin|cetamin/i.test(proc || "")) return P["Infusão de escetamina"] || 0;
   if (forma === "Débito") return P["Consulta · Débito"] || 0;
   if (forma === "Crédito") return P["Consulta · Crédito"] || 0;

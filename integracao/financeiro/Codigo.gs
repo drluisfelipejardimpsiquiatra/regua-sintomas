@@ -27,7 +27,8 @@ const CLINICAS = {
 
 const SITUACOES = ["Atendido", "Pagar depois", "Pago antes", "Cortesia", "Faltou", "Desmarcou"];
 const REALIZADO = { "Atendido": 1, "Pagar depois": 1, "Pago antes": 1, "Cortesia": 1 };
-const FORMAS = ["Dinheiro", "Pix", "Débito", "Crédito"];
+// "Convênio": sessões pagas pelo convênio (ECT pela Unimed); o dinheiro vem depois, repassado pelo hospital
+const FORMAS = ["Dinheiro", "Pix", "Débito", "Crédito", "Convênio"];
 const CATEGORIAS_SAIDA = ["Taxa de sala · infusão", "Aluguel pago com o caixa", "Retirada pelo Dr. Luis Felipe", "Faxina", "Material de limpeza", "Material de escritório",
   "Insumos e medicação", "Estacionamento", "Lanche e copa", "Outros"];
 const PAGO_COM = ["Dinheiro do caixa", "Pix", "Cartão", "Outro"];
@@ -37,7 +38,7 @@ const CAT_ALUGUEL = "Aluguel pago com o caixa", CAT_RETIRADA = "Retirada pelo Dr
 
 const ABAS = {
   "Lançamentos": ["ID", "Data", "Clínica", "Agendamento V Saúde", "Hora", "Paciente", "Procedimento", "Situação",
-    "Dinheiro", "Pix", "Débito", "Crédito", "Parcelas", "Total", "Observação", "Atualizado em"],
+    "Dinheiro", "Pix", "Débito", "Crédito", "Convênio", "Parcelas", "Total", "Observação", "Atualizado em"],
   "Saídas": ["ID", "Data", "Clínica", "Categoria", "Descrição", "Valor", "Pago com", "Atualizado em"],
   "Fechamentos": ["Data", "Clínica", "Entradas", "Saídas", "Dinheiro esperado na gaveta", "Dinheiro contado",
     "Diferença", "Observação", "Fechado em"],
@@ -62,10 +63,16 @@ function instalar() {
       sh.setFrozenRows(1);
     }
   });
+  // versão nova: coluna "Convênio" logo depois de "Crédito" na aba Lançamentos
+  const lsh = ss.getSheetByName("Lançamentos"), cabL = lsh.getRange(1, 1, 1, lsh.getLastColumn()).getValues()[0];
+  if (cabL.indexOf("Convênio") < 0 && cabL.indexOf("Crédito") >= 0) {
+    const pos = cabL.indexOf("Crédito") + 1;
+    lsh.insertColumnAfter(pos); lsh.getRange(1, pos + 1).setValue("Convênio").setFontWeight("bold").setBackground("#F0ECDD");
+  }
   // datas como texto (aaaa-mm-dd) para o Google não converter nem trocar o fuso
   ["Lançamentos", "Saídas", "Fechamentos"].forEach(n => ss.getSheetByName(n).getRange("A:B").setNumberFormat("@"));
-  ss.getSheetByName("Lançamentos").getRange("I:L").setNumberFormat(MOEDA);
-  ss.getSheetByName("Lançamentos").getRange("N:N").setNumberFormat(MOEDA);
+  ss.getSheetByName("Lançamentos").getRange("I:M").setNumberFormat(MOEDA);
+  ss.getSheetByName("Lançamentos").getRange("O:O").setNumberFormat(MOEDA);
   ss.getSheetByName("Saídas").getRange("F:F").setNumberFormat(MOEDA);
   ss.getSheetByName("Fechamentos").getRange("C:G").setNumberFormat(MOEDA);
   ss.getSheetByName("Custos fixos").getRange("C:C").setNumberFormat(MOEDA);
@@ -80,6 +87,8 @@ function instalar() {
     ["Infusão de escetamina", 850],
     ["Taxa de sala por infusão (custo)", 250],
   ]);
+  if (!linhas_("Preços").some(r => r.Item === "ECT · repasse do hospital (Unimed)"))
+    precos.appendRow(["ECT · repasse do hospital (Unimed)", ""]); // preencha: valor que o hospital repassa por sessão
   const fixos = ss.getSheetByName("Custos fixos");
   // valores ficam só na planilha privada (o código é público): preencha a coluna "Valor mensal"
   if (fixos.getLastRow() === 1) fixos.getRange(2, 1, 4, 4).setValues([
@@ -114,7 +123,7 @@ function instalar() {
  * (use se um link vazar ou uma secretária sair).
  */
 function gerarLinks() {
-  const url = ScriptApp.getService().getUrl();
+  const url = urlApp_();
   if (!url) throw new Error("Implante primeiro: Implantar → Nova implantação → App da Web.");
   const tokens = {}, linhas = [["Quem", "Link (não compartilhe com outras pessoas)"]];
   const novo = () => Utilities.getUuid().replace(/-/g, "").slice(0, 20);
@@ -146,11 +155,18 @@ function doGet(e) {
   t.k = k;
   t.clin = papel === "MEDICO" ? c : papel;
   t.medico = papel === "MEDICO";
-  t.url = ScriptApp.getService().getUrl();
+  t.url = urlApp_();
   return t.evaluate()
     .setTitle(papel === "MEDICO" && !CLINICAS[c] ? "Financeiro · painel" : "Caixa · " + CLINICAS[t.clin].nome)
     .addMetaTag("viewport", "width=device-width, initial-scale=1")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/** URL publicada do app (/exec). Rodando pelo editor o Google devolve a /dev, que só abre para o dono:
+ *  nesse caso use a propriedade URL_APP (Configurações do projeto → Propriedades do script). */
+function urlApp_() {
+  const p = PropertiesService.getScriptProperties().getProperty("URL_APP");
+  return p || ScriptApp.getService().getUrl();
 }
 
 function include(nome) { return arquivo_(nome); }
@@ -194,7 +210,7 @@ function salvarLancamento(k, c, o) {
     if (alvo && alvo["Clínica"] !== nome) throw new Error("Este lançamento é de outra clínica.");
     const id = alvo ? alvo.ID : novoId_();
     const linha = [id, o.data, nome, String(o.agendamento || ""), String(o.hora || ""), paciente,
-      String(o.procedimento || "").slice(0, 80), o.situacao, v["Dinheiro"], v["Pix"], v["Débito"], v["Crédito"],
+      String(o.procedimento || "").slice(0, 80), o.situacao, v["Dinheiro"], v["Pix"], v["Débito"], v["Crédito"], v["Convênio"],
       parcelas, total, String(o.obs || "").slice(0, 300), agora_()];
     if (alvo) sh.getRange(alvo._linha, 1, 1, linha.length).setValues([linha]);
     else sh.appendRow(linha);
@@ -659,7 +675,7 @@ function importarHistorico() {
       const vals = [num_(din), num_(pix), deb, cred];
       const proc = vals.some(x => x === 850) ? "Infusão de escetamina" : (modal === "Online" ? "Consulta online" : "Consulta");
       novas.push([novoId_(), data, nome, "", String(turno || ""), String(pac).trim(), proc, SIT[sit] || "Atendido",
-        vals[0], vals[1], vals[2], vals[3], cred > 0 ? (parseInt(parc, 10) || 1) : "", vals.reduce((s, x) => s + x, 0),
+        vals[0], vals[1], vals[2], vals[3], 0, cred > 0 ? (parseInt(parc, 10) || 1) : "", vals.reduce((s, x) => s + x, 0),
         ("Importado da planilha antiga. " + (obs || "")).trim(), agora_()]);
     }
   });
@@ -699,7 +715,7 @@ function linhasVida_(v, ja, avisos) {
     if (p.aviso) avisos.push(data + " · " + a + ": " + p.aviso);
     const vals = FORMAS.map(f => p.vals[f] || 0), total = vals.reduce((s, x) => s + x, 0);
     out.push([novoId_(), data, "Torres", "", turno, a, total === 850 ? "Infusão de escetamina" : "Consulta", p.sit,
-      vals[0], vals[1], vals[2], vals[3], p.vals["Crédito"] ? p.parcelas : "", total,
+      vals[0], vals[1], vals[2], vals[3], vals[4], p.vals["Crédito"] ? p.parcelas : "", total,
       ("Importado da planilha da Vida Multiclínica: " + [b, c].filter(String).join(" · ")).slice(0, 300), agora_()]);
     ja[data + "|" + nomeChave_(a)] = 1;
   });

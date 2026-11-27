@@ -32,12 +32,12 @@
   <p class="sub-h">Praia Grande, Sombrio (Cardiovitta) e Torres (Vida Multiclínica) somados. Só este link vê tudo.</p>
   <div class="nav" style="max-width:420px"><button id="mAnt" aria-label="Mês anterior">‹</button><input type="month" id="mes"><button id="mProx" aria-label="Próximo mês">›</button></div>
   <div id="box"><div class="carregando">Calculando o mês…</div></div>
-  <footer>Custos fixos e preços: abas “Custos fixos” e “Preços” da planilha.</footer>
+  <footer>Custos fixos e preços: abas “Custos fixos” e “Preços” da planilha. “Convênio” = sessões pela Unimed, repassadas depois pelo hospital.</footer>
 </div>
 <script>
 const K = <?!= JSON.stringify(k) ?>, URL_APP = <?!= JSON.stringify(url) ?>;
 const $ = (id) => document.getElementById(id);
-const CORES = { "Pix": "#38584B", "Dinheiro": "#88764F", "Débito": "#E89925", "Crédito": "#C3622D" };
+const CORES = { "Pix": "#38584B", "Dinheiro": "#88764F", "Débito": "#E89925", "Crédito": "#C3622D", "Convênio": "#A3B2A4" };
 const hojeLocal = () => { const x = new Date(); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 10); };
 $("mes").value = hojeLocal().slice(0, 7);
 const linha = (a, b, cls) => '<div class="linha ' + (cls || "") + '"><span>' + a + "</span><span>" + b + "</span></div>";
