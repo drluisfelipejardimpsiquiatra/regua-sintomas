@@ -480,7 +480,9 @@ function fixoNoMes_(f, mes) {
  */
 function estimados_() {
   if (!SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Estimado pela agenda")) return [];
-  const real = {}; linhas_("Lançamentos").forEach(r => { real[r["Clínica"] + "|" + r.Data] = 1; });
+  // repasse de convênio (ECT) não é o caixa da secretária: não substitui a estimativa do dia
+  const real = {}; linhas_("Lançamentos").forEach(r => { const l = lancOut_(r);
+    if (l.total - l.valores["Convênio"] > 0 || l.valores["Convênio"] === 0) real[r["Clínica"] + "|" + r.Data] = 1; });
   return linhas_("Estimado pela agenda").map(r => ({ data: String(r.Data), clinica: r["Clínica"], hora: String(r.Hora || ""), paciente: r.Paciente,
     procedimento: r.Procedimento, valor: num_(r["Valor estimado"]), motivo: r.Motivo }))
     .filter(e => /^\d{4}-\d\d-\d\d$/.test(e.data) && !real[e.clinica + "|" + e.data]);
