@@ -40,13 +40,14 @@
   <footer>Os valores vão direto para o controle financeiro do Dr. Luis Felipe.<br>Este link é só seu: não repasse.</footer>
 </div>
 <script>
-const K = <?!= JSON.stringify(k) ?>, CLIN = <?!= JSON.stringify(clin) ?>, MEDICO = <?!= JSON.stringify(medico) ?>, URL_APP = <?!= JSON.stringify(url) ?>;
+const K = <?!= JSON.stringify(k) ?>, CLIN = <?!= JSON.stringify(clin) ?>, MEDICO = <?!= JSON.stringify(medico) ?>, URL_APP = <?!= JSON.stringify(url) ?>, EMBED = <?!= JSON.stringify(embed) ?>;
 const PROCS = ["Consulta", "Consulta 1ª vez", "Consulta online", "Infusão de escetamina", "Outro"];
 let D = null, ED = null, ocupado = false;
 const $ = (id) => document.getElementById(id);
 const hojeLocal = () => { const x = new Date(); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 10); };
 $("data").value = hojeLocal(); $("mes").value = hojeLocal().slice(0, 7);
-if (MEDICO) $("subt").insertAdjacentHTML("afterend", '<p class="sub-h"><a style="color:var(--on-bg)" href="' + URL_APP + '?k=' + encodeURIComponent(K) + '">← voltar ao painel</a></p>');
+if (EMBED) $("subt").insertAdjacentHTML("afterend", '<p class="sub-h"><button type="button" class="lnk" style="color:var(--on-bg)" onclick="parent.fecharCaixa()">← voltar ao painel</button></p>');
+else if (MEDICO) $("subt").insertAdjacentHTML("afterend", '<p class="sub-h"><a style="color:var(--on-bg)" href="' + URL_APP + '?k=' + encodeURIComponent(K) + '">← voltar ao painel</a></p>');
 
 // ---------- dia ----------
 async function carregar() {

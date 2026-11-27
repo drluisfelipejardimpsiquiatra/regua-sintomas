@@ -164,10 +164,23 @@ function doGet(e) {
   t.clin = papel === "MEDICO" ? c : papel;
   t.medico = papel === "MEDICO";
   t.url = urlApp_();
+  t.embed = false;
   return t.evaluate()
     .setTitle(papel === "MEDICO" && !CLINICAS[c] ? "Financeiro · painel" : "Caixa · " + CLINICAS[t.clin].nome)
     .addMetaTag("viewport", "width=device-width, initial-scale=1")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * Caixa de uma clínica para abrir DENTRO do painel do médico (sem trocar de página:
+ * navegar de dentro do app para outro endereço do app é barrado pelo Google em alguns navegadores).
+ */
+function caixaHtml(k, c) {
+  if (papel_(k) !== "MEDICO") throw new Error("Só o link do médico abre o caixa de outra clínica.");
+  if (!CLINICAS[c]) throw new Error("Clínica inválida.");
+  const t = HtmlService.createTemplate(arquivo_("Caixa"));
+  t.k = k; t.clin = c; t.medico = true; t.url = urlApp_(); t.embed = true;
+  return t.evaluate().getContent();
 }
 
 /** URL publicada do app (/exec). Rodando pelo editor o Google devolve a /dev, que só abre para o dono:

@@ -37,6 +37,8 @@
 .barras i b{display:block;width:100%}
 .estim{display:inline-block;width:10px;height:10px;border-radius:2px;background-color:var(--brand);vertical-align:-1px;margin-right:4px}
 .barras button.vazio i{background:var(--line);height:2px!important}
+#caixaOv{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto}
+#caixaOv iframe{display:block;width:100%;height:100%;border:0}
 .meses{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;font-size:10px;color:var(--soft);text-align:center;margin-top:3px}
 @media (max-width:860px){.clins{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
 </style>
@@ -87,6 +89,18 @@ function renderAno(A, mesAtual) {
     b.addEventListener("mouseleave", volta); b.addEventListener("blur", volta);
   });
 }
+// caixa da clínica por cima do painel, na mesma página (o iframe herda o google.script.run do painel)
+async function abrirCaixa(cod) {
+  const ov = document.createElement("div"); ov.id = "caixaOv";
+  ov.innerHTML = '<div class="carregando">Abrindo o caixa…</div>'; document.body.appendChild(ov); document.body.style.overflow = "hidden";
+  try {
+    const html = await call("caixaHtml", K, cod);
+    const fr = document.createElement("iframe"); fr.title = "Caixa da clínica";
+    fr.srcdoc = html.replace(/<head>/i, "<head><script>window.google = parent.google;<\/script>");
+    ov.innerHTML = ""; ov.appendChild(fr);
+  } catch (e) { ov.innerHTML = '<div class="erro">' + esc(msgErro(e)) + '</div><p style="text-align:center"><button class="lnk" style="color:var(--on-bg)" onclick="fecharCaixa()">← voltar ao painel</button></p>'; }
+}
+window.fecharCaixa = () => { const ov = $("caixaOv"); if (ov) ov.remove(); document.body.style.overflow = ""; carregar(); };
 function render(P) {
   renderAno(P.ano, P.mes);
   const T = P.total, margem = T.entradas ? Math.round(T.resultado / T.entradas * 100) : 0;
@@ -113,7 +127,7 @@ function render(P) {
     if (c.saidasOutras) Object.keys(c.saidasPorCategoria).filter((k) => ["Taxa de sala · infusão", "Aluguel pago com o caixa", "Retirada pelo Dr. Luis Felipe"].indexOf(k) < 0).forEach((k) => { h += linha("Caixa · " + esc(k), R$(c.saidasPorCategoria[k]), "ind"); });
     h += linha("Resultado", '<span class="' + (c.resultado < 0 ? "neg" : "") + '">' + R$(c.resultado) + "</span>", "tot");
     if (c.retiradas) h += linha("Retirado do caixa por você", R$(c.retiradas), "ind");
-    h += '<a class="lnk" style="display:inline-block;margin-top:8px"  href="' + URL_APP + '?k=' + encodeURIComponent(K) + "&c=" + c.cod + '">Abrir o caixa desta clínica →</a></div>';
+    h += '<button type="button" class="lnk" style="display:inline-block;margin-top:8px" data-caixa="' + c.cod + '">Abrir o caixa desta clínica →</button></div>';
   });
   h += "</div>";
 
@@ -147,6 +161,7 @@ function render(P) {
 }
 document.addEventListener("click", (ev) => {
   const t = ev.target.closest("button"); if (!t) return;
+  if (t.dataset.caixa) { abrirCaixa(t.dataset.caixa); return; }
   if (t.dataset.mesano) { $("mes").value = t.dataset.mesano; carregar(); return; }
   if (t.id === "mAnt") { $("mes").value = somaMes($("mes").value, -1); carregar(); }
   if (t.id === "mProx") { $("mes").value = somaMes($("mes").value, 1); carregar(); }
