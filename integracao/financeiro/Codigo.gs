@@ -210,7 +210,7 @@ function arquivo_(nome) {
 
 /** Tudo de um dia de uma clínica: agenda do V Saúde, lançamentos, saídas e fechamento. */
 function dia(k, c, data) {
-  const cod = clinicaDe_(k, c); dataOk_(data);
+  const cod = clinicaDe_(k, c); dataOk_(data); janelaOk_(k, data);
   let agenda = [], aviso = "", outras = [];
   try {
     const cods = Object.keys(CLINICAS), ags = agendas_(cods.map(c => [CLINICAS[c].unidade, data, data])), por = {};
@@ -252,7 +252,7 @@ function descontoAluguel_(nome, data) {
 }
 
 function salvarLancamento(k, c, o) {
-  const cod = clinicaDe_(k, c), nome = CLINICAS[cod].nome; dataOk_(o.data);
+  const cod = clinicaDe_(k, c), nome = CLINICAS[cod].nome; dataOk_(o.data); janelaOk_(k, o.data);
   const paciente = String(o.paciente || "").trim().slice(0, 120);
   if (!paciente) throw new Error("Informe o nome do paciente.");
   if (SITUACOES.indexOf(o.situacao) < 0) throw new Error("Escolha a situação.");
@@ -274,10 +274,10 @@ function salvarLancamento(k, c, o) {
   });
 }
 
-function excluirLancamento(k, c, id) { return excluir_("Lançamentos", clinicaDe_(k, c), id); }
+function excluirLancamento(k, c, id) { return excluir_("Lançamentos", clinicaDe_(k, c), id, k); }
 
 function salvarSaida(k, c, o) {
-  const cod = clinicaDe_(k, c), nome = CLINICAS[cod].nome; dataOk_(o.data);
+  const cod = clinicaDe_(k, c), nome = CLINICAS[cod].nome; dataOk_(o.data); janelaOk_(k, o.data);
   const valor = num_(o.valor);
   if (!(valor > 0)) throw new Error("Informe o valor da saída.");
   const cat = CATEGORIAS_SAIDA.indexOf(o.categoria) >= 0 ? o.categoria : "Outros";
@@ -292,11 +292,11 @@ function salvarSaida(k, c, o) {
   });
 }
 
-function excluirSaida(k, c, id) { return excluir_("Saídas", clinicaDe_(k, c), id); }
+function excluirSaida(k, c, id) { return excluir_("Saídas", clinicaDe_(k, c), id, k); }
 
 /** Fecha (ou refecha) o dia: grava os totais calculados aqui e o dinheiro contado na gaveta. */
 function fecharDia(k, c, data, contado, obs) {
-  const cod = clinicaDe_(k, c), nome = CLINICAS[cod].nome; dataOk_(data);
+  const cod = clinicaDe_(k, c), nome = CLINICAS[cod].nome; dataOk_(data); janelaOk_(k, data);
   return comTrava_(() => {
     const t = totaisDia_(nome, data);
     const cont = contado === "" || contado == null ? "" : num_(contado);
@@ -310,13 +310,19 @@ function fecharDia(k, c, data, contado, obs) {
 
 /** Resumo do mês de UMA clínica (o que a secretária pode ver). mes = "aaaa-mm". */
 function mesClinica(k, c, mes) {
-  const cod = clinicaDe_(k, c), nome = CLINICAS[cod].nome; mesOk_(mes);
-  return Object.assign({ clinica: Object.assign({ cod: cod }, CLINICAS[cod]), mes: mes }, resumoClinica_(nome, mes));
+  const cod = clinicaDe_(k, c), nome = CLINICAS[cod].nome, base = { clinica: Object.assign({ cod: cod }, CLINICAS[cod]) };
+  if (papel_(k) !== "MEDICO") {
+    // secretária: só os últimos JANELA_DIAS dias, sem escolher mês
+    const per = { de: inicioJanela_(), ate: hoje_() };
+    return Object.assign(base, { mes: per.ate.slice(0, 7), janela: Object.assign({ dias: JANELA_DIAS }, per) }, resumoClinica_(nome, per));
+  }
+  mesOk_(mes);
+  return Object.assign(base, { mes: mes }, resumoClinica_(nome, mes));
 }
 
 /** Recebe a foto do fechamento (já reduzida no celular) e guarda na pasta da clínica no Drive do médico. */
 function enviarFoto(k, c, data, dataUrl) {
-  const cod = clinicaDe_(k, c); dataOk_(data);
+  const cod = clinicaDe_(k, c); dataOk_(data); janelaOk_(k, data);
   const m = String(dataUrl || "").match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
   if (!m) throw new Error("Envie uma foto (JPG ou PNG).");
   const bytes = Utilities.base64Decode(m[2]);
@@ -479,8 +485,10 @@ function anual_(ano) {
 }
 
 function resumoClinica_(nome, mes, comEstimado) {
-  const lanc = linhas_("Lançamentos").filter(r => r["Clínica"] === nome && String(r.Data).slice(0, 7) === mes).map(lancOut_);
-  const sai = linhas_("Saídas").filter(r => r["Clínica"] === nome && String(r.Data).slice(0, 7) === mes).map(saidaOut_);
+  // mes = "aaaa-mm" ou um período {de, ate} (datas "aaaa-mm-dd")
+  const no = d => typeof mes === "string" ? String(d).slice(0, 7) === mes : String(d) >= mes.de && String(d) <= mes.ate;
+  const lanc = linhas_("Lançamentos").filter(r => r["Clínica"] === nome && no(r.Data)).map(lancOut_);
+  const sai = linhas_("Saídas").filter(r => r["Clínica"] === nome && no(r.Data)).map(saidaOut_);
   const fech = {}; linhas_("Fechamentos").forEach(f => { if (f["Clínica"] === nome) fech[f.Data] = fechamentoOut_(f); });
   const formas = {}; FORMAS.forEach(f => { formas[f] = 0; });
   const dias = {};
@@ -760,11 +768,12 @@ function precos_() {
   const p = {}; linhas_("Preços").forEach(r => { if (r.Item) p[r.Item] = num_(r.Valor); }); return p;
 }
 
-function excluir_(abaNome, cod, id) {
+function excluir_(abaNome, cod, id, k) {
   return comTrava_(() => {
     const alvo = linhas_(abaNome).find(r => r.ID === id);
     if (!alvo) return false;
     if (alvo["Clínica"] !== CLINICAS[cod].nome) throw new Error("Este registro é de outra clínica.");
+    janelaOk_(k, alvo.Data);
     aba_(abaNome).deleteRow(alvo._linha);
     return true;
   });
@@ -777,6 +786,15 @@ function papel_(k) {
   const p = /^[a-f0-9]{20}$/.test(String(k || "")) ? t[k] : null;
   if (!p) throw new Error("Link inválido. Peça um novo link ao Dr. Luis Felipe.");
   return p;
+}
+
+// As secretárias só veem e mexem nos últimos JANELA_DIAS dias (o médico vê tudo).
+const JANELA_DIAS = 21;
+function inicioJanela_() { return somaDiasStr_(hoje_(), -JANELA_DIAS); }
+function janelaOk_(k, data) {
+  if (papel_(k) === "MEDICO") return;
+  if (String(data) < inicioJanela_())
+    throw new Error("O caixa mostra só os últimos " + JANELA_DIAS + " dias. Para um dia mais antigo, fale com o Dr. Luis Felipe.");
 }
 
 /** A clínica SEMPRE sai do código do link; só o médico pode escolher outra. */

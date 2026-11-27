@@ -145,3 +145,8 @@ Agendamentos feitos nas unidades de Sombrio e Torres ficam sempre na própria cl
 O paciente aparece no caixa certo com a etiqueta "agendado em Praia Grande", e o caixa de Praia Grande mostra
 um aviso com os que foram para outra clínica. Se a grade mudar num dia (feriado, troca de agenda), a secretária
 lança pelo "+ Paciente fora da agenda". Se a grade mudar de vez, ajuste `GRADE` no código.
+
+## O que as secretárias podem ver
+Cada secretária vê e lança só os **últimos 21 dias** (constante `JANELA_DIAS`): o dia a dia e a aba "Últimos 21 dias"
+(no lugar de "Mês"). Datas mais antigas são barradas no servidor, inclusive para lançar, excluir ou fechar o caixa.
+O médico continua vendo tudo, de qualquer mês, no painel e no caixa de cada clínica.

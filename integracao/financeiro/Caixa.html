@@ -46,6 +46,13 @@ let D = null, ED = null, ocupado = false;
 const $ = (id) => document.getElementById(id);
 const hojeLocal = () => { const x = new Date(); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 10); };
 $("data").value = hojeLocal(); $("mes").value = hojeLocal().slice(0, 7);
+// secretária: só os últimos 21 dias (o servidor também barra); a aba "Mês" vira "Últimos 21 dias"
+const JANELA = 21;
+if (!MEDICO) {
+  $("data").min = somaDias(hojeLocal(), -JANELA);
+  $("tMes").textContent = "Últimos " + JANELA + " dias";
+  document.querySelector("#vMes .nav").hidden = true;
+}
 if (EMBED) $("subt").insertAdjacentHTML("afterend", '<p class="sub-h"><button type="button" class="lnk" style="color:var(--on-bg)" onclick="parent.fecharCaixa()">← voltar ao painel</button></p>');
 else if (MEDICO) $("subt").insertAdjacentHTML("afterend", '<p class="sub-h"><a style="color:var(--on-bg)" href="' + URL_APP + '?k=' + encodeURIComponent(K) + '">← voltar ao painel</a></p>');
 
@@ -216,7 +223,7 @@ async function carregarMes() {
   $("mesBox").innerHTML = '<div class="carregando">Carregando…</div>';
   try {
     const M = await call("mesClinica", K, CLIN, $("mes").value);
-    let h = '<div class="card"><h2>' + esc(mesBR(M.mes)) + '</h2><div class="resumo">' + Object.keys(M.formas).map((f) => "<div>" + f + "<b>" + R$(M.formas[f]) + "</b></div>").join("") +
+    let h = '<div class="card"><h2>' + esc(M.janela ? "Últimos " + M.janela.dias + " dias · " + dBR(M.janela.de).slice(0, 5) + " a " + dBR(M.janela.ate).slice(0, 5) : mesBR(M.mes)) + '</h2><div class="resumo">' + Object.keys(M.formas).map((f) => "<div>" + f + "<b>" + R$(M.formas[f]) + "</b></div>").join("") +
       "<div><strong>Total recebido</strong><b>" + R$(M.entradas) + "</b></div><div>Saídas<b>" + R$(M.saidas) + "</b></div><div>Atendimentos<b>" + M.atendimentos + "</b></div><div>Faltas<b>" + M.faltas + "</b></div></div></div>";
     h += '<div class="card"><table><tr><th>Dia</th><th class="n">Pac.</th><th class="n">Recebido</th><th class="n">Saídas</th><th>Caixa</th></tr>' +
       (M.dias.length ? M.dias.map((d) => '<tr><td><button class="lnk" style="color:var(--ink)" data-irdia="' + d.data + '">' + dBR(d.data).slice(0, 5) + "</button> " + diaSemana(d.data).slice(0, 3) + '</td><td class="n">' + d.atendimentos + '</td><td class="n">' + R$(d.entradas) + '</td><td class="n">' + R$(d.saidas) + "</td><td>" +
@@ -261,7 +268,8 @@ document.addEventListener("click", (ev) => {
       descricao: "Desconto do aluguel · " + D.aluguel.pct + "% das consultas", pagoCom: "Descontado do repasse" }); break;
     case "fFotoBtn": $("fFoto").click(); break;
     case "fFechar": enviar("fecharDia", D.data, $("fCont").value.trim() === "" ? "" : num($("fCont").value), $("fObs").value); break;
-    case "ant": $("data").value = somaDias($("data").value, -1); carregar(); break;
+    case "ant": if (!MEDICO && $("data").value <= $("data").min) { alert("O caixa mostra só os últimos " + JANELA + " dias."); break; }
+      $("data").value = somaDias($("data").value, -1); carregar(); break;
     case "prox": $("data").value = somaDias($("data").value, 1); carregar(); break;
     case "mAnt": $("mes").value = somaMes($("mes").value, -1); carregarMes(); break;
     case "mProx": $("mes").value = somaMes($("mes").value, 1); carregarMes(); break;
