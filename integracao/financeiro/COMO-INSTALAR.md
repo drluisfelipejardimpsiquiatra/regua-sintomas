@@ -113,3 +113,13 @@ Rode **gerarLinks** de novo: todos os links antigos param de funcionar e a aba L
   manda ao médico um e-mail por clínica: total recebido por forma de pagamento, atendidos no V Saúde sem lançamento,
   faltas sem lançamento, caixa fechado ou não, foto recebida ou não.
 - Ao instalar, o Google pede duas autorizações novas: **Drive** (guardar as fotos) e **e-mail** (mandar a conferência).
+
+## Dias sem caixa: estimativa pela agenda
+- A aba **Estimado pela agenda** guarda, para os dias em que nenhuma secretária mandou o caixa, as consultas
+  **finalizadas no V Saúde** a preço de tabela (consulta R$ 600, infusão R$ 850; ECT, retorno e cortesia entram com R$ 0).
+- O painel soma essa estimativa às entradas (mês, clínica e acumulado do ano) e a mostra **hachurada**, separada do que é real.
+  Infusões estimadas entram também na taxa de sala.
+- Quando o caixa real daquele dia for lançado (qualquer lançamento da clínica na data), a estimativa do dia **sai sozinha**.
+- As secretárias não veem a estimativa.
+- Pacientes agendados na unidade errada são atribuídos à clínica onde o médico estava naquele dia
+  (terça e quinta, Sombrio; dia com caixa de outra clínica, essa clínica).

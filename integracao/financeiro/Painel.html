@@ -32,6 +32,10 @@
 .barras button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .barras i{display:block;width:100%;background:var(--brand);border-radius:4px 4px 0 0;min-height:0}
 .barras button.on i{background:var(--accent)}
+.barras i{display:flex;flex-direction:column;overflow:hidden}
+.barras i b,.leg i.est,.barra i.est,.estim{background-image:repeating-linear-gradient(135deg,rgba(251,248,238,.6) 0 2px,transparent 2px 5px)}
+.barras i b{display:block;width:100%}
+.estim{display:inline-block;width:10px;height:10px;border-radius:2px;background-color:var(--brand);vertical-align:-1px;margin-right:4px}
 .barras button.vazio i{background:var(--line);height:2px!important}
 .meses{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;font-size:10px;color:var(--soft);text-align:center;margin-top:3px}
 @media (max-width:860px){.clins{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
@@ -52,12 +56,12 @@
 <script>
 const K = <?!= JSON.stringify(k) ?>, URL_APP = <?!= JSON.stringify(url) ?>;
 const $ = (id) => document.getElementById(id);
-const CORES = { "Pix": "#38584B", "Dinheiro": "#88764F", "Débito": "#E89925", "Crédito": "#C3622D", "Convênio": "#A3B2A4" };
+const CORES = { "Pix": "#38584B", "Dinheiro": "#88764F", "Débito": "#E89925", "Crédito": "#C3622D", "Convênio": "#A3B2A4", "Estimado pela agenda": "#9A946A" };
 const hojeLocal = () => { const x = new Date(); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 10); };
 $("mes").value = hojeLocal().slice(0, 7);
 const linha = (a, b, cls) => '<div class="linha ' + (cls || "") + '"><span>' + a + "</span><span>" + b + "</span></div>";
-const barra = (formas, total) => '<div class="barra">' + Object.keys(formas).map((f) => formas[f] > 0 ? '<i style="width:' + (formas[f] / total * 100) + "%;background:" + CORES[f] + '" title="' + f + '"></i>' : "").join("") + "</div>" +
-  '<div class="leg">' + Object.keys(formas).filter((f) => formas[f] > 0).map((f) => "<span><i style=\"background:" + CORES[f] + "\"></i>" + f + " " + Math.round(formas[f] / total * 100) + "%</span>").join("") + "</div>";
+const barra = (formas, total) => '<div class="barra">' + Object.keys(formas).map((f) => formas[f] > 0 ? '<i style="width:' + (formas[f] / total * 100) + "%;background-color:" + CORES[f] + '" ' + (f === "Estimado pela agenda" ? 'class="est" ' : "") + 'title="' + f + '"></i>' : "").join("") + "</div>" +
+  '<div class="leg">' + Object.keys(formas).filter((f) => formas[f] > 0).map((f) => "<span><i " + (f === "Estimado pela agenda" ? 'class="est" ' : "") + "style=\"background-color:" + CORES[f] + "\"></i>" + f + " " + Math.round(formas[f] / total * 100) + "%</span>").join("") + "</div>";
 
 async function carregar() {
   $("box").innerHTML = '<div class="carregando">Calculando o mês…</div>';
@@ -68,11 +72,13 @@ const MES3 = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "ou
 function renderAno(A, mesAtual) {
   if (!A) return;
   const max = Math.max(1, ...A.meses.map((m) => m.total));
-  const legenda = "média " + R$(A.media) + " por mês · " + A.nMeses + (A.nMeses === 1 ? " mês" : " meses") + " com entradas";
+  const legenda = "média " + R$(A.media) + " por mês · " + A.nMeses + (A.nMeses === 1 ? " mês" : " meses") + " com entradas" +
+    (A.estimado ? " · inclui " + R$(A.estimado) + " estimado pela agenda" : "");
   $("ano").hidden = false;
   $("ano").innerHTML = '<div class="muted">Acumulado de ' + A.ano + '</div><div class="v">' + R$(A.total) + '</div><div class="s" id="anoS">' + legenda + "</div>" +
     '<div class="barras" role="list">' + A.meses.map((m, i) => '<button type="button" role="listitem" data-mesano="' + m.mes + '" class="' + (m.mes === mesAtual ? "on " : "") + (m.total ? "" : "vazio") +
-      '" aria-label="' + MESES[i] + ": " + R$(m.total) + '" data-dica="' + MES3[i] + ": " + R$(m.total) + '"><i style="height:' + (m.total / max * 100).toFixed(1) + '%"></i></button>').join("") + "</div>" +
+      '" aria-label="' + MESES[i] + ": " + R$(m.total) + '" data-dica="' + MES3[i] + ": " + R$(m.total) + (m.estimado ? " · " + R$(m.estimado) + " estimado" : "") + '"><i style="height:' + (m.total / max * 100).toFixed(1) + '%">' +
+      (m.estimado ? '<b style="height:' + (m.estimado / m.total * 100).toFixed(1) + '%"></b>' : "") + "</i></button>").join("") + "</div>" +
     '<div class="meses" aria-hidden="true">' + MES3.map((x) => "<span>" + x[0].toUpperCase() + "</span>").join("") + "</div>";
   const S = $("anoS");
   $("ano").querySelectorAll("[data-dica]").forEach((b) => {
@@ -85,7 +91,7 @@ function render(P) {
   renderAno(P.ano, P.mes);
   const T = P.total, margem = T.entradas ? Math.round(T.resultado / T.entradas * 100) : 0;
   let h = '<div class="kpis">' +
-    '<div class="kpi"><div class="muted">Entradas</div><div class="v">' + R$(T.entradas) + '</div><div class="s">' + esc(mesBR(P.mes)) + "</div></div>" +
+    '<div class="kpi"><div class="muted">Entradas</div><div class="v">' + R$(T.entradas) + '</div><div class="s">' + esc(mesBR(P.mes)) + (T.estimado ? ' · <span class="estim"></span>inclui ' + R$(T.estimado) + " estimado pela agenda" : "") + "</div></div>" +
     '<div class="kpi"><div class="muted">Custos e saídas</div><div class="v">' + R$(T.custos) + '</div><div class="s">fixos + taxa de infusão + caixa</div></div>' +
     '<div class="kpi"><div class="muted">Resultado</div><div class="v' + (T.resultado < 0 ? " neg" : "") + '">' + R$(T.resultado) + '</div><div class="s">margem ' + margem + "%</div></div>" +
     '<div class="kpi"><div class="muted">Atendimentos</div><div class="v">' + T.atendimentos + '</div><div class="s">' + T.infusoes + " infusões · ticket médio " + R$(T.atendimentos ? T.entradas / T.atendimentos : 0) + "</div></div></div>";
@@ -95,7 +101,7 @@ function render(P) {
   P.clinicas.forEach((c) => {
     h += '<div class="card"><h2>' + esc(c.nome) + '</h2><div class="muted">' + esc(c.local) + "</div>";
     h += linha("<b>Entradas</b>", "<b>" + R$(c.entradas) + "</b>");
-    Object.keys(c.formas).forEach((f) => { if (c.formas[f]) h += linha(f, R$(c.formas[f]), "ind"); });
+    Object.keys(c.formas).forEach((f) => { if (c.formas[f]) h += linha(f === "Estimado pela agenda" ? '<span class="estim"></span>Estimado pela agenda · ' + c.nEstimado + " atend. sem caixa" : f, R$(c.formas[f]), "ind"); });
     if (c.entradas) h += barra(c.formas, c.entradas);
     h += linha("Atendimentos", c.atendimentos + (c.infusoes ? " (" + c.infusoes + " infusões)" : "")) +
       (c.faltas ? linha("Faltas lançadas", c.faltas, "ind") : "") + (c.aReceber ? linha("A receber (pagar depois)", c.aReceber, "ind") : "");
@@ -131,12 +137,12 @@ function render(P) {
   h += '<div class="card"><h2>Dia a dia</h2><div class="rol"><table><tr><th>Dia</th>' + P.clinicas.map((c) => '<th class="n">' + esc(c.nome) + "</th>").join("") + '<th class="n">Total</th></tr>';
   ds.forEach((d) => {
     let t = 0; h += "<tr><td>" + dBR(d).slice(0, 5) + " " + diaSemana(d).slice(0, 3) + "</td>";
-    P.clinicas.forEach((c) => { const x = dias[d][c.nome]; t += x ? x.entradas : 0; h += '<td class="n">' + (x ? R$(x.entradas) + (x.fechado ? "" : ' <span class="chip c-mid" title="caixa não fechado">!</span>') : "—") + "</td>"; });
+    P.clinicas.forEach((c) => { const x = dias[d][c.nome]; t += x ? x.entradas : 0; h += '<td class="n">' + (x ? (x.estimado ? '<span class="estim" title="inclui ' + R$(x.estimado) + ' estimado pela agenda"></span>' : "") + R$(x.entradas) + (x.fechado || x.estimado === x.entradas ? "" : ' <span class="chip c-mid" title="caixa não fechado">!</span>') : "—") + "</td>"; });
     h += '<td class="n"><b>' + R$(t) + "</b></td></tr>";
   });
   if (!ds.length) h += '<tr><td colspan="5" class="muted">Nada lançado neste mês.</td></tr>';
   else h += '<tr class="tot"><td>Total</td>' + P.clinicas.map((c) => '<td class="n">' + R$(c.entradas) + "</td>").join("") + '<td class="n">' + R$(T.entradas) + "</td></tr>";
-  h += '</table></div><p class="muted"><a style="color:var(--brand)" href="' + esc(P.planilha) + '" target="_blank" rel="noopener">Abrir a planilha completa</a></p></div>';
+  h += '</table></div>' + (T.estimado ? '<p class="muted"><span class="estim"></span>Dia sem caixa da secretária: valor estimado pelas consultas finalizadas no V Saúde × preço de tabela (consulta R$ 600, infusão R$ 850; ECT, retorno e cortesia não entram). Quando o caixa real do dia for lançado, a estimativa sai sozinha.</p>' : "") + '<p class="muted"><a style="color:var(--brand)" href="' + esc(P.planilha) + '" target="_blank" rel="noopener">Abrir a planilha completa</a></p></div>';
   $("box").innerHTML = h;
 }
 document.addEventListener("click", (ev) => {

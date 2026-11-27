@@ -44,6 +44,8 @@ const ABAS = {
     "Diferença", "Observação", "Fechado em"],
   "Custos fixos": ["Clínica", "Descrição", "Valor mensal", "Observação"],
   "Preços": ["Item", "Valor"],
+  // dias em que a secretária não mandou o caixa: consultas finalizadas no V Saúde × preço de tabela
+  "Estimado pela agenda": ["Data", "Clínica", "Agendamento V Saúde", "Hora", "Paciente", "Procedimento", "Valor estimado", "Motivo"],
 };
 const PASTA_FOTOS = "Fechamentos do caixa"; // pasta no Drive do médico; uma subpasta por clínica
 const MOEDA = '"R$" #,##0.00';
@@ -323,7 +325,8 @@ function conferenciaDiaria() {
   if (!ags) blocos.push("<i>Não consegui ler a agenda do V Saúde agora; conferi só a planilha.</i>");
   const quem = Session.getEffectiveUser().getEmail();
   const html = (algum ? blocos.join("") : "Nenhum atendimento hoje nas três clínicas.") +
-    (function () { try { const A = anual_(hoje.slice(0, 4)); return "<p>Acumulado de " + A.ano + ": <b>" + brl_(A.total) + "</b> (média " + brl_(A.media) + "/mês)</p>"; } catch (e) { return ""; } })() +
+    (function () { try { const A = anual_(hoje.slice(0, 4)); return "<p>Acumulado de " + A.ano + ": <b>" + brl_(A.total) + "</b> (média " + brl_(A.media) + "/mês" +
+      (A.estimado ? "; inclui " + brl_(A.estimado) + " estimado pela agenda" : "") + ")</p>"; } catch (e) { return ""; } })() +
     '<p><a href="' + SpreadsheetApp.getActiveSpreadsheet().getUrl() + '">Abrir a planilha</a></p>';
   MailApp.sendEmail({ to: quem, subject: "Caixa do dia " + hoje.slice(8, 10) + "/" + hoje.slice(5, 7) + " · conferência das 18:30", htmlBody: html });
 }
@@ -354,7 +357,7 @@ function painel(k, mes) {
   try { ags = agendas_(pedidos); } catch (err) { erroAg = err.message; }
   const reinc = [];
   cods.forEach((cod, i) => {
-    const C = CLINICAS[cod], r = resumoClinica_(C.nome, mes);
+    const C = CLINICAS[cod], r = resumoClinica_(C.nome, mes, true);
     const fx = fixos.filter(f => f["Clínica"] === C.nome).map(f => ({ descricao: f["Descrição"], valor: f["Valor mensal"] === "" ? null : num_(f["Valor mensal"]) }));
     const totFixos = fx.reduce((s, f) => s + (f.valor || 0), 0);
     const taxaDevida = r.infusoes * taxa;
@@ -381,12 +384,12 @@ function painel(k, mes) {
     delete clinicas[clinicas.length - 1].lista;
   });
   const soma = campo => clinicas.reduce((s, x) => s + x[campo], 0);
-  const formas = {}; FORMAS.forEach(f => { formas[f] = clinicas.reduce((s, x) => s + x.formas[f], 0); });
+  const formas = {}; FORMAS.concat([FORMA_EST]).forEach(f => { formas[f] = clinicas.reduce((s, x) => s + (x.formas[f] || 0), 0); });
   pend.sort((a, b) => (a.data + (a.hora || "")).localeCompare(b.data + (b.hora || "")));
   return {
     mes: mes, hoje: hoje, inicio: inicio, planilha: SpreadsheetApp.getActiveSpreadsheet().getUrl(),
     total: { entradas: soma("entradas"), custos: soma("custos"), resultado: soma("resultado"), atendimentos: soma("atendimentos"),
-      infusoes: soma("infusoes"), formas: formas,
+      infusoes: soma("infusoes"), formas: formas, estimado: soma("estimado"), nEstimado: soma("nEstimado"),
       faltasVS: clinicas.reduce((s, x) => s + x.faltasVS.faltas, 0), atendidosVS: clinicas.reduce((s, x) => s + x.faltasVS.atendidos, 0),
       perdida: clinicas.reduce((s, x) => s + x.faltasVS.perdida, 0) },
     clinicas: clinicas, pendencias: pend, buscaAtiva: reinc, ano: anual_(mes.slice(0, 4)),
@@ -401,7 +404,7 @@ function painel(k, mes) {
  */
 function anual_(ano) {
   const meses = [];
-  for (let m = 1; m <= 12; m++) meses.push({ mes: ano + "-" + ("0" + m).slice(-2), total: 0, porClinica: {} });
+  for (let m = 1; m <= 12; m++) meses.push({ mes: ano + "-" + ("0" + m).slice(-2), total: 0, estimado: 0, porClinica: {} });
   const soma = (mes, clinica, v) => {
     const M = meses[+mes.slice(5, 7) - 1]; if (!M || !v) return;
     M.total += v; M.porClinica[clinica] = (M.porClinica[clinica] || 0) + v;
@@ -409,13 +412,14 @@ function anual_(ano) {
   linhas_("Lançamentos").forEach(r => { if (String(r.Data).slice(0, 4) === ano) soma(String(r.Data).slice(0, 7), r["Clínica"], lancOut_(r).total); });
   const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Histórico mensal");
   if (sh) linhas_("Histórico mensal").forEach(r => { const m = String(r["Mês"]); if (m.slice(0, 4) === ano) soma(m.slice(0, 7), r["Clínica"], num_(r.Recebido)); });
+  estimados_().forEach(e => { if (e.data.slice(0, 4) === ano) { soma(e.data.slice(0, 7), e.clinica, e.valor); meses[+e.data.slice(5, 7) - 1].estimado += e.valor; } });
   meses.forEach(M => { M.total = Math.round(M.total * 100) / 100; });
   const comValor = meses.filter(M => M.total > 0);
   const total = comValor.reduce((s, M) => s + M.total, 0);
-  return { ano: ano, meses: meses, total: total, media: comValor.length ? total / comValor.length : 0, nMeses: comValor.length };
+  return { ano: ano, meses: meses, total: total, estimado: meses.reduce((s, M) => s + M.estimado, 0), media: comValor.length ? total / comValor.length : 0, nMeses: comValor.length };
 }
 
-function resumoClinica_(nome, mes) {
+function resumoClinica_(nome, mes, comEstimado) {
   const lanc = linhas_("Lançamentos").filter(r => r["Clínica"] === nome && String(r.Data).slice(0, 7) === mes).map(lancOut_);
   const sai = linhas_("Saídas").filter(r => r["Clínica"] === nome && String(r.Data).slice(0, 7) === mes).map(saidaOut_);
   const fech = {}; linhas_("Fechamentos").forEach(f => { if (f["Clínica"] === nome) fech[f.Data] = fechamentoOut_(f); });
@@ -431,6 +435,13 @@ function resumoClinica_(nome, mes) {
     if (l.situacao === "Cortesia") cortesias++;
     if (l.situacao === "Pagar depois") aReceber++;
   });
+  // estimativa pela agenda (só no painel do médico): entra como forma "Estimado pela agenda"
+  let estimado = 0, nEst = 0;
+  if (comEstimado) estimados_().filter(e => e.clinica === nome && e.data.slice(0, 7) === mes).forEach(e => {
+    estimado += e.valor; nEst++; atend++; if (ehInfusao_(e.procedimento)) infus++;
+    const D = d(e.data); D.entradas += e.valor; D.estimado = (D.estimado || 0) + e.valor; D.atendimentos++;
+  });
+  if (estimado) formas[FORMA_EST] = estimado;
   let saidas = 0, taxaPaga = 0, aluguelCaixa = 0, retiradas = 0; const porCat = {};
   sai.forEach(s => {
     saidas += s.valor; d(s.data).saidas += s.valor; porCat[s.categoria] = (porCat[s.categoria] || 0) + s.valor;
@@ -439,8 +450,23 @@ function resumoClinica_(nome, mes) {
     if (s.categoria === CAT_RETIRADA) retiradas += s.valor;
   });
   const lista = Object.keys(dias).sort().map(x => Object.assign(dias[x], { fechado: !!fech[x], diferenca: fech[x] ? fech[x].diferenca : null }));
-  return { entradas: FORMAS.reduce((s, f) => s + formas[f], 0), formas: formas, atendimentos: atend, infusoes: infus, faltas: faltas,
+  return { entradas: FORMAS.reduce((s, f) => s + formas[f], 0) + estimado, formas: formas, estimado: estimado, nEstimado: nEst, atendimentos: atend, infusoes: infus, faltas: faltas,
     cortesias: cortesias, aReceber: aReceber, saidas: saidas, taxaPagaCaixa: taxaPaga, aluguelPagoCaixa: aluguelCaixa, retiradas: retiradas, saidasPorCategoria: porCat, dias: lista, lista: lanc };
+}
+
+const FORMA_EST = "Estimado pela agenda";
+
+/**
+ * Aba "Estimado pela agenda": consultas finalizadas no V Saúde em dias sem caixa da secretária,
+ * a preço de tabela. Se depois chegar o caixa real daquele dia (qualquer lançamento da clínica na data),
+ * a estimativa do dia deixa de contar sozinha.
+ */
+function estimados_() {
+  if (!SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Estimado pela agenda")) return [];
+  const real = {}; linhas_("Lançamentos").forEach(r => { real[r["Clínica"] + "|" + r.Data] = 1; });
+  return linhas_("Estimado pela agenda").map(r => ({ data: String(r.Data), clinica: r["Clínica"], hora: String(r.Hora || ""), paciente: r.Paciente,
+    procedimento: r.Procedimento, valor: num_(r["Valor estimado"]), motivo: r.Motivo }))
+    .filter(e => /^\d{4}-\d\d-\d\d$/.test(e.data) && !real[e.clinica + "|" + e.data]);
 }
 
 function totaisDia_(nome, data) {
@@ -511,7 +537,7 @@ function mapAgenda_(res, unidade, de, ate) {
         paciente: String(a.patient.name || "").replace(/\s+/g, " ").trim(), procedimento: String((a.procedure && a.procedure.name) || "").replace(/\s+/g, " ").trim(),
         status: a.status, statusTxt: statusTxt_(a.status), finalizado: !!STATUS_FINALIZADO[a.status], online: !!a.remotely };
     })
-    .filter(a => a.data >= de && a.data <= ate && !/bloqueio|reuni|palestra/i.test(a.procedimento))
+    .filter(a => a.data >= de && a.data <= ate && !/bloqueio|reuni|palestra/i.test(a.procedimento) && !/programa r[áa]dio|r[áa]dio \d/i.test(a.paciente))
     .sort((x, y) => (x.data + x.hora).localeCompare(y.data + y.hora));
 }
 
