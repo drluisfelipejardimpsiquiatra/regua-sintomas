@@ -96,6 +96,11 @@ function instalar() {
   if (!P.getProperty("INICIO")) P.setProperty("INICIO", hoje_()); // pendências só a partir do dia da instalação
   if (!chave_()) throw new Error("Falta guardar a chave: Configurações do projeto → Propriedades do script → VSAUDE_API_KEY");
   vs_("POST", "/HealthCareUnitService/GetAll", {});
+  // na primeira instalação, traz o histórico das planilhas antigas (uma vez só)
+  if (!P.getProperty("HISTORICO_IMPORTADO")) {
+    try { importarHistorico(); importarVidaMulticlinica(["NOVEMBRO"]); P.setProperty("HISTORICO_IMPORTADO", hoje_()); }
+    catch (err) { Logger.log("Histórico não importado agora (" + err.message + "). Rode importarHistorico depois."); }
+  }
   Logger.log("Instalado. A chave do V Saúde funciona. Agora: Implantar → Nova implantação → App da Web, e depois rode gerarLinks.");
 }
 

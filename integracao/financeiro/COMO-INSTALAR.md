@@ -15,7 +15,8 @@ A clínica é decidida **no servidor**, pelo código do link. Mesmo alguém mexe
 Faça isto uma vez, no computador. Leva uns 15 minutos.
 
 ## 1. Criar a planilha e colar o programa
-1. No Google Drive: **Novo → Planilhas Google**. Dê o nome **Financeiro do consultório**. Não compartilhe com ninguém.
+1. Abra a planilha **Financeiro do consultório** no seu Google Drive (se ainda não existir: **Novo → Planilhas Google**
+   com esse nome). Não compartilhe com ninguém.
 2. Menu **Extensões → Apps Script**.
 3. Abra o arquivo **`Financeiro-completo.gs`** (é um arquivo só, com tudo dentro), selecione tudo e copie.
    Pelo navegador: [Financeiro-completo.gs (texto puro)](https://raw.githubusercontent.com/drluisfelipejardimpsiquiatra/regua-sintomas/claude/affectionate-ramanujan-7ucttm/integracao/financeiro/Financeiro-completo.gs)
@@ -51,7 +52,9 @@ Deve aparecer: *"Instalado. A chave do V Saúde funciona."*. A planilha ganha as
 4. Volte ao editor, escolha **gerarLinks** → **Executar**. A aba **Links** da planilha mostra os 4 links.
 5. Mande a cada secretária **só o link dela**. O seu, guarde no seu painel de aplicativos.
 
-## 5. Histórico (opcional)
+## 5. Histórico
+Na primeira execução de **instalar** o histórico é importado sozinho (uma vez só; não duplica se rodar de novo).
+As funções abaixo continuam disponíveis para rodar à mão.
 A função **importarHistorico** copia para a aba Lançamentos o que já está nas planilhas
 "Pagamentos - Praia Grande", "Pagamentos - Sombrio" e "Pagamentos - Torres" (padronizadas em 31/10/2026).
 Linhas sem data ficam de fora e aparecem no registro de execução. Rode uma vez só.
