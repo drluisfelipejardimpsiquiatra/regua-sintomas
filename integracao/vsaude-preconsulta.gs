@@ -65,7 +65,8 @@ function processarLinha_(linha, silencioso) {
       status("✅ Check-in registrado · entra no próximo PDF do PHQ-9"); return;
     }
     const loc = localizar_(d);
-    if ((d.roteiro === "PHQ-9" || d.roteiro === "Y-BOCS") && d.risco && !silencioso) alertarRisco_(d, linha);
+    // Sinal de risco gera e-mail imediato em todos os questionários, exceto a DIVA-5 (que não pergunta sobre isso).
+    if (d.risco && d.roteiro !== "DIVA-5" && !silencioso) alertarRisco_(d, linha);
     if (!loc.p) {
       const msg = "⚠ " + loc.erro;
       const anterior = String(sh.getRange(linha, col).getValue());
@@ -337,7 +338,7 @@ function historicoHumor_(sh, cpf, nome, ateLinha, codigo) {
 function alertarRisco_(d, linha) {
   const para = Session.getEffectiveUser().getEmail(); if (!para) return;
   MailApp.sendEmail(para, `⚠ Sinal de risco · ${d.roteiro} · ${d.nome}`,
-    `${d.nome} (CPF ${d.cpfFmt || "—"}, celular ${d.tel || "—"}) ${d.roteiro === "Y-BOCS" ? "marcou vontade de morrer ou de tirar a própria vida no questionário de acompanhamento do TOC (Y-BOCS)" : "marcou pensamentos de morte ou de se ferir no " + (d.roteiro === "PHQ-9" ? "PHQ-9 (item 9)" : "check-in")}.\n` +
+    `${d.nome} (CPF ${d.cpfFmt || "—"}, celular ${d.tel || "—"}) ${d.roteiro === "Y-BOCS" ? "marcou vontade de morrer ou de tirar a própria vida no questionário de acompanhamento do TOC (Y-BOCS)" : d.roteiro === "PHQ-9" || d.roteiro === "CHECK-IN" ? "marcou pensamentos de morte ou de se ferir no " + (d.roteiro === "PHQ-9" ? "PHQ-9 (item 9)" : "check-in") : "trouxe sinal de risco (pensamentos de se ferir, tentativa de suicídio relatada ou menção a morte/suicídio no texto) na pré-consulta (" + d.roteiro + ")"}.\n` +
     `A página mostrou ao paciente a orientação do CVV 188 / SAMU 192.\n\nLinha da planilha: ${linha}\n${SpreadsheetApp.getActiveSpreadsheet().getUrl()}`);
 }
 function phqHtml_(d) {
