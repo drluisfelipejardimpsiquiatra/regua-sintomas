@@ -20,9 +20,9 @@ const FUSO = "America/Sao_Paulo";
 const VS_BASE = "https://public-api.vsaude.com.br/api/services/app";
 
 const CLINICAS = {
-  PG: { nome: "Praia Grande", local: "Consultório Dr. Luis Felipe Jardim", unidade: 4176 },
-  SO: { nome: "Sombrio", local: "Clínica Cardiovitta", unidade: 4177 },
-  TO: { nome: "Torres", local: "Vida Multiclínica", unidade: 5398 },
+  PG: { nome: "Praia Grande", local: "Consultório Dr. Luis Felipe Jardim", unidade: 4176, pasta: "Praia Grande" },
+  SO: { nome: "Sombrio", local: "Clínica Cardiovitta", unidade: 4177, pasta: "Sombrio (Cardiovitta)" },
+  TO: { nome: "Torres", local: "Vida Multiclínica", unidade: 5398, pasta: "Torres (Vida Multiclínica)" },
 };
 
 const SITUACOES = ["Atendido", "Pagar depois", "Pago antes", "Cortesia", "Faltou", "Desmarcou"];
@@ -44,6 +44,7 @@ const ABAS = {
   "Custos fixos": ["Clínica", "Descrição", "Valor mensal", "Observação"],
   "Preços": ["Item", "Valor"],
 };
+const PASTA_FOTOS = "Fechamentos do caixa"; // pasta no Drive do médico; uma subpasta por clínica
 const MOEDA = '"R$" #,##0.00';
 
 // ===================== INSTALAÇÃO =====================
@@ -92,6 +93,10 @@ function instalar() {
   if (padrao && padrao.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(padrao);
 
   const P = PropertiesService.getScriptProperties();
+  // conferência automática todo dia às 18:30 (a função ignora sábado e domingo)
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === "conferenciaDiaria").forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger("conferenciaDiaria").timeBased().atHour(18).nearMinute(30).everyDays(1).inTimezone(FUSO).create();
+  Object.keys(CLINICAS).forEach(c => pastaClinica_(c)); // cria as pastas das fotos, se faltarem
   if (!P.getProperty("INICIO")) P.setProperty("INICIO", hoje_()); // pendências só a partir do dia da instalação
   if (!chave_()) throw new Error("Falta guardar a chave: Configurações do projeto → Propriedades do script → VSAUDE_API_KEY");
   vs_("POST", "/HealthCareUnitService/GetAll", {});
@@ -170,6 +175,7 @@ function dia(k, c, data) {
     saidas: linhas_("Saídas").filter(r => r.Data === data && r["Clínica"] === CLINICAS[cod].nome).map(saidaOut_),
     fechamento: fechamentoOut_(linhas_("Fechamentos").find(r => r.Data === data && r["Clínica"] === CLINICAS[cod].nome)),
     precos: precos_(), situacoes: SITUACOES, formas: FORMAS, categorias: CATEGORIAS_SAIDA, pagoCom: PAGO_COM,
+    fotos: fotosDoDia_(cod, data).map(f => f.getName()),
   };
 }
 
@@ -235,6 +241,77 @@ function mesClinica(k, c, mes) {
   const cod = clinicaDe_(k, c), nome = CLINICAS[cod].nome; mesOk_(mes);
   return Object.assign({ clinica: Object.assign({ cod: cod }, CLINICAS[cod]), mes: mes }, resumoClinica_(nome, mes));
 }
+
+/** Recebe a foto do fechamento (já reduzida no celular) e guarda na pasta da clínica no Drive do médico. */
+function enviarFoto(k, c, data, dataUrl) {
+  const cod = clinicaDe_(k, c); dataOk_(data);
+  const m = String(dataUrl || "").match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+  if (!m) throw new Error("Envie uma foto (JPG ou PNG).");
+  const bytes = Utilities.base64Decode(m[2]);
+  if (bytes.length > 8 * 1024 * 1024) throw new Error("Foto grande demais.");
+  const nome = "Fechamento " + data + " " + Utilities.formatDate(new Date(), FUSO, "HH-mm-ss") + (m[1] === "image/png" ? ".png" : ".jpg");
+  pastaClinica_(cod).createFile(Utilities.newBlob(bytes, m[1], nome));
+  return nome;
+}
+
+function pastaClinica_(cod) {
+  const it = DriveApp.getFoldersByName(PASTA_FOTOS), raiz = it.hasNext() ? it.next() : DriveApp.createFolder(PASTA_FOTOS);
+  const sub = raiz.getFoldersByName(CLINICAS[cod].pasta);
+  return sub.hasNext() ? sub.next() : raiz.createFolder(CLINICAS[cod].pasta);
+}
+
+function fotosDoDia_(cod, data) {
+  try {
+    const out = [], it = pastaClinica_(cod).getFiles();
+    while (it.hasNext()) {
+      const f = it.next(), nome = f.getName();
+      const dia = (nome.match(/(\d{4}-\d{2}-\d{2})/) || [])[1] || Utilities.formatDate(f.getDateCreated(), FUSO, "yyyy-MM-dd");
+      if (dia === data) out.push(f);
+    }
+    return out;
+  } catch (e) { return []; }
+}
+
+/**
+ * Roda sozinha todo dia às 18:30 (gatilho criado por instalar). Em dias úteis, confere cada clínica
+ * (agenda do V Saúde × lançamentos, caixa fechado, foto enviada) e manda o resumo por e-mail ao médico.
+ */
+function conferenciaDiaria() {
+  const hoje = hoje_(), dow = Utilities.formatDate(new Date(), FUSO, "u");
+  if (dow === "6" || dow === "7") return;
+  const hora = Utilities.formatDate(new Date(), FUSO, "HH:mm");
+  const lanc = linhas_("Lançamentos"), fech = linhas_("Fechamentos"), lancados = {};
+  lanc.forEach(l => { if (l["Agendamento V Saúde"]) lancados[l["Agendamento V Saúde"]] = 1; lancados[l.Data + "|" + nomeChave_(l.Paciente)] = 1; });
+  const cods = Object.keys(CLINICAS);
+  let ags = null; try { ags = agendas_(cods.map(c => [CLINICAS[c].unidade, hoje, hoje])); } catch (e) {}
+  const blocos = [];
+  let algum = false;
+  cods.forEach((cod, i) => {
+    const C = CLINICAS[cod], ag = ags ? ags[i].filter(a => a.hora <= hora) : [];
+    const doDia = lanc.filter(l => l.Data === hoje && l["Clínica"] === C.nome).map(lancOut_);
+    if (!ag.length && !doDia.length) { blocos.push("<b>" + C.nome + "</b>: sem atendimento hoje."); return; }
+    algum = true;
+    const f = {}; FORMAS.forEach(x => { f[x] = 0; }); doDia.forEach(l => FORMAS.forEach(x => { f[x] += l.valores[x]; }));
+    const total = FORMAS.reduce((s, x) => s + f[x], 0);
+    const sem = ag.filter(a => a.finalizado && !lancados[a.id] && !lancados[a.data + "|" + nomeChave_(a.paciente)]);
+    const faltasSem = ag.filter(a => a.status === 6 && !lancados[a.id] && !lancados[a.data + "|" + nomeChave_(a.paciente)]);
+    const fechado = fech.some(x => x.Data === hoje && x["Clínica"] === C.nome), fotos = fotosDoDia_(cod, hoje).length;
+    const li = [];
+    li.push("Recebido: <b>" + brl_(total) + "</b> (" + FORMAS.filter(x => f[x]).map(x => x + " " + brl_(f[x])).join(" · ") + ") · " + doDia.length + " lançamentos");
+    if (sem.length) li.push("⚠ Atendidos no V Saúde sem lançamento: " + sem.map(a => a.hora + " " + a.paciente.split(" ")[0]).join(", "));
+    if (faltasSem.length) li.push("Faltas marcadas no V Saúde sem lançamento: " + faltasSem.map(a => a.paciente.split(" ")[0]).join(", "));
+    li.push(fechado ? "Caixa fechado ✓" : "⚠ Caixa ainda não fechado");
+    li.push(fotos ? "Foto do fechamento recebida ✓ (" + fotos + ")" : "Sem foto do fechamento");
+    blocos.push("<b>" + C.nome + "</b><ul><li>" + li.join("</li><li>") + "</li></ul>");
+  });
+  if (!ags) blocos.push("<i>Não consegui ler a agenda do V Saúde agora; conferi só a planilha.</i>");
+  const quem = Session.getEffectiveUser().getEmail();
+  const html = (algum ? blocos.join("") : "Nenhum atendimento hoje nas três clínicas.") +
+    '<p><a href="' + SpreadsheetApp.getActiveSpreadsheet().getUrl() + '">Abrir a planilha</a></p>';
+  MailApp.sendEmail({ to: quem, subject: "Caixa do dia " + hoje.slice(8, 10) + "/" + hoje.slice(5, 7) + " · conferência das 18:30", htmlBody: html });
+}
+
+function brl_(v) { return "R$ " + (Math.round(v * 100) / 100).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
 
 // ===================== PAINEL DO MÉDICO =====================
 

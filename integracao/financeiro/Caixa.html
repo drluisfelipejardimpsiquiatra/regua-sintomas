@@ -19,6 +19,7 @@
 .big{font-size:24px;font-weight:800;color:var(--brand)}
 .sai{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sep-foto{border-top:1px solid var(--line);margin-top:14px;padding-top:6px}
 </style>
 </head>
 <body>
@@ -180,7 +181,10 @@ function cardFechamento(t) {
   h += '<div class="grid2"><div><label class="l">Dinheiro contado na gaveta</label><input class="f" id="fCont" inputmode="decimal" value="' + (F && F.contado != null ? fmtIn(F.contado) : "") + '" placeholder="R$"></div>' +
     '<div><label class="l">Observação</label><input class="f" id="fObs" maxlength="300" value="' + esc(F ? F.obs : "") + '"></div></div>';
   if (F) h += '<p class="muted">Fechado em ' + esc(F.fechadoEm) + (F.diferenca != null ? ' · diferença <span class="chip ' + (Math.abs(F.diferenca) < 0.01 ? "c-ok" : "c-bad") + '">' + R$(F.diferenca) + "</span>" : "") + ". Se mudar algum lançamento, feche de novo.</p>";
-  h += '<div class="acoes"><button class="btn" id="fFechar">' + (F ? "Fechar de novo" : "Fechar o dia") + "</button></div></div>";
+  h += '<div class="acoes"><button class="btn" id="fFechar">' + (F ? "Fechar de novo" : "Fechar o dia") + "</button></div>";
+  h += '<div class="sep-foto"><label class="l">Foto do fechamento (vai para a pasta da clínica no Drive do Dr. Luis Felipe)</label>' +
+    (D.fotos && D.fotos.length ? '<p class="muted">Enviada' + (D.fotos.length > 1 ? "s " + D.fotos.length + " fotos" : "") + ' ✓</p>' : "") +
+    '<input type="file" id="fFoto" accept="image/*" hidden><button class="btn2" id="fFotoBtn" style="width:100%">' + (D.fotos && D.fotos.length ? "Enviar outra foto" : "📷 Enviar foto do fechamento") + "</button></div></div>";
   return h;
 }
 
@@ -230,6 +234,7 @@ document.addEventListener("click", (ev) => {
     case "eCanc": ED = null; render(); break;
     case "eExc": if (confirm("Excluir este lançamento?")) enviar("excluirLancamento", ED.id); break;
     case "sAdd": enviar("salvarSaida", { data: D.data, categoria: $("sCat").value, valor: num($("sVal").value), descricao: $("sDesc").value, pagoCom: $("sPago").value }); break;
+    case "fFotoBtn": $("fFoto").click(); break;
     case "fFechar": enviar("fecharDia", D.data, $("fCont").value.trim() === "" ? "" : num($("fCont").value), $("fObs").value); break;
     case "ant": $("data").value = somaDias($("data").value, -1); carregar(); break;
     case "prox": $("data").value = somaDias($("data").value, 1); carregar(); break;
@@ -240,7 +245,24 @@ document.addEventListener("click", (ev) => {
     case "tBusca": trocaAba("busca"); carregarBusca(); break;
   }
 });
-document.addEventListener("change", (ev) => {
+// reduz a foto no próprio celular (até 1600 px) antes de enviar
+function reduzir(arquivo) {
+  return new Promise((ok, no) => {
+    const img = new Image(), url = URL.createObjectURL(arquivo);
+    img.onload = () => { const r = Math.min(1, 1600 / Math.max(img.width, img.height)), cv = document.createElement("canvas");
+      cv.width = Math.round(img.width * r); cv.height = Math.round(img.height * r); cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url); ok(cv.toDataURL("image/jpeg", 0.85)); };
+    img.onerror = () => no(new Error("Não consegui abrir a foto."));
+    img.src = url;
+  });
+}
+document.addEventListener("change", async (ev) => {
+  if (ev.target.id === "fFoto" && ev.target.files[0]) {
+    const b = $("fFotoBtn"); b.disabled = true; b.textContent = "Enviando a foto…";
+    try { await call("enviarFoto", K, CLIN, D.data, await reduzir(ev.target.files[0])); await carregar(); }
+    catch (e) { alert(msgErro(e)); b.disabled = false; b.textContent = "📷 Enviar foto do fechamento"; }
+    return;
+  }
   if (ev.target.id === "data" && ev.target.value) carregar();
   if (ev.target.id === "mes" && ev.target.value) carregarMes();
   if (ev.target.id === "eProc") lerEditor();

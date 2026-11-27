@@ -104,3 +104,12 @@ Rode **gerarLinks** de novo: todos os links antigos param de funcionar e a aba L
   Quem já tem a próxima consulta marcada aparece com a data: confirmar a presença na véspera
   (e, se for a política do consultório, pedir o Pix antecipado).
 - As 9 consultas ao V Saúde do painel são feitas em paralelo; a página leva alguns segundos para abrir.
+
+## Foto do fechamento e conferência das 18:30
+- No **Fechamento do dia**, a secretária toca em **"📷 Enviar foto do fechamento"**. A foto é reduzida no celular
+  e salva na pasta da clínica dentro de **"Fechamentos do caixa"**, no **Drive do médico** (o programa roda com a conta dele:
+  a secretária não precisa de conta Google nem de login). O nome do arquivo leva a data: `Fechamento AAAA-MM-DD HH-mm-ss.jpg`.
+- **instalar** cria as pastas (se faltarem) e o gatilho **conferenciaDiaria**, que roda todo dia às 18:30 e, em dias úteis,
+  manda ao médico um e-mail por clínica: total recebido por forma de pagamento, atendidos no V Saúde sem lançamento,
+  faltas sem lançamento, caixa fechado ou não, foto recebida ou não.
+- Ao instalar, o Google pede duas autorizações novas: **Drive** (guardar as fotos) e **e-mail** (mandar a conferência).
