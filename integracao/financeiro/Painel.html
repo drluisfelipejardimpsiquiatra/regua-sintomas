@@ -68,10 +68,12 @@ function render(P) {
       (c.faltas ? linha("Faltas lançadas", c.faltas, "ind") : "") + (c.aReceber ? linha("A receber (pagar depois)", c.aReceber, "ind") : "");
     h += '<div class="sep"></div>' + linha("<b>Custos</b>", "<b>" + R$(c.custos) + "</b>");
     c.fixos.forEach((f) => { h += linha(esc(f.descricao), f.valor == null ? '<span class="chip c-mid">preencher</span>' : R$(f.valor), "ind"); });
+    if (c.aluguelPagoCaixa) h += linha("↳ aluguel já pago com o caixa", R$(c.aluguelPagoCaixa), "ind");
     if (c.infusoes || c.taxaPagaCaixa) h += linha("Taxa de sala · " + c.infusoes + " × " + R$(c.taxaPorInfusao), R$(c.taxaDevida), "ind") +
       (c.taxaPagaCaixa ? linha("↳ já paga pelo caixa", R$(c.taxaPagaCaixa), "ind") : "");
-    if (c.saidasOutras) Object.keys(c.saidasPorCategoria).filter((k) => k !== "Taxa de sala · infusão").forEach((k) => { h += linha("Caixa · " + esc(k), R$(c.saidasPorCategoria[k]), "ind"); });
+    if (c.saidasOutras) Object.keys(c.saidasPorCategoria).filter((k) => ["Taxa de sala · infusão", "Aluguel pago com o caixa", "Retirada pelo Dr. Luis Felipe"].indexOf(k) < 0).forEach((k) => { h += linha("Caixa · " + esc(k), R$(c.saidasPorCategoria[k]), "ind"); });
     h += linha("Resultado", '<span class="' + (c.resultado < 0 ? "neg" : "") + '">' + R$(c.resultado) + "</span>", "tot");
+    if (c.retiradas) h += linha("Retirado do caixa por você", R$(c.retiradas), "ind");
     h += '<a class="lnk" style="display:inline-block;margin-top:8px"  href="' + URL_APP + '?k=' + encodeURIComponent(K) + "&c=" + c.cod + '">Abrir o caixa desta clínica →</a></div>';
   });
   h += "</div>";

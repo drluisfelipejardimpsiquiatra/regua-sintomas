@@ -28,10 +28,12 @@ const CLINICAS = {
 const SITUACOES = ["Atendido", "Pagar depois", "Pago antes", "Cortesia", "Faltou", "Desmarcou"];
 const REALIZADO = { "Atendido": 1, "Pagar depois": 1, "Pago antes": 1, "Cortesia": 1 };
 const FORMAS = ["Dinheiro", "Pix", "Débito", "Crédito"];
-const CATEGORIAS_SAIDA = ["Taxa de sala · infusão", "Faxina", "Material de limpeza", "Material de escritório",
+const CATEGORIAS_SAIDA = ["Taxa de sala · infusão", "Aluguel pago com o caixa", "Retirada pelo Dr. Luis Felipe", "Faxina", "Material de limpeza", "Material de escritório",
   "Insumos e medicação", "Estacionamento", "Lanche e copa", "Outros"];
 const PAGO_COM = ["Dinheiro do caixa", "Pix", "Cartão", "Outro"];
 const CAT_INFUSAO = "Taxa de sala · infusão";
+// saem da gaveta mas não são custo novo: o aluguel já está em "Custos fixos"; a retirada é dinheiro do próprio médico
+const CAT_ALUGUEL = "Aluguel pago com o caixa", CAT_RETIRADA = "Retirada pelo Dr. Luis Felipe";
 
 const ABAS = {
   "Lançamentos": ["ID", "Data", "Clínica", "Agendamento V Saúde", "Hora", "Paciente", "Procedimento", "Situação",
@@ -262,7 +264,7 @@ function painel(k, mes) {
     const fx = fixos.filter(f => f["Clínica"] === C.nome).map(f => ({ descricao: f["Descrição"], valor: f["Valor mensal"] === "" ? null : num_(f["Valor mensal"]) }));
     const totFixos = fx.reduce((s, f) => s + (f.valor || 0), 0);
     const taxaDevida = r.infusoes * taxa;
-    const saidasOutras = r.saidas - r.taxaPagaCaixa;
+    const saidasOutras = r.saidas - r.taxaPagaCaixa - r.aluguelPagoCaixa - r.retiradas;
     const custos = saidasOutras + taxaDevida + totFixos;
     clinicas.push(Object.assign({ cod: cod, local: C.local, nome: C.nome }, r, {
       fixos: fx, totFixos: totFixos, taxaDevida: taxaDevida, taxaPorInfusao: taxa,
@@ -315,11 +317,16 @@ function resumoClinica_(nome, mes) {
     if (l.situacao === "Cortesia") cortesias++;
     if (l.situacao === "Pagar depois") aReceber++;
   });
-  let saidas = 0, taxaPaga = 0; const porCat = {};
-  sai.forEach(s => { saidas += s.valor; d(s.data).saidas += s.valor; porCat[s.categoria] = (porCat[s.categoria] || 0) + s.valor; if (s.categoria === CAT_INFUSAO) taxaPaga += s.valor; });
+  let saidas = 0, taxaPaga = 0, aluguelCaixa = 0, retiradas = 0; const porCat = {};
+  sai.forEach(s => {
+    saidas += s.valor; d(s.data).saidas += s.valor; porCat[s.categoria] = (porCat[s.categoria] || 0) + s.valor;
+    if (s.categoria === CAT_INFUSAO) taxaPaga += s.valor;
+    if (s.categoria === CAT_ALUGUEL) aluguelCaixa += s.valor;
+    if (s.categoria === CAT_RETIRADA) retiradas += s.valor;
+  });
   const lista = Object.keys(dias).sort().map(x => Object.assign(dias[x], { fechado: !!fech[x], diferenca: fech[x] ? fech[x].diferenca : null }));
   return { entradas: FORMAS.reduce((s, f) => s + formas[f], 0), formas: formas, atendimentos: atend, infusoes: infus, faltas: faltas,
-    cortesias: cortesias, aReceber: aReceber, saidas: saidas, taxaPagaCaixa: taxaPaga, saidasPorCategoria: porCat, dias: lista, lista: lanc };
+    cortesias: cortesias, aReceber: aReceber, saidas: saidas, taxaPagaCaixa: taxaPaga, aluguelPagoCaixa: aluguelCaixa, retiradas: retiradas, saidasPorCategoria: porCat, dias: lista, lista: lanc };
 }
 
 function totaisDia_(nome, data) {
