@@ -45,7 +45,8 @@ const ABAS = {
   "Saídas": ["ID", "Data", "Clínica", "Categoria", "Descrição", "Valor", "Pago com", "Atualizado em"],
   "Fechamentos": ["Data", "Clínica", "Entradas", "Saídas", "Dinheiro esperado na gaveta", "Dinheiro contado",
     "Diferença", "Observação", "Fechado em"],
-  "Custos fixos": ["Clínica", "Descrição", "Valor mensal", "Observação"],
+  // "Início" e "Fim" (mês, ex. 2026-08) são opcionais: custo que só vale a partir de / até um mês
+  "Custos fixos": ["Clínica", "Descrição", "Valor mensal", "Observação", "Início", "Fim"],
   "Preços": ["Item", "Valor"],
   // dias em que a secretária não mandou o caixa: consultas finalizadas no V Saúde × preço de tabela
   "Estimado pela agenda": ["Data", "Clínica", "Agendamento V Saúde", "Hora", "Paciente", "Procedimento", "Valor estimado", "Motivo"],
@@ -95,6 +96,7 @@ function instalar() {
   if (!linhas_("Preços").some(r => r.Item === "ECT · repasse do hospital (Unimed)"))
     precos.appendRow(["ECT · repasse do hospital (Unimed)", ""]); // preencha: valor que o hospital repassa por sessão
   const fixos = ss.getSheetByName("Custos fixos");
+  if (fixos.getRange(1, 5).getValue() === "") fixos.getRange(1, 5, 1, 2).setValues([["Início", "Fim"]]).setFontWeight("bold").setBackground("#F0ECDD");
   // valores ficam só na planilha privada (o código é público): preencha a coluna "Valor mensal"
   if (fixos.getLastRow() === 1) fixos.getRange(2, 1, 4, 4).setValues([
     ["Praia Grande", "Aluguel · Praia Grande (1 salário mínimo)", "", "Preencha com o salário mínimo vigente"],
@@ -361,7 +363,7 @@ function painel(k, mes) {
   const reinc = [];
   cods.forEach((cod, i) => {
     const C = CLINICAS[cod], r = resumoClinica_(C.nome, mes, true);
-    const fx = fixos.filter(f => f["Clínica"] === C.nome).map(f => ({ descricao: f["Descrição"], valor: f["Valor mensal"] === "" ? null : num_(f["Valor mensal"]) }));
+    const fx = fixos.filter(f => f["Clínica"] === C.nome && fixoNoMes_(f, mes)).map(f => ({ descricao: f["Descrição"], valor: f["Valor mensal"] === "" ? null : num_(f["Valor mensal"]) }));
     const totFixos = fx.reduce((s, f) => s + (f.valor || 0), 0);
     const taxaDevida = r.infusoes * taxa;
     const saidasOutras = r.saidas - r.taxaPagaCaixa - r.aluguelPagoCaixa - r.retiradas;
@@ -458,6 +460,18 @@ function resumoClinica_(nome, mes, comEstimado) {
 }
 
 const FORMA_EST = "Estimado pela agenda";
+
+/** Mês "AAAA-MM" de uma célula de Início/Fim (aceita 2026-08, 08/2026 ou uma data). */
+function mesCelula_(x) {
+  const t = String(x || "").trim(); let m;
+  if ((m = t.match(/^(\d{4})-(\d{2})/))) return m[1] + "-" + m[2];
+  if ((m = t.match(/^(?:\d{1,2}\/)?(\d{1,2})\/(\d{4})/))) return m[2] + "-" + ("0" + m[1]).slice(-2);
+  return "";
+}
+function fixoNoMes_(f, mes) {
+  const ini = mesCelula_(f["Início"]), fim = mesCelula_(f.Fim);
+  return (!ini || ini <= mes) && (!fim || fim >= mes);
+}
 
 /**
  * Aba "Estimado pela agenda": consultas finalizadas no V Saúde em dias sem caixa da secretária,

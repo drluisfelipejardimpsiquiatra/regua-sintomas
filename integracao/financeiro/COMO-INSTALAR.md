@@ -41,6 +41,8 @@ Deve aparecer: *"Instalado. A chave do V Saúde funciona."*. A planilha ganha as
 - **Custos fixos**: aluguel de Praia Grande (1 salário mínimo), aluguel da Cardiovitta, aluguel e condomínio da Vida Multiclínica.
   **Preencha a coluna "Valor mensal"** (os valores não ficam no código, que é público). O condomínio pode variar: atualize quando o boleto mudar.
   Pode acrescentar linhas (ex.: contador, internet); o painel soma tudo da clínica.
+  As colunas **Início** e **Fim** (mês, ex. `2026-08`) são opcionais: um custo com Início só conta a partir daquele mês
+  (e, com Fim, até aquele mês). Sem elas, o custo vale para todos os meses.
 - **Preços**: Pix/dinheiro R$ 600, débito R$ 609, crédito R$ 618, infusão R$ 850 e **taxa de sala por infusão R$ 250**.
   São os valores que a tela sugere; a secretária pode mudar caso a caso. Mudou o preço, mude aqui.
 
