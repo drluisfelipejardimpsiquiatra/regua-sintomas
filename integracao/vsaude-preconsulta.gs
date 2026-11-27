@@ -230,7 +230,7 @@ function avisar_(d, motivo, linha) {
 // O cabeçalho e o corpo vêm da página preconsulta.html (função enviar).
 
 function interpretar(cab, corpo) {
-  const d = { roteiro: (cab.match(/^\[([^\]]+)\]/) || [])[1] || "", secoes: [], risco: /⚠ ATENÇÃO/.test(corpo) };
+  const d = { roteiro: (cab.match(/^\[([^\]]+)\]/) || [])[1] || "", secoes: [], risco: /⚠ ATENÇÃO/.test(corpo), corpoBruto: corpo };
   const cpf = (cab.match(/CPF (\d{11})/) || [])[1] || "";
   d.cpf = cpf; d.cpfFmt = cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
   d.codigo = (cab.match(/código ([A-Z0-9]{6,16})/) || [])[1] || "";
@@ -450,9 +450,12 @@ function ybocsHtml_(d) {
 function montarHtml(d) {
   const e = esc_, curto = q => q.split(/,| \(/)[0];
   const abertas = d.secoes.filter(s => s.titulo !== "Identificação" && s !== (d.rastreio && d.secoes.find(x => x.titulo === d.rastreio.titulo)) &&
-    !(d.impacto && s.titulo === d.impacto.titulo) && s.titulo !== "Motivação" && !/^Resumo para o médico/.test(s.titulo) &&
+    !(d.impacto && s.titulo === d.impacto.titulo) && s.titulo !== "Motivação" && s.titulo !== "Pontos-chave" && !/^Resumo para o médico/.test(s.titulo) &&
     ((d.roteiro !== "PHQ-9" && d.roteiro !== "Y-BOCS") || s.titulo === "Observações do paciente"));
   const destaques = d.rastreio ? d.rastreio.itens.filter(it => it.v >= 3) : [];
+  // "Pontos-chave" (pré-consulta de adulto do formulário oficial): resumo de campos estruturados, na primeira página.
+  const pk = d.secoes.find(s => s.titulo === "Pontos-chave" && s.texto);
+  const formOficial = /\(formulário oficial\)/.test(d.corpoBruto || "");
   const frases = abertas.map(s => s.texto).join(" ").split(/(?<=[.!?])\s+/)
     .filter(f => /suicid|me matar|tirar a (minha |própria )?vida|sumir|morrer|me ferir|me cortar|acabar com tudo/i.test(f)).slice(0, 2);
   return `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -498,6 +501,7 @@ function montarHtml(d) {
   table.mapa{border-collapse:collapse;margin-top:4px}
   table.mapa th{font-size:8pt;color:#5f5d4c;font-weight:normal;padding:1px 6px}
   table.mapa td.c{text-align:center;font-size:12pt;padding:0 6px;line-height:1.1}
+  table.pk{width:100%;border-collapse:collapse;font-size:9.3pt;margin:2px 0 4px} table.pk td{padding:3px 6px;border-bottom:1px solid #eee8d8;vertical-align:top} table.pk td.k{width:30%;color:#5f5d4c;font-weight:bold;font-size:8.5pt}
   .nota{font-size:8pt;color:#5f5d4c;border-top:1px solid #e2dccb;margin-top:12px;padding-top:5px}
   </style></head><body>
   <div class="cab"><h1>${{ "DIVA-5": "DIVA-5 · TDAH em adultos", "PHQ-9": "Acompanhamento da depressão", "Y-BOCS": "Acompanhamento do TOC" }[d.roteiro] || "Pré-consulta"} <span class="tag">${e((d.roteiro || "").toUpperCase())}</span></h1>
@@ -506,7 +510,7 @@ function montarHtml(d) {
    <td><b>CPF</b>${e(d.cpfFmt)}</td><td><b>Nascimento · idade</b>${e(d.nasc)}${d.idade != null ? " · " + d.idade + " anos" : ""}</td><td><b>Celular</b>${e(d.tel)}</td></tr><tr>
    <td><b>${d.roteiro === "DIVA-5" ? "Ajuda com a infância" : "Respondido por"}</b>${e(d.roteiro === "DIVA-5" ? (d.ident["Quem ajudou com a infância"] || "—") : d.respondente)}${d.cuidador ? "<br>" + e(d.cuidador) : ""}</td>
    <td><b>Cadastro V Saúde</b>${d.vsaude ? (d.vsaude.numero ? "Paciente nº " + e(d.vsaude.numero) + " · l" : "L") + "ocalizado pelo " + e(d.vsaude.via || "CPF") : "—"}</td>
-   <td><b>Tempo de preenchimento</b>${e(d.tempo || "—")}</td></tr></table></div>
+   <td>${d.tempo ? `<b>Tempo de preenchimento</b>${e(d.tempo)}` : ""}</td></tr></table></div>
   ${d.risco || d.riscoItens.length ? `<div class="alerta"><b>⚠ Sinal de risco.</b> ${d.roteiro === "Y-BOCS" ? "O paciente marcou <b>vontade de morrer ou de tirar a própria vida</b> nos últimos dias." : ""}${d.riscoItens.map(it => `Rastreio: “${e(it.q)}” = <b>${FREQ[it.v]}</b>.`).join(" ")}
     ${frases.length ? " No relato: " + frases.map(f => "“" + e(f) + "”").join(" ") : ""} A orientação do CVV 188 / SAMU 192 foi exibida na tela.</div>` : ""}
   ${d.roteiro === "DIVA-5" || d.roteiro === "PHQ-9" || d.roteiro === "Y-BOCS" ? "" : `<h2>Visão rápida</h2>
@@ -514,6 +518,7 @@ function montarHtml(d) {
    <td><b>Quanto atrapalha hoje</b>${d.impacto ? `<span class="big">${e(d.impacto.nota || "—")}</span> / 10<br>${e(d.impacto.areas.split(", ").join(" · "))}` : "—"}</td>
    <td><b>Motivação</b>Importância de resolver agora: <strong>${e(d.motivacao.imp || "—")}</strong>/10<br>Confiança de mudar com ajuda: <strong>${e(d.motivacao.conf || "—")}</strong>/10</td>
    <td><b>Rastreio: moderado ou grave</b>${destaques.length ? destaques.map(it => "• " + e(curto(it.q))).join("<br>") : "Nenhum item"}</td></tr></table>`}
+  ${pk ? `<h2>Pontos-chave</h2><table class="pk">${pk.texto.split("\n").map(l => { const k = l.indexOf(": "); return k < 0 ? `<tr><td colspan="2">${e(l)}</td></tr>` : `<tr><td class="k">${e(l.slice(0, k))}</td><td>${e(l.slice(k + 2))}</td></tr>`; }).join("")}</table>` : ""}
   ${d.rastreio ? `<h2>Rastreio · ${e(d.rastreio.titulo.toLowerCase())}</h2>
   <table class="r"><tr><th></th><th style="text-align:left">Item</th>${FREQ.map(f => `<th>${f}</th>`).join("")}</tr>
   ${d.rastreio.itens.map((it, i) => `<tr class="${it.risco && it.v > 0 ? "rk" : it.v === 4 ? "g4" : it.v === 3 ? "g3" : ""}"><td style="color:#5f5d4c;text-align:right">${i + 1}</td><td>${e(it.q)}</td>${FREQ.map((_, j) => `<td class="c">${it.v === j ? "●" : ""}</td>`).join("")}</tr>`).join("")}</table>
@@ -521,7 +526,7 @@ function montarHtml(d) {
   ${d.roteiro === "DIVA-5" ? divaHtml_(d) : d.roteiro === "PHQ-9" ? phqHtml_(d) : d.roteiro === "Y-BOCS" ? ybocsHtml_(d) : ""}
   ${d.roteiro === "PHQ-9" || d.roteiro === "Y-BOCS" ? (abertas[0] && abertas[0].texto ? `<h2>Observações do paciente</h2><div class="leg" style="margin:0 0 4px">Texto digitado ou ditado pelo paciente.</div>${abertas[0].texto.split("\n").map(l => `<p>${e(l)}</p>`).join("")}` : "") : `
   <h2>${d.roteiro === "DIVA-5" ? "Respostas, item por item" : "Respostas abertas"}</h2>
-  <div class="leg" style="margin:0 0 4px">Texto ditado ou digitado por quem respondeu e revisado antes do envio. A oralidade foi preservada.</div>
+  <div class="leg" style="margin:0 0 4px">${formOficial ? "Respostas escritas pelo paciente no formulário on-line, sem edição." : "Texto ditado ou digitado por quem respondeu e revisado antes do envio. A oralidade foi preservada."}</div>
   ${abertas.map(s => `<h3>${e(s.titulo)}</h3>${s.texto ? s.texto.split("\n").map(l => `<p>${e(l)}</p>`).join("") : '<p class="vazio">Não respondido.</p>'}`).join("")}`}
   <div class="nota">Documento gerado automaticamente a partir do questionário on-line e anexado ao prontuário. Conteúdo sigiloso, protegido pelo sigilo médico e pela LGPD (Lei 13.709/2018).</div>
   </body></html>`;

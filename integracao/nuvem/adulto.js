@@ -108,8 +108,17 @@ function converter(vals) {
       if (tipo === "rastreio") v = curtoFreq(v);
       return v || tipo === "rastreio" || titulo === "Identificação" || titulo === "Motivação" || titulo === "Como isso afeta sua vida" ? `${rot}: ${v || "—"}` : "";
     }).filter(Boolean);
+    // "Para mulheres" só entra se alguma resposta for diferente de "Não" (homens costumam responder "Não" a tudo).
+    if (titulo === "Para mulheres" && itens.every(([rot]) => !texto[rot] || /^n[aã]o\.?$/i.test(texto[rot]))) continue;
     if (linhas.length || tipo === "rastreio") blocos.push([titulo, linhas.join("\n")]);
   }
+  // Pontos-chave: campos que mudam a conduta, reunidos na primeira página do PDF (também seguem nas seções completas).
+  const PK = [["Tentativa de suicídio", "Tentativa de suicídio"], ["Internações psiquiátricas", "Internações psiquiátricas"],
+    ["Diagnósticos já recebidos", "Diagnósticos recebidos"], ["Remédios em uso", "Remédios em uso"], ["Remédios psiquiátricos anteriores", "Remédios psiquiátricos que já usou"],
+    ["Tabaco", "Fuma"], ["Álcool (doses por semana)", "Doses de álcool por semana"], ["Outras drogas", "Outras drogas"],
+    ["Estresse no trabalho", "Estresse no trabalho"], ["Rede de apoio", "Tem amigos e apoio"], ["Família de sangue", "Problemas na família de sangue"]];
+  const pk = PK.filter(([, k]) => texto[k]).map(([r, k]) => `${r}: ${texto[k]}`);
+  if (pk.length) blocos.splice(1, 0, ["Pontos-chave", pk.join("\n")]);
   const outras = cab.map((h, i) => (usadas.has(i) || !String(vals[i] || "").trim() ? "" : `${dados.cabecalho[i].replace(/\s+/g, " ").trim()} ${String(vals[i]).trim()}`)).filter(Boolean);
   if (outras.length) blocos.push(["Outras respostas", outras.join("\n")]);
 
