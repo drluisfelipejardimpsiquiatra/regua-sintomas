@@ -135,3 +135,13 @@ Rode **gerarLinks** de novo: todos os links antigos param de funcionar e a aba L
   O desconto vira uma saída "Aluguel pago com o caixa", pago com "Descontado do repasse": não mexe no dinheiro da gaveta
   e o painel não conta o aluguel duas vezes.
 - **Torres**: aluguel e condomínio já estão nos custos fixos; não há desconto no caixa.
+
+## Paciente agendado na unidade errada: a grade de atendimento
+Consultas de 1ª vez costumam ser marcadas na unidade de Praia Grande mesmo quando o atendimento é em Sombrio ou Torres.
+O programa usa a grade do médico (constante `GRADE` no código) para pôr cada agendamento da unidade de Praia Grande
+no caixa da clínica certa: segunda e sexta de manhã, Praia Grande; segunda e sexta à tarde e quarta, Torres;
+terça e quinta, Sombrio. Infusão, ECT e consulta online ficam na unidade agendada.
+Agendamentos feitos nas unidades de Sombrio e Torres ficam sempre na própria clínica.
+O paciente aparece no caixa certo com a etiqueta "agendado em Praia Grande", e o caixa de Praia Grande mostra
+um aviso com os que foram para outra clínica. Se a grade mudar num dia (feriado, troca de agenda), a secretária
+lança pelo "+ Paciente fora da agenda". Se a grade mudar de vez, ajuste `GRADE` no código.

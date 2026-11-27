@@ -83,11 +83,15 @@ function render() {
   if (!L.length) h += '<div class="card muted">Nenhum paciente na agenda do V Saúde neste dia.</div>';
   L.forEach((x) => {
     const nome = x.ag ? x.ag.paciente : x.l.paciente, hora = x.ag ? x.ag.hora : x.l.hora, proc = x.ag ? x.ag.procedimento : x.l.procedimento;
-    const vs = x.ag ? ' · <span class="chip ' + (x.ag.status === 6 ? "c-bad" : "c-neu") + '">V Saúde: ' + esc(x.ag.statusTxt.toLowerCase()) + "</span>" : ' · <span class="chip c-neu">fora da agenda</span>';
+    const vs = x.ag ? ' · <span class="chip ' + (x.ag.status === 6 ? "c-bad" : "c-neu") + '">V Saúde: ' + esc(x.ag.statusTxt.toLowerCase()) + "</span>" +
+      (x.ag.unidade && x.ag.unidade !== D.clinica.cod ? ' <span class="chip c-mid" title="marcado na unidade errada do V Saúde">agendado em ' + esc(x.ag.unidadeNome) + "</span>" : "")
+      : ' · <span class="chip c-neu">fora da agenda</span>';
     h += '<div class="card it" data-key="' + x.key + '"><div class="row"><div><div class="nome"><span class="hora">' + esc(hora || "") + "</span>" + esc(nome) + '</div><div class="muted">' + esc(proc || "") + vs + "</div></div>" +
       '<div class="dir">' + (x.l ? chipLanc(x.l) + '<br><button class="lnk" data-abrir="' + x.key + '">editar</button>' : '<button class="btn peq" data-abrir="' + x.key + '">Lançar</button>') + "</div></div>" +
       (ED && ED.key === x.key ? editor() : "") + "</div>";
   });
+  if (D.outras && D.outras.length) h += '<div class="card"><p class="muted" style="margin:0">Agendados na unidade de ' + esc(D.clinica.nome) + " do V Saúde, mas no horário de outra clínica (aparecem no caixa dela): " +
+    D.outras.map((o) => esc(o.hora) + " " + esc(o.paciente) + " → " + esc(o.clinica)).join("; ") + ". Se algum foi atendido aqui, lance por “+ Paciente fora da agenda”.</p></div>";
   h += '<div class="card it" data-key="novo">' + (ED && ED.key === "novo" ? "<h2>Paciente fora da agenda</h2>" + editor() : '<button class="btn2" style="width:100%" data-abrir="novo">+ Paciente fora da agenda</button>') + "</div>";
   h += cardSaidas() + (D.aluguel ? cardAluguel() : "") + cardFechamento(t);
   $("dia").innerHTML = h;

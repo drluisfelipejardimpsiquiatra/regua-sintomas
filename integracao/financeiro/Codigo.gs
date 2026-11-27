@@ -211,11 +211,19 @@ function arquivo_(nome) {
 /** Tudo de um dia de uma clínica: agenda do V Saúde, lançamentos, saídas e fechamento. */
 function dia(k, c, data) {
   const cod = clinicaDe_(k, c); dataOk_(data);
-  let agenda = [], aviso = "";
-  try { agenda = agenda_(CLINICAS[cod].unidade, data, data); }
+  let agenda = [], aviso = "", outras = [];
+  try {
+    const cods = Object.keys(CLINICAS), ags = agendas_(cods.map(c => [CLINICAS[c].unidade, data, data])), por = {};
+    cods.forEach((c, i) => { por[c] = ags[i]; });
+    const R = redistribuir_(por);
+    agenda = R[cod];
+    // agendados na unidade desta clínica que, pela grade, foram atendidos em outra (só aviso)
+    cods.filter(c => c !== cod).forEach(c => R[c].filter(a => a.unidade === cod)
+      .forEach(a => outras.push({ hora: a.hora, paciente: a.paciente, procedimento: a.procedimento, clinica: CLINICAS[c].nome })));
+  }
   catch (err) { aviso = "Não consegui ler a agenda do V Saúde agora (" + err.message + "). Lance pelo botão “Paciente fora da agenda”."; }
   return {
-    clinica: Object.assign({ cod: cod }, CLINICAS[cod]), data: data, hoje: hoje_(), aviso: aviso, agenda: agenda,
+    clinica: Object.assign({ cod: cod }, CLINICAS[cod]), data: data, hoje: hoje_(), aviso: aviso, agenda: agenda, outras: outras,
     lancamentos: linhas_("Lançamentos").filter(r => r.Data === data && r["Clínica"] === CLINICAS[cod].nome).map(lancOut_),
     saidas: linhas_("Saídas").filter(r => r.Data === data && r["Clínica"] === CLINICAS[cod].nome).map(saidaOut_),
     fechamento: fechamentoOut_(linhas_("Fechamentos").find(r => r.Data === data && r["Clínica"] === CLINICAS[cod].nome)),
@@ -347,7 +355,10 @@ function conferenciaDiaria() {
   const lanc = linhas_("Lançamentos"), fech = linhas_("Fechamentos"), lancados = {};
   lanc.forEach(l => { if (l["Agendamento V Saúde"]) lancados[l["Agendamento V Saúde"]] = 1; lancados[l.Data + "|" + nomeChave_(l.Paciente)] = 1; });
   const cods = Object.keys(CLINICAS);
-  let ags = null; try { ags = agendas_(cods.map(c => [CLINICAS[c].unidade, hoje, hoje])); } catch (e) {}
+  let ags = null; try {
+    const a = agendas_(cods.map(c => [CLINICAS[c].unidade, hoje, hoje])), por = {};
+    cods.forEach((c, i) => { por[c] = a[i]; }); const R = redistribuir_(por); ags = cods.map(c => R[c]);
+  } catch (e) {}
   const blocos = [];
   let algum = false;
   cods.forEach((cod, i) => {
@@ -401,6 +412,8 @@ function painel(k, mes) {
     pedidos.push([u, mes + "-01", fimMes_(mes)], [u, somaDiasStr_(hoje, -180), hoje], [u, hoje, "9999-12-31"]); });
   let ags = null, erroAg = "";
   try { ags = agendas_(pedidos); } catch (err) { erroAg = err.message; }
+  let doMes = null;
+  if (ags) { const por = {}; cods.forEach((c, i) => { por[c] = ags[3 * i]; }); doMes = redistribuir_(por); }
   const reinc = [];
   cods.forEach((cod, i) => {
     const C = CLINICAS[cod], r = resumoClinica_(C.nome, mes, true);
@@ -414,7 +427,7 @@ function painel(k, mes) {
       saidasOutras: saidasOutras, custos: custos, resultado: r.entradas - custos,
     }));
     // pendências: agenda do V Saúde até hoje sem lançamento
-    const agenda = ags ? ags[3 * i] : [];
+    const agenda = doMes ? doMes[cod] : [];
     if (!ags) pend.push({ clinica: C.nome, data: "", paciente: "", motivo: "Agenda do V Saúde indisponível: " + erroAg });
     clinicas[clinicas.length - 1].faltasVS = faltas_(agenda, hoje, horaAgora, precos);
     if (ags) reinc.push.apply(reinc, reincidentes_(ags[3 * i + 1], ags[3 * i + 2], hoje, horaAgora, C.nome));
@@ -572,6 +585,41 @@ function statusTxt_(s) {
  * Agendamentos com paciente de uma unidade entre duas datas (aaaa-mm-dd, inclusive), no horário de Brasília.
  * A API devolve tudo a partir de "from" (o "range" não corta), por isso o filtro de datas é feito aqui.
  */
+/**
+ * Grade de atendimento do médico: em que clínica ele está em cada dia/horário.
+ * Usada só para corrigir agendamentos feitos na unidade de Praia Grande (onde caem as consultas de 1ª vez
+ * marcadas na unidade errada). Agendamentos nas unidades de Sombrio e Torres ficam sempre na própria clínica.
+ * Dia da semana (1 = segunda … 5 = sexta): uma clínica o dia todo, ou [[a partir de, clínica], ...].
+ */
+const GRADE = {
+  1: [["00:00", "PG"], ["13:00", "TO"]],   // segunda: manhã Praia Grande, tarde Torres
+  2: "SO",                                 // terça: Sombrio
+  3: "TO",                                 // quarta: Torres
+  4: "SO",                                 // quinta: Sombrio
+  5: [["00:00", "PG"], ["13:00", "TO"]],   // sexta: manhã Praia Grande, tarde Torres
+};
+function clinicaDaGrade_(data, hora) {
+  const g = GRADE[new Date(data + "T12:00:00").getDay()];
+  if (!g) return "";
+  if (typeof g === "string") return g;
+  let c = ""; g.forEach(x => { if (hora >= x[0]) c = x[1]; });
+  return c;
+}
+/** Em que clínica o atendimento acontece (infusão, ECT e consulta online ficam na unidade agendada). */
+function clinicaReal_(a, codUnidade) {
+  if (codUnidade !== "PG" || a.online || ehInfusao_(a.procedimento) || /\bECT\b/.test(a.procedimento)) return codUnidade;
+  return clinicaDaGrade_(a.data, a.hora) || codUnidade;
+}
+/** {PG:[...],SO:[...],TO:[...]} por unidade → por clínica real; cada item ganha "unidade" (cod da unidade agendada). */
+function redistribuir_(porUnidade) {
+  const out = {}; Object.keys(CLINICAS).forEach(c => { out[c] = []; });
+  Object.keys(porUnidade).forEach(u => (porUnidade[u] || []).forEach(a => {
+    const c = clinicaReal_(a, u); (out[c] || out[u]).push(Object.assign({}, a, { unidade: u, unidadeNome: CLINICAS[u].nome }));
+  }));
+  Object.keys(out).forEach(c => out[c].sort((x, y) => (x.data + x.hora).localeCompare(y.data + y.hora)));
+  return out;
+}
+
 function agenda_(unidade, de, ate) { return agendas_([[unidade, de, ate]])[0]; }
 
 /** Várias consultas de agenda em paralelo: pedidos = [[unidade, de, ate], ...]. */
