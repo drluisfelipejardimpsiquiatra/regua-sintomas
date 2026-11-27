@@ -691,10 +691,25 @@ function resumoBlocos(){
   }
   return out;
 }
+// Sinal de risco no relato livre. Ignora frases negadas ("nunca tentei tirar a própria vida",
+// "não tenho pensamentos de suicídio"), mas na dúvida marca: "não consigo parar de pensar em me matar",
+// "não sei se quero morrer" e "nunca tentei, mas penso em me matar" continuam marcados.
+// A tela "família" fica de fora: ali "suicídio" é história familiar, pedida na própria pergunta (aparece no PDF).
+const RISCO_RE = /(suicid|me matar|se matar|tirar (a )?(minha|propria|sua) vida|nao quero mais viver|quer morrer|quero morrer|acabar com tudo|me ferir|me cortar|se cortar|se machuca)/g;
+const NEGA_RE = /\b(nunca|jamais|nao|nem|nenhum|nenhuma|sem)\b/;
+const NAO_NEGA_RE = /(consig|aguent|\bpar[oa]\b|parar|\bsei\b|deix|esquec|control|evit|tir[oa] da cabeca|sai da cabeca)/;
+function relatoComRisco(texto){
+  return norm(texto).split(/[.;,!?\n]+|\b(?:mas|porem|so que|embora|entretanto|contudo)\b/).some(oracao => {
+    for (const m of (oracao || "").matchAll(RISCO_RE)) {
+      const antes = oracao.slice(0, m.index).trim().split(/\s+/).slice(-5).join(" ");
+      if (!NEGA_RE.test(antes) || NAO_NEGA_RE.test(antes)) return true;
+    }
+    return false;
+  });
+}
 function riscoSinal(){
   const rot = ROT[tipo], r = (R.rastreio||{})[rot.risco];
-  const tx = norm(rot.telas.filter(t => t.tipo === "voz").map(t => R[t.id] || "").join(" "));
-  return (r != null && r > 0) || /(suicid|me matar|se matar|tirar (a )?(minha|propria|sua) vida|nao quero mais viver|quer morrer|quero morrer|acabar com tudo|me ferir|me cortar|se cortar|se machuca)/.test(tx);
+  return (r != null && r > 0) || relatoComRisco(rot.telas.filter(t => t.tipo === "voz" && t.id !== "familia").map(t => R[t.id] || "").join("\n"));
 }
 async function enviar(){
   const msg = document.getElementById("msgEnvio"), btn = document.getElementById("enviar");

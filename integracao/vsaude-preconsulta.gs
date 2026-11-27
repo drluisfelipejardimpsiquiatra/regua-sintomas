@@ -446,14 +446,29 @@ function ybocsHtml_(d) {
   ${comLista.alvo ? `<h3>Sintomas que mais atrapalham (nas palavras do paciente)</h3>${comLista.alvo.split("\n").map(l => `<p>${e(l)}</p>`).join("")}` : ""}` : ""}`;
 }
 
+/** Mesma regra da página (preconsulta.html → relatoComRisco): ignora o termo de risco quando negado na mesma oração. */
+function fraseComRisco_(f) {
+  const t = String(f).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  return t.split(/[.;,!?\n]+|\b(?:mas|porem|so que|embora|entretanto|contudo)\b/).some(o => {
+    for (const m of (o || "").matchAll(/suicid|me matar|se matar|tirar a (minha |propria )?vida|nao quero mais viver|sumir|morrer|me ferir|me cortar|se cortar|acabar com tudo/g)) {
+      const antes = o.slice(0, m.index).trim().split(/\s+/).slice(-5).join(" ");
+      if (!/\b(nunca|jamais|nao|nem|nenhum|nenhuma|sem)\b/.test(antes) ||
+          /(consig|aguent|\bpar[oa]\b|parar|\bsei\b|deix|esquec|control|evit|tir[oa] da cabeca|sai da cabeca)/.test(antes)) return true;
+    }
+    return false;
+  });
+}
+
 function montarHtml(d) {
   const e = esc_, curto = q => q.split(/,| \(/)[0];
   const abertas = d.secoes.filter(s => s.titulo !== "Identificação" && s !== (d.rastreio && d.secoes.find(x => x.titulo === d.rastreio.titulo)) &&
     !(d.impacto && s.titulo === d.impacto.titulo) && s.titulo !== "Motivação" && !/^Resumo para o médico/.test(s.titulo) &&
     ((d.roteiro !== "PHQ-9" && d.roteiro !== "Y-BOCS") || s.titulo === "Observações do paciente"));
   const destaques = d.rastreio ? d.rastreio.itens.filter(it => it.v >= 3) : [];
-  const frases = abertas.map(s => s.texto).join(" ").split(/(?<=[.!?])\s+/)
-    .filter(f => /suicid|me matar|tirar a (minha |própria )?vida|sumir|morrer|me ferir|me cortar|acabar com tudo/i.test(f)).slice(0, 2);
+  // Frases citadas na faixa de risco: sem as negadas ("nunca tentei tirar a própria vida")
+  // e sem a seção de família (ali "suicídio" é história familiar).
+  const frases = abertas.filter(s => !/família/i.test(s.titulo)).map(s => s.texto).join(" ").split(/(?<=[.!?])\s+/)
+    .filter(fraseComRisco_).slice(0, 2);
   return `<!doctype html><html><head><meta charset="utf-8"><style>
   @page{size:A4;margin:14mm 14mm 16mm}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
