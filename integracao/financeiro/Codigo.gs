@@ -643,7 +643,9 @@ function mapAgenda_(res, unidade, de, ate) {
       return { id: String(a.id), data: Utilities.formatDate(dt, FUSO, "yyyy-MM-dd"), hora: Utilities.formatDate(dt, FUSO, "HH:mm"),
         pacienteId: String(a.patient.id || ""), tel: String(a.patient.phoneNumber || ""),
         paciente: String(a.patient.name || "").replace(/\s+/g, " ").trim(), procedimento: String((a.procedure && a.procedure.name) || "").replace(/\s+/g, " ").trim(),
-        status: a.status, statusTxt: statusTxt_(a.status), finalizado: !!STATUS_FINALIZADO[a.status], online: !!a.remotely };
+        status: a.status, statusTxt: statusTxt_(a.status), finalizado: !!STATUS_FINALIZADO[a.status],
+        // o V Saúde nem sempre marca "remotely": a consulta online vem no nome do procedimento
+        online: !!a.remotely || /online/i.test((a.procedure && a.procedure.name) || "") };
     })
     .filter(a => a.data >= de && a.data <= ate && !/bloqueio|reuni|palestra/i.test(a.procedimento) && !/programa r[áa]dio|r[áa]dio \d/i.test(a.paciente))
     .sort((x, y) => (x.data + x.hora).localeCompare(y.data + y.hora));
