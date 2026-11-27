@@ -1,0 +1,96 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Marcellus&display=swap" rel="stylesheet">
+<style>
+/* Marca Dr. Luis Felipe Jardim · tema Oliva (mesmos tokens de marca/marca.css) */
+:root{
+  --oliva:#656635;--ambar:#E89925;--off-white:#F2F1F0;
+  --bg:#656635;--on-bg:#F2F1F0;--on-bg-soft:#E4E1D3;--card:#FBF8EE;--field:#FFFFFF;--ink:#2B2A22;--soft:#5E5A4C;
+  --line:#E2DDCB;--brand:#656635;--brand-soft:#F0ECDD;--accent:#E89925;--on-accent:#2B2A22;
+  --ok:#38584B;--ok-ink:#F2F1F0;--mid:#E89925;--mid-ink:#2B2A22;--bad:#C3622D;--bad-ink:#FFFFFF;--neu:#88764F;--neu-ink:#FFFFFF;
+  --bad-text:#83462D;--alert-bg:#F7E6DA;--alert-line:#E9C9B4;--alert-ink:#83462D;
+  --f-display:"Optima LT Pro",Optima,"Optima nova","Marcellus",Candara,serif;
+  --f-body:Garet,"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --shadow-card:0 2px 10px rgba(43,42,34,.10);color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);-webkit-font-smoothing:antialiased;font-size:15px}
+.marca-faixa{background:var(--oliva);color:var(--off-white);padding:18px 16px 4px;text-align:center}
+.marca-faixa svg{width:18px;height:26px;display:block;margin:0 auto 8px;fill:var(--ambar)}
+.marca-faixa .nome{font:500 18px/1.15 var(--f-display);margin:0}
+.marca-faixa .cargo{font:600 10px/1.4 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--on-bg-soft);margin-top:3px}
+.wrap{max-width:640px;margin:0 auto;padding:12px 16px 48px}
+.wrap.largo{max-width:1120px}
+h1{font:500 26px/1.15 var(--f-display);color:var(--on-bg);margin:10px 0 2px}
+.sub-h{color:var(--on-bg-soft);margin:0 0 12px;line-height:1.4}
+h2{font:500 19px/1.2 var(--f-display);margin:0 0 10px;color:var(--ink)}
+.card{background:var(--card);border-radius:16px;padding:14px 16px;margin:12px 0;box-shadow:var(--shadow-card)}
+.muted{color:var(--soft);font-size:13px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.nav{display:flex;align-items:center;gap:8px;margin:6px 0 4px}
+.nav button,.btn2{border:0;border-radius:999px;background:var(--brand-soft);color:var(--ink);font:700 15px var(--f-body);padding:9px 14px;cursor:pointer}
+.nav input{flex:1;min-width:0;border:0;border-radius:999px;padding:9px 14px;font:700 15px var(--f-body);background:var(--card);color:var(--ink);text-align:center}
+.tabs{display:flex;gap:6px;margin:10px 0 2px}
+.tabs button{flex:1;border:2px solid transparent;border-radius:999px;padding:9px;font:700 14px var(--f-body);background:rgba(255,255,255,.12);color:var(--on-bg);cursor:pointer}
+.tabs button.on{background:var(--card);color:var(--ink)}
+.btn{border:0;border-radius:999px;padding:12px 18px;font:800 15px var(--f-body);background:var(--accent);color:var(--on-accent);cursor:pointer}
+.btn:disabled{opacity:.55}
+.btn.full{width:100%}
+.lnk{background:none;border:0;color:var(--bad-text);font:700 14px var(--f-body);cursor:pointer;padding:6px 0;text-decoration:underline}
+.chip{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;white-space:nowrap}
+.c-ok{background:var(--ok);color:var(--ok-ink)}.c-mid{background:var(--mid);color:var(--mid-ink)}
+.c-bad{background:var(--bad);color:var(--bad-ink)}.c-neu{background:var(--brand-soft);color:var(--soft)}
+.opts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.opts button{border:2px solid var(--line);background:var(--field);color:var(--ink);border-radius:12px;padding:8px 11px;font:700 14px var(--f-body);cursor:pointer}
+.opts button.on{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+label.l{display:block;font-weight:700;font-size:13px;color:var(--soft);margin:8px 0 4px}
+input.f,select.f,textarea.f{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:15px var(--f-body);background:var(--field);color:var(--ink)}
+textarea.f{min-height:54px}
+.pg{display:grid;grid-template-columns:96px 1fr 90px;gap:6px;align-items:center;margin:4px 0}
+.pg .nm{font-weight:700}
+.alerta{background:var(--alert-bg);border:1px solid var(--alert-line);color:var(--alert-ink);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:14px;line-height:1.45}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--soft);text-transform:uppercase;letter-spacing:.04em}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.tot td{font-weight:800;border-bottom:0}
+.carregando{color:var(--on-bg-soft);text-align:center;padding:30px}
+.erro{background:var(--card);color:var(--bad-text);border-radius:12px;padding:14px;margin:12px 0}
+.rol{overflow-x:auto}
+.ba{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.ba-nome{flex:1 1 260px;min-width:0}
+.ba-acao{display:flex;gap:6px;flex-wrap:wrap}
+footer{margin-top:22px;text-align:center;font-size:12px;color:var(--on-bg-soft)}
+</style>
+<script>
+const call = (fn, ...a) => new Promise((ok, no) => google.script.run.withSuccessHandler(ok).withFailureHandler(no)[fn](...a));
+const R$ = (v) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const dBR = (d) => d ? d.slice(8, 10) + "/" + d.slice(5, 7) + "/" + d.slice(0, 4) : "";
+const SEMANA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+const diaSemana = (d) => SEMANA[new Date(d + "T12:00:00").getDay()];
+const somaDias = (d, n) => { const x = new Date(d + "T12:00:00"); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+const somaMes = (m, n) => { const x = new Date(m + "-15T12:00:00"); x.setMonth(x.getMonth() + n); return x.toISOString().slice(0, 7); };
+const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+const mesBR = (m) => MESES[+m.slice(5, 7) - 1] + " de " + m.slice(0, 4);
+const num = (s) => { s = String(s || "").replace(/[^\d,.]/g, ""); if (s.includes(",")) s = s.replace(/\./g, "").replace(",", "."); else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ""); const n = parseFloat(s); return isFinite(n) ? n : 0; };
+const fmtIn = (v) => v ? String(v.toFixed(2)).replace(".", ",") : "";
+const waLink = (tel, nome) => {
+  let t = String(tel || "").replace(/\D/g, ""); if (!t) return "";
+  if (!t.startsWith("55")) t = "55" + t;
+  const msg = "Olá, " + String(nome || "").split(" ")[0] + "! Aqui é do consultório do Dr. Luis Felipe Jardim. Sentimos sua falta na última consulta. Está tudo bem com você? Quer que a gente remarque um horário?";
+  return "https://wa.me/" + t + "?text=" + encodeURIComponent(msg);
+};
+/** Lista de busca ativa (pacientes com 2+ faltas em 180 dias). */
+function htmlBuscaAtiva(lista, comClinica) {
+  if (!lista.length) return '<p class="muted">Nenhum paciente com 2 ou mais faltas nos últimos 6 meses.</p>';
+  return lista.map((p) => {
+    const sit = p.proxima ? '<span class="chip c-mid">próxima ' + dBR(p.proxima.slice(0, 10)).slice(0, 5) + " " + esc(p.proxima.slice(11)) + "</span>"
+      : '<span class="chip c-bad">sem retorno marcado</span>';
+    const wa = waLink(p.tel, p.paciente);
+    return '<div class="ba"><div class="ba-nome"><b>' + esc(p.paciente) + "</b>" + (comClinica ? ' <span class="muted">· ' + esc(p.clinica) + "</span>" : "") +
+      '<div class="muted">faltou ' + p.faltas + " de " + (p.faltas + p.atendidos) + " · última falta " + dBR(p.ultimaFalta).slice(0, 5) + (p.faltouDuasUltimas ? " · faltou nas 2 últimas" : "") + "</div></div>" +
+      '<div class="ba-acao">' + sit + (wa ? ' <a class="chip c-ok" style="text-decoration:none" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a>' : "") + "</div></div>";
+  }).join("");
+}
+const msgErro = (e) => (e && e.message ? e.message : String(e)).replace(/^Exception: /, "").replace(/^Error: /, "");
+</script>
