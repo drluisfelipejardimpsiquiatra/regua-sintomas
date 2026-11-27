@@ -27,7 +27,7 @@
 <div class="wrap">
   <h1 id="tit">Caixa</h1>
   <p class="sub-h" id="subt"></p>
-  <div class="tabs"><button id="tDia" class="on">Dia</button><button id="tMes">Mês</button><button id="tBusca">Busca ativa</button></div>
+  <div class="tabs"><button id="tDia" class="on">Dia</button><button id="tMes">Mês</button><button id="tBusca" hidden>Busca ativa</button></div>
   <div id="vDia">
     <div class="nav"><button id="ant" aria-label="Dia anterior">‹</button><input type="date" id="data"><button id="prox" aria-label="Próximo dia">›</button></div>
     <div id="dia"><div class="carregando">Carregando a agenda…</div></div>
@@ -72,6 +72,7 @@ function chipLanc(l) {
 }
 function render() {
   $("tit").textContent = "Caixa · " + D.clinica.nome;
+  $("tBusca").hidden = !(D.clinica.buscaAtiva || MEDICO);
   $("subt").textContent = D.clinica.local + " · " + diaSemana(D.data) + ", " + dBR(D.data);
   const L = itens(), lancados = L.filter((x) => x.l).length;
   const t = totais();
@@ -87,7 +88,7 @@ function render() {
       (ED && ED.key === x.key ? editor() : "") + "</div>";
   });
   h += '<div class="card it" data-key="novo">' + (ED && ED.key === "novo" ? "<h2>Paciente fora da agenda</h2>" + editor() : '<button class="btn2" style="width:100%" data-abrir="novo">+ Paciente fora da agenda</button>') + "</div>";
-  h += cardSaidas() + cardFechamento(t);
+  h += cardSaidas() + (D.aluguel ? cardAluguel() : "") + cardFechamento(t);
   $("dia").innerHTML = h;
 }
 function preco(proc, forma) {
@@ -174,6 +175,22 @@ function cardSaidas() {
     '<div class="acoes"><button class="btn" id="sAdd">Adicionar saída</button></div></div>';
   return h;
 }
+// Sombrio: desconto do aluguel em % das consultas do dia, até completar o aluguel do mês
+function cardAluguel() {
+  const A = D.aluguel;
+  let h = '<div class="card"><h2>Desconto do aluguel</h2><div class="resumo">' +
+    "<div>Consultas do dia<b>" + R$(A.consultas) + "</b></div><div>" + A.pct + "% das consultas<b>" + R$(A.consultas * A.pct / 100) + "</b></div>" +
+    "<div>Aluguel do mês<b>" + R$(A.valorMes) + "</b></div><div>Já descontado no mês<b>" + R$(A.jaAntes + A.hoje) + "</b></div>" +
+    "<div><strong>Falta descontar</strong><b>" + R$(Math.max(A.falta - A.hoje, 0)) + "</b></div></div>";
+  if (A.hoje) h += '<p class="muted"><span class="chip c-ok">Desconto de hoje lançado: ' + R$(A.hoje) + "</span> Aparece em “Saídas do dia”; para corrigir, exclua lá e lance de novo.</p>";
+  else if (!A.valorMes) h += '<p class="muted">O valor do aluguel ainda não foi preenchido pelo Dr. Luis Felipe.</p>';
+  else if (A.falta <= 0) h += '<p class="muted"><span class="chip c-ok">Aluguel do mês completo</span> Não há mais nada a descontar este mês.</p>';
+  else if (!A.consultas) h += '<p class="muted">Lance os pacientes do dia; o desconto é calculado sobre o total das consultas.</p>';
+  else h += '<p class="muted">Desconto sugerido para hoje: ' + A.pct + "% das consultas" + (A.sugestao < A.consultas * A.pct / 100 ? ", limitado ao que falta do aluguel" : "") + ".</p>" +
+    '<label class="l">Valor do desconto de hoje</label><input class="f" id="aVal" inputmode="decimal" value="' + fmtIn(A.sugestao) + '">' +
+    '<div class="acoes"><button class="btn" id="aLanc">Lançar desconto do aluguel</button></div>';
+  return h + "</div>";
+}
 function cardFechamento(t) {
   const F = D.fechamento;
   let h = '<div class="card"><h2>Fechamento do dia</h2><div class="resumo">' + D.formas.map((f) => "<div>" + f + "<b>" + R$(t.formas[f]) + "</b></div>").join("") +
@@ -209,8 +226,8 @@ async function carregarBusca() {
   $("buscaBox").innerHTML = '<div class="carregando">Consultando a agenda dos últimos 6 meses…</div>';
   try {
     const B = await call("buscaAtiva", K, CLIN);
-    $("buscaBox").innerHTML = '<div class="card"><h2>Pacientes que faltaram 2 ou mais vezes</h2><p class="muted">Últimos 6 meses, pela agenda do V Saúde. Comece por quem faltou nas 2 últimas e por quem está <b>sem retorno marcado</b>: o botão abre o WhatsApp com uma mensagem pronta. Para quem já tem a próxima consulta marcada, confirme a presença na véspera.</p>' +
-      htmlBuscaAtiva(B.lista, false) + "</div>";
+    $("buscaBox").innerHTML = '<div class="card"><h2>Pacientes que faltaram 2 ou mais vezes</h2><p class="muted">' + (B.todas ? "Praia Grande, Sombrio e Torres. " : "") + 'Últimos 6 meses, pela agenda do V Saúde. Comece por quem faltou nas 2 últimas e por quem está <b>sem retorno marcado</b>: o botão abre o WhatsApp com uma mensagem pronta. Para quem já tem a próxima consulta marcada, confirme a presença na véspera.</p>' +
+      htmlBuscaAtiva(B.lista, B.todas) + "</div>";
   } catch (e) { $("buscaBox").innerHTML = '<div class="erro">' + esc(msgErro(e)) + "</div>"; }
 }
 
@@ -235,6 +252,8 @@ document.addEventListener("click", (ev) => {
     case "eCanc": ED = null; render(); break;
     case "eExc": if (confirm("Excluir este lançamento?")) enviar("excluirLancamento", ED.id); break;
     case "sAdd": enviar("salvarSaida", { data: D.data, categoria: $("sCat").value, valor: num($("sVal").value), descricao: $("sDesc").value, pagoCom: $("sPago").value }); break;
+    case "aLanc": enviar("salvarSaida", { data: D.data, categoria: "Aluguel pago com o caixa", valor: num($("aVal").value),
+      descricao: "Desconto do aluguel · " + D.aluguel.pct + "% das consultas", pagoCom: "Descontado do repasse" }); break;
     case "fFotoBtn": $("fFoto").click(); break;
     case "fFechar": enviar("fecharDia", D.data, $("fCont").value.trim() === "" ? "" : num($("fCont").value), $("fObs").value); break;
     case "ant": $("data").value = somaDias($("data").value, -1); carregar(); break;

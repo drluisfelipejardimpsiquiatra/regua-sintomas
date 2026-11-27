@@ -125,3 +125,13 @@ Rode **gerarLinks** de novo: todos os links antigos param de funcionar e a aba L
 - As secretárias não veem a estimativa.
 - Pacientes agendados na unidade errada são atribuídos à clínica onde o médico estava naquele dia
   (terça e quinta, Sombrio; dia com caixa de outra clínica, essa clínica).
+
+## O que muda em cada link de secretária
+- **Todas**: lançam os pacientes do dia (entradas), as **saídas** do caixa e fecham o dia, com foto.
+- **Praia Grande**: tem a aba **Busca ativa** com os pacientes faltosos das **três clínicas** (é ela quem faz a busca).
+  Os links de Sombrio e Torres não têm essa aba.
+- **Sombrio**: tem o quadro **Desconto do aluguel**. A Cardiovitta desconta o aluguel aos poucos: X% das consultas do dia
+  (Preços → "Sombrio · desconto do aluguel (% das consultas)") até completar o aluguel do mês (Custos fixos).
+  O desconto vira uma saída "Aluguel pago com o caixa", pago com "Descontado do repasse": não mexe no dinheiro da gaveta
+  e o painel não conta o aluguel duas vezes.
+- **Torres**: aluguel e condomínio já estão nos custos fixos; não há desconto no caixa.

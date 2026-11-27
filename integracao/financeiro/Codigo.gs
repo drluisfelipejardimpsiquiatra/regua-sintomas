@@ -20,8 +20,10 @@ const FUSO = "America/Sao_Paulo";
 const VS_BASE = "https://public-api.vsaude.com.br/api/services/app";
 
 const CLINICAS = {
-  PG: { nome: "Praia Grande", local: "Consultório Dr. Luis Felipe Jardim", unidade: 4176, pasta: "Praia Grande" },
-  SO: { nome: "Sombrio", local: "Clínica Cardiovitta", unidade: 4177, pasta: "Sombrio (Cardiovitta)" },
+  // buscaAtiva: a secretária de Praia Grande faz a busca ativa das três clínicas
+  PG: { nome: "Praia Grande", local: "Consultório Dr. Luis Felipe Jardim", unidade: 4176, pasta: "Praia Grande", buscaAtiva: true },
+  // descontoAluguel: a Cardiovitta desconta o aluguel aos poucos, em % do que entra das consultas
+  SO: { nome: "Sombrio", local: "Clínica Cardiovitta", unidade: 4177, pasta: "Sombrio (Cardiovitta)", descontoAluguel: true },
   TO: { nome: "Torres", local: "Vida Multiclínica", unidade: 5398, pasta: "Torres (Vida Multiclínica)" },
 };
 
@@ -31,7 +33,8 @@ const REALIZADO = { "Atendido": 1, "Pagar depois": 1, "Pago antes": 1, "Cortesia
 const FORMAS = ["Dinheiro", "Pix", "Débito", "Crédito", "Convênio"];
 const CATEGORIAS_SAIDA = ["Taxa de sala · infusão", "Aluguel pago com o caixa", "Retirada pelo Dr. Luis Felipe", "Faxina", "Material de limpeza", "Material de escritório",
   "Insumos e medicação", "Estacionamento", "Lanche e copa", "Outros"];
-const PAGO_COM = ["Dinheiro do caixa", "Pix", "Cartão", "Outro"];
+const PAGO_COM = ["Dinheiro do caixa", "Pix", "Cartão", "Descontado do repasse", "Outro"];
+const PRECO_DESC_ALUGUEL = "Sombrio · desconto do aluguel (% das consultas)";
 const CAT_INFUSAO = "Taxa de sala · infusão";
 // saem da gaveta mas não são custo novo: o aluguel já está em "Custos fixos"; a retirada é dinheiro do próprio médico
 const CAT_ALUGUEL = "Aluguel pago com o caixa", CAT_RETIRADA = "Retirada pelo Dr. Luis Felipe";
@@ -90,6 +93,7 @@ function instalar() {
     ["Infusão de escetamina", 850],
     ["Taxa de sala por infusão (custo)", 250],
   ]);
+  if (!linhas_("Preços").some(r => r.Item === PRECO_DESC_ALUGUEL)) precos.appendRow([PRECO_DESC_ALUGUEL, 15]);
   if (!linhas_("Preços").some(r => r.Item === "ECT · repasse do hospital (Unimed)"))
     precos.appendRow(["ECT · repasse do hospital (Unimed)", ""]); // preencha: valor que o hospital repassa por sessão
   const fixos = ss.getSheetByName("Custos fixos");
@@ -196,7 +200,26 @@ function dia(k, c, data) {
     fechamento: fechamentoOut_(linhas_("Fechamentos").find(r => r.Data === data && r["Clínica"] === CLINICAS[cod].nome)),
     precos: precos_(), situacoes: SITUACOES, formas: FORMAS, categorias: CATEGORIAS_SAIDA, pagoCom: PAGO_COM,
     fotos: fotosDoDia_(cod, data).map(f => f.getName()),
+    aluguel: CLINICAS[cod].descontoAluguel ? descontoAluguel_(CLINICAS[cod].nome, data) : null,
   };
+}
+
+/**
+ * Sombrio: o aluguel do mês é descontado aos poucos, X% do que entra das consultas no dia (Preços),
+ * até completar o valor do aluguel (Custos fixos). Lançado como saída "Aluguel pago com o caixa".
+ */
+function descontoAluguel_(nome, data) {
+  const mes = data.slice(0, 7), pct = num_(precos_()[PRECO_DESC_ALUGUEL]) || 0;
+  const fx = linhas_("Custos fixos").find(f => f["Clínica"] === nome && /aluguel/i.test(f["Descrição"]) && fixoNoMes_(f, mes));
+  const valorMes = fx ? num_(fx["Valor mensal"]) : 0;
+  const sai = linhas_("Saídas").filter(r => r["Clínica"] === nome && String(r.Data).slice(0, 7) === mes && r.Categoria === CAT_ALUGUEL);
+  const hoje = sai.filter(r => r.Data === data).reduce((s, r) => s + num_(r.Valor), 0);
+  const antes = sai.filter(r => r.Data !== data).reduce((s, r) => s + num_(r.Valor), 0);
+  const consultas = linhas_("Lançamentos").filter(r => r["Clínica"] === nome && r.Data === data)
+    .reduce((s, r) => { const l = lancOut_(r); return s + l.total - l.valores["Convênio"]; }, 0);
+  const falta = Math.max(valorMes - antes, 0);
+  return { pct: pct, valorMes: valorMes, consultas: consultas, jaAntes: antes, hoje: hoje, falta: falta,
+    sugestao: Math.round(Math.min(consultas * pct / 100, falta) * 100) / 100 };
 }
 
 function salvarLancamento(k, c, o) {
@@ -601,8 +624,14 @@ function reincidentes_(hist, fut, hoje, horaAgora, clinica) {
 /** Lista de busca ativa de UMA clínica (tela da secretária). */
 function buscaAtiva(k, c) {
   const cod = clinicaDe_(k, c), C = CLINICAS[cod], hoje = hoje_(), hora = Utilities.formatDate(new Date(), FUSO, "HH:mm");
-  const ag = agendas_([[C.unidade, somaDiasStr_(hoje, -180), hoje], [C.unidade, hoje, "9999-12-31"]]);
-  return { clinica: Object.assign({ cod: cod }, C), lista: reincidentes_(ag[0], ag[1], hoje, hora, C.nome) };
+  if (!C.buscaAtiva && papel_(k) !== "MEDICO") throw new Error("A busca ativa é feita pela secretária de Praia Grande.");
+  // Praia Grande (Gabriela) vê as três clínicas; o médico, abrindo o caixa de outra clínica, vê só aquela
+  const cods = C.buscaAtiva ? Object.keys(CLINICAS) : [cod], pedidos = [];
+  cods.forEach(x => { const u = CLINICAS[x].unidade; pedidos.push([u, somaDiasStr_(hoje, -180), hoje], [u, hoje, "9999-12-31"]); });
+  const ag = agendas_(pedidos), lista = [];
+  cods.forEach((x, i) => lista.push.apply(lista, reincidentes_(ag[2 * i], ag[2 * i + 1], hoje, hora, CLINICAS[x].nome)));
+  lista.sort((x, y) => (+y.faltouDuasUltimas - +x.faltouDuasUltimas) || (+!y.proxima - +!x.proxima) || (y.faltas - x.faltas) || y.ultimaFalta.localeCompare(x.ultimaFalta));
+  return { clinica: Object.assign({ cod: cod }, C), todas: cods.length > 1, lista: lista };
 }
 
 function somaDiasStr_(d, n) {
