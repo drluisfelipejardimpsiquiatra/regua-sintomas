@@ -174,7 +174,15 @@ function doGet(e) {
  *  nesse caso use a propriedade URL_APP (Configurações do projeto → Propriedades do script). */
 function urlApp_() {
   const p = PropertiesService.getScriptProperties().getProperty("URL_APP");
-  return p || ScriptApp.getService().getUrl();
+  if (p) return p;
+  const u = ScriptApp.getService().getUrl();
+  if (!/\/dev$/.test(u)) return u;
+  // o Google às vezes devolve a /dev mesmo no app publicado: usa a /exec gravada na aba Links
+  try {
+    const l = linhas_("Links").map(r => String(r["Link (não compartilhe com outras pessoas)"] || "")).find(x => /\/exec\?/.test(x));
+    if (l) return l.split("?")[0];
+  } catch (e) {}
+  return u;
 }
 
 function include(nome) { return arquivo_(nome); }
