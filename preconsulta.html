@@ -61,6 +61,8 @@ textarea.gravando{border-color:var(--terracota);box-shadow:0 0 0 3px rgba(195,98
 .freq{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .freq button{flex:1 1 auto;border:1px solid var(--linha);background:#fff;border-radius:10px;padding:8px 6px;font:600 13px Figtree,system-ui,sans-serif;color:var(--tinta);cursor:pointer}
 .freq button.on{background:var(--oliva);border-color:var(--oliva);color:#fff}
+.freq button small{display:block;font-weight:400;font-size:11px;line-height:1.2;margin-top:2px;opacity:.8}
+.det{margin-top:6px}
 .falarTopo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid var(--linha);border-radius:14px;padding:10px 12px;margin:10px 0}
 .falarTopo span{font-size:14px;color:var(--suave);flex:1 1 200px}
 .falar{border:0;background:var(--ambar);color:var(--tinta);border-radius:999px;padding:10px 16px;font:700 14px Figtree,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
@@ -113,6 +115,8 @@ const CAMPO_RESPOSTAS = "entry.929291522";
 const CHAVE = "preconsulta-voz-v2-";
 
 const FREQ_CURTO = ["Nada","Muito leve","Leve","Moderado","Grave"];
+// Âncoras de frequência do DSM-5 Nível 1, mostradas dentro de cada botão (o texto enviado continua o de FREQ_CURTO).
+const FREQ_DIAS = ["nenhum dia","1 ou 2 dias","vários dias","mais da metade dos dias","quase todos os dias"];
 const CVV = "Se houver pensamento de se ferir agora, não espere a consulta: ligue <b>188</b> (CVV, 24 h, gratuito), procure o pronto-atendimento mais próximo ou ligue <b>192</b> (SAMU), e avise a clínica.";
 
 // ====== MENSAGEM DE BOAS-VINDAS (cabeçalho da primeira tela) ======
@@ -132,7 +136,7 @@ const CARTA = [
 const ROT = {
 adulto: {
   rotulo:"Adulto", icone:"🧑", sub:"18 a 64 anos, respondendo por si",
-  ident:[{id:"nome",label:"Nome completo",obrig:true},{id:"cpf",label:"CPF",tipo:"cpf",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date"},{id:"tel",label:"Celular com DDD",tipo:"tel",obrig:true}],
+  ident:[{id:"nome",label:"Nome completo",obrig:true},{id:"cpf",label:"CPF",tipo:"cpf",obrig:true},{id:"nasc",label:"Data de nascimento",tipo:"date"},{id:"sexo",label:"Sexo",tipo:"select",opcoes:["Feminino","Masculino","Prefiro não informar"],obrig:true},{id:"tel",label:"Celular com DDD",tipo:"tel",obrig:true}],
   areas:["Trabalho / estudos","Relacionamento amoroso","Filhos / família","Sono","Saúde física","Finanças","Amizades / vida social","Autoestima","Lazer e prazer nas coisas"],
   rastreioTitulo:"Nas últimas 2 semanas", rastreioIntro:"O quanto você foi incomodado(a) por cada item abaixo?",
   rastreio:[
@@ -155,7 +159,10 @@ adulto: {
    "Sentiu-se obrigado(a) a repetir certos comportamentos ou pensamentos",
    "Sentiu-se desligado(a) de si, do corpo, do ambiente ou das lembranças",
    "Sentiu-se sem saber quem você é ou o que quer da vida",
-   "Não se sentiu próximo(a) das pessoas nem aproveitou as relações"],
+   "Não se sentiu próximo(a) das pessoas nem aproveitou as relações",
+   "Tomou 4 ou mais doses de bebida alcoólica em um mesmo dia",
+   "Fumou cigarro, charuto, cachimbo, narguilé ou cigarro eletrônico (vape)",
+   "Usou por conta própria remédios (para dor, para dormir, calmantes ou estimulantes) além do receitado, ou maconha, cocaína, crack, ecstasy ou outras drogas"],
   risco:10,
   telas:[
    {id:"ident", tipo:"ident", titulo:"Quem é você"},
@@ -173,7 +180,12 @@ adulto: {
    {id:"remedios", tipo:"voz", obrig:true, titulo:"Remédios e alergias", pergunta:"Quais remédios você usa hoje? E tem alergia a algum remédio?",
     dicas:["Nome, dose e há quanto tempo usa","Para que usa","Vitaminas e suplementos também","Alergia a remédios ou alimentos (se não tiver, diga \"não tenho\")"]},
    {id:"psiq", tipo:"voz", alerta:true, titulo:"Tratamentos anteriores", pergunta:"Você já fez algum tratamento de saúde mental?",
-    dicas:["Psiquiatra ou psicólogo: motivo e ano","Remédios psiquiátricos que já usou e não usa mais, e se ajudaram","Diagnósticos que algum médico já te deu","Se já precisou ser internado(a) por motivo emocional","Se já tentou tirar a própria vida: quando e como foi"]},
+    dicas:["Psiquiatra ou psicólogo: motivo e ano","Remédios psiquiátricos que já usou e não usa mais, e se ajudaram","Diagnósticos que algum médico já te deu","Se já precisou ser internado(a) por motivo emocional"]},
+   {id:"diretas", tipo:"perguntas", titulo:"Algumas perguntas diretas", intro:"São rápidas e ajudam muito na avaliação. Toque na resposta.",
+    itens:[
+     {id:"tentativa", rotulo:"Já tentou tirar a própria vida", q:"Você já tentou tirar a própria vida, em qualquer época?", opcoes:["Não","Sim","Prefiro falar na consulta"], obrig:true, risco:"Sim", cvv:"Sim", detalhe:{se:"Sim", label:"Quando foi a última vez? (mês e ano, se lembrar)"}},
+     {id:"hipomania", rotulo:"Período de aceleração na vida", q:"Em alguma época da vida, você teve um período de pelo menos alguns dias em que se sentiu acelerado(a), eufórico(a) ou muito irritado(a), precisou de bem menos sono, falou mais ou fez coisas fora do seu normal?", opcoes:["Não","Sim","Não sei"], obrig:true, detalhe:{se:"Sim", label:"Quando foi e quantos dias durou?"}},
+     {id:"virada", rotulo:"Antidepressivo deixou acelerado(a)", q:"Algum antidepressivo já te deixou acelerado(a), agitado(a) ou com muito menos necessidade de dormir?", opcoes:["Não","Sim","Nunca usei antidepressivo","Não sei"], obrig:true, detalhe:{se:"Sim", label:"Qual remédio, se lembrar?"}}]},
    {id:"clinico", tipo:"voz", extra:"pesoAltura", titulo:"Saúde do corpo", pergunta:"Conte sobre a sua saúde física.",
     dicas:["Doenças que os médicos já diagnosticaram","Cirurgias (qual, ano e se resolveu)","Internações (motivo e ano)","Se já teve convulsão ou bateu a cabeça a ponto de desmaiar"]},
    {id:"infancia", tipo:"voz", opcional:true, titulo:"Infância e família", pergunta:"Se quiser, fale sobre sua infância e sua família.",
@@ -182,7 +194,7 @@ adulto: {
     dicas:["Se está em um relacionamento, o quanto está feliz nele","Se tem amigos e pessoas com quem pode contar"]},
    {id:"familia", tipo:"voz", titulo:"Saúde mental na família", pergunta:"Alguém da sua família de sangue já teve problemas de saúde mental?",
     dicas:["Quem (pai, mãe, irmãos, avós, tios, primos)","O quê: depressão, ansiedade, bipolaridade, esquizofrenia, álcool ou drogas, suicídio, demência, TDAH, autismo, outros","Se não sabe ou não tem, pode dizer"]},
-   {id:"mulher", tipo:"voz", opcional:true, titulo:"Para mulheres", pergunta:"Se você é mulher, conte sobre sua saúde reprodutiva.",
+   {id:"mulher", tipo:"voz", opcional:true, cond: R => (R.ident||{}).sexo !== "Masculino", titulo:"Para mulheres", pergunta:"Conte sobre sua saúde reprodutiva.",
     dicas:["Se está grávida ou amamentando","Data da última menstruação","Número de gestações e de filhos","Mudanças de humor antes da menstruação ou com anticoncepcional","Se usa método para evitar gravidez, qual"]},
    {id:"expect", tipo:"voz", titulo:"O que você espera", pergunta:"O que você espera do tratamento?",
     dicas:["O que é, para você, um bom atendimento médico","Se o tratamento der certo, o que estaria diferente na sua vida daqui a 3 meses","Se nada mudar nos próximos 6 meses, o que você imagina que pode acontecer","O que poderia dificultar seu acompanhamento (horário, distância, dinheiro, outro)"]},
@@ -235,6 +247,9 @@ pia: {
     dicas:["Nome, dose e há quanto tempo usa","Para que usa","Vitaminas e suplementos também","Alergias (se não tiver, diga \"não tem\")"]},
    {id:"tratamentos", tipo:"voz", alerta:true, titulo:"Avaliações e tratamentos anteriores", pergunta:"Já fez alguma avaliação ou tratamento?",
     dicas:["Fono, terapia ocupacional, psicólogo, psicopedagogo, neuropediatra ou psiquiatra: quando e por quê","Diagnósticos já dados (TDAH, autismo, dislexia, ansiedade, outros)","Remédios que já usou e se ajudaram","Se já precisou de internação ou pronto-socorro por motivo emocional"]},
+   {id:"diretas", tipo:"perguntas", titulo:"Uma pergunta direta", intro:"É rápida e ajuda muito na avaliação. Toque na resposta.",
+    itens:[
+     {id:"tentativa", rotulo:"Já tentou tirar a própria vida ou se machucou de propósito", q:"Ele ou ela já tentou tirar a própria vida, ou já se machucou de propósito (por exemplo, se cortando)?", opcoes:["Não","Sim","Não sei","Prefiro falar na consulta"], obrig:true, risco:"Sim", cvv:"Sim", detalhe:{se:"Sim", label:"Quando foi a última vez? (mês e ano, se lembrar)"}}]},
    {id:"clinico", tipo:"voz", extra:"pesoAltura", titulo:"Saúde do corpo", pergunta:"Como é a saúde física?",
     dicas:["Doenças, alergias respiratórias, problemas de tireoide ou outros","Cirurgias e internações","Convulsões ou batida forte na cabeça","Audição e visão (já testou? usa óculos?)"]},
    {id:"familia", tipo:"voz", titulo:"Família", pergunta:"Conte sobre a família.",
@@ -289,7 +304,11 @@ geri: {
    {id:"clinico", tipo:"voz", extra:"pesoAltura", titulo:"Saúde do corpo", pergunta:"Como está a saúde física?",
     dicas:["Pressão alta, diabetes, coração, AVC, tireoide, Parkinson, outras","Cirurgias e internações","Quedas no último ano","Audição e visão: usa aparelho ou óculos?","Exames recentes: sangue, tomografia ou ressonância"]},
    {id:"psiq", tipo:"voz", alerta:true, titulo:"Saúde mental antes", pergunta:"Já houve algum tratamento de saúde mental?",
-    dicas:["Depressão, ansiedade ou outros problemas no passado","Psiquiatra, psicólogo ou neurologista: quando e por quê","Remédios que já usou e se ajudaram","Internações ou tentativas de tirar a própria vida"]},
+    dicas:["Depressão, ansiedade ou outros problemas no passado","Psiquiatra, psicólogo ou neurologista: quando e por quê","Remédios que já usou e se ajudaram","Internações por motivo emocional"]},
+   {id:"diretas", tipo:"perguntas", titulo:"Algumas perguntas diretas", intro:"São rápidas e ajudam muito na avaliação. Toque na resposta.",
+    itens:[
+     {id:"tentativa", rotulo:"Já tentou tirar a própria vida", q:"Já tentou tirar a própria vida, em qualquer época?", opcoes:["Não","Sim","Não sei","Prefiro falar na consulta"], obrig:true, risco:"Sim", cvv:"Sim", detalhe:{se:"Sim", label:"Quando foi a última vez? (mês e ano, se lembrar)"}},
+     {id:"hipomania", rotulo:"Período de aceleração na vida", q:"Em alguma época da vida, houve um período de pelo menos alguns dias de euforia ou irritação fora do normal, com muito menos sono, falando mais ou fazendo coisas fora do comum?", opcoes:["Não","Sim","Não sei"], obrig:true, detalhe:{se:"Sim", label:"Quando foi e quantos dias durou?"}}]},
    {id:"vida", tipo:"voz", titulo:"História de vida", pergunta:"Conte um pouco da história de vida.",
     dicas:["Onde nasceu e onde mora; com quem mora","Até que série estudou","Profissão e quando se aposentou","Estado civil, filhos e netos","Do que mais gosta de fazer"]},
    {id:"familia", tipo:"voz", titulo:"Saúde na família", pergunta:"Alguém da família de sangue teve problemas parecidos?",
@@ -313,7 +332,9 @@ const pT = params.get("tipo");
 if (ROT[pT]) carregar(pT);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
-const TELAS = () => [{id:"inicio", tipo:"inicio"}].concat(tipo ? ROT[tipo].telas : []);
+// Telas com "cond" só aparecem quando a condição vale (ex.: "Para mulheres" some se o sexo informado for masculino).
+const telasAtivas = () => tipo ? ROT[tipo].telas.filter(t => !t.cond || t.cond(R)) : [];
+const TELAS = () => [{id:"inicio", tipo:"inicio"}].concat(telasAtivas());
 
 // ====== DITADO (texto aparece enquanto fala) ======
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -527,6 +548,7 @@ function textoParaOuvir(t){
   if (t.tipo === "voz") return [t.titulo + (t.opcional ? ". Esta parte é opcional." : "."), t.pergunta, "Você pode falar sobre: " + t.dicas.join("; ") + ".", t.nota || "", t.alerta ? limpo(CVV) : "", "Quando quiser responder, toque no microfone."];
   if (t.tipo === "impacto") return [t.titulo + ".", "Em quais áreas isso tem atrapalhado? " + rot.areas.join("; ") + ".", "Depois, de zero a dez, quanto isso tem atrapalhado hoje. Zero é nada, dez é completamente.", SR ? "Você pode tocar nas opções ou nos botões de falar." : ""];
   if (t.tipo === "rastreio") return [rot.rastreioIntro, "Para cada item: nada, muito leve, que é um ou dois dias, leve, vários dias, moderado, mais da metade dos dias, ou grave, quase todos os dias.", SR ? "Se preferir, toque em Responder falando: eu leio cada item e você responde em voz alta." : ""];
+  if (t.tipo === "perguntas") return [t.titulo + ".", t.intro || ""].concat(t.itens.map(p => p.q + " Opções: " + p.opcoes.join("; ") + "."));
   if (t.tipo === "escalaFinal") return ["Quase lá.", "De zero a dez, quão importante é resolver isso agora?", "E de zero a dez, quão confiante você está de que é possível mudar com ajuda?"];
   if (t.tipo === "revisao") return ["Revise e envie. Confira as respostas. Toque em corrigir para voltar a qualquer parte. Quando estiver tudo certo, toque em Enviar ao médico."];
   return [];
@@ -595,8 +617,16 @@ function render(){
     const v = R.rastreio || {};
     h = `<h2>${rot.rastreioTitulo}</h2><p>${rot.rastreioIntro}</p>
     ${SR ? `<div class="falarTopo"><button class="falar" id="conversa" data-rotulo="🗣 Responder falando">🗣 Responder falando</button><span id="statusConversa">Eu leio cada item e você responde em voz alta: nada, muito leve, leve, moderado ou grave.</span></div>` : ""}
-    ${rot.rastreio.map((q,i)=>`<div class="item"><div class="q">${TTS?`<button class="ouvirMini" data-ouvir-item="${i}" data-rotulo="🔊" aria-label="Ouvir">🔊</button>`:""}${q}</div><div class="freq" data-q="${i}">${FREQ_CURTO.map((f,j)=>`<button data-f="${j}" class="${v[i]===j?"on":""}">${f}</button>`).join("")}</div>${i===rot.risco?`<div class="alerta" id="alertaRisco" style="${v[i]>0?"display:block":""}">${CVV}</div>`:""}</div>`).join("")}
-    <p style="font-size:13px;color:var(--suave)">Muito leve = 1 ou 2 dias · Leve = vários dias · Moderado = mais da metade dos dias · Grave = quase todos os dias.</p>
+    ${rot.rastreio.map((q,i)=>`<div class="item"><div class="q">${TTS?`<button class="ouvirMini" data-ouvir-item="${i}" data-rotulo="🔊" aria-label="Ouvir">🔊</button>`:""}${q}</div><div class="freq" data-q="${i}">${FREQ_CURTO.map((f,j)=>`<button data-f="${j}" class="${v[i]===j?"on":""}">${f}<small>${FREQ_DIAS[j]}</small></button>`).join("")}</div>${i===rot.risco?`<div class="alerta" id="alertaRisco" style="${v[i]>0?"display:block":""}">${CVV}</div>`:""}</div>`).join("")}
+    ${navHtml()}`;
+  }
+  else if (t.tipo === "perguntas") {
+    const v = R[t.id] || {};
+    h = `<h2>${t.titulo}</h2>${t.intro ? `<p>${t.intro}</p>` : ""}
+    ${t.itens.map(p => { const a = v[p.id] || {}; return `<div class="item"><div class="q">${p.q}${p.obrig ? " *" : ""}</div>
+      <div class="freq" data-p="${p.id}">${p.opcoes.map(o => `<button data-o="${esc(o)}" class="${a.r === o ? "on" : ""}">${o}</button>`).join("")}</div>
+      ${p.detalhe ? `<div class="det" data-det="${p.id}" style="${a.r === p.detalhe.se ? "" : "display:none"}"><label class="campo" for="d_${p.id}">${p.detalhe.label}</label><input type="text" id="d_${p.id}" value="${esc(a.d)}"></div>` : ""}
+      ${p.cvv ? `<div class="alerta" data-cvv="${p.id}" style="${a.r === p.cvv ? "display:block" : ""}">${CVV}</div>` : ""}</div>`; }).join("")}
     ${navHtml()}`;
   }
   else if (t.tipo === "escalaFinal") {
@@ -649,6 +679,14 @@ function ligar(t){
     if (+grp.dataset.q === ROT[tipo].risco) document.getElementById("alertaRisco").style.display = +b.dataset.f > 0 ? "block" : "none";
     coletar(t); salvar();
   });
+  if (t.tipo === "perguntas") tela.querySelectorAll("[data-p] button").forEach(b => b.onclick = () => {
+    const grp = b.parentElement, p = t.itens.find(x => x.id === grp.dataset.p);
+    grp.querySelectorAll("button").forEach(x => x.classList.remove("on")); b.classList.add("on");
+    const det = tela.querySelector(`[data-det="${p.id}"]`); if (det) det.style.display = p.detalhe && b.dataset.o === p.detalhe.se ? "" : "none";
+    const cvv = tela.querySelector(`[data-cvv="${p.id}"]`); if (cvv) cvv.style.display = b.dataset.o === p.cvv ? "block" : "none";
+    coletar(t); salvar();
+  });
+  tela.querySelectorAll(".det input").forEach(i => i.oninput = () => { coletar(t); salvar(); });
   const cv = document.getElementById("conversa"); if (cv) cv.onclick = () => conversaRastreio(cv);
   tela.querySelectorAll(".falarMini").forEach(b => b.onclick = () => { const a = b.dataset.acao; if (a === "areas") falarAreas(b); else falarEscala(b, a.slice(4)); });
   const prox = document.getElementById("prox");
@@ -662,6 +700,7 @@ function ligar(t){
       if (!cpfValido(R.ident.cpf)) { aviso.textContent = "Confira o CPF: os números não conferem."; return; }
     }
     if (t.tipo === "voz" && t.obrig && !(R[t.id]||"").trim()) { aviso.textContent = "Esta resposta é importante. Fale ou escreva pelo menos uma frase."; return; }
+    if (t.tipo === "perguntas" && t.itens.some(p => p.obrig && !((R[t.id]||{})[p.id]||{}).r)) { aviso.textContent = "Responda as perguntas marcadas com *."; return; }
     atual++; salvar(); render();
   };
   const env = document.getElementById("enviar"); if (env) env.onclick = enviar;
@@ -673,6 +712,7 @@ function coletar(t){
   if (t.tipo === "impacto") R.impacto = { areas: [...tela.querySelectorAll("#areas button.on")].map(b=>b.dataset.area), nota: selEscala("nota") };
   if (t.tipo === "rastreio") { const o = {}; tela.querySelectorAll(".freq").forEach(g => { const on = g.querySelector("button.on"); if (on) o[g.dataset.q] = +on.dataset.f; }); R.rastreio = o; }
   if (t.tipo === "escalaFinal") R.motivacao = { imp: selEscala("imp"), conf: selEscala("conf") };
+  if (t.tipo === "perguntas") { const o = {}; t.itens.forEach(p => { const on = tela.querySelector(`[data-p="${p.id}"] button.on`); o[p.id] = { r: on ? on.dataset.o : "", d: on && p.detalhe && on.dataset.o === p.detalhe.se ? val("d_" + p.id) : "" }; }); R[t.id] = o; }
 }
 const val = id => { const e = document.getElementById(id); return e ? e.value : ""; };
 const selEscala = n => { const b = tela.querySelector(`[data-escala="${n}"] button.on`); return b ? +b.dataset.v : null; };
@@ -681,7 +721,8 @@ const dataBR = d => d ? d.split("-").reverse().join("/") : "";
 function resumoBlocos(){
   const rot = ROT[tipo], L = TELAS(), out = [], idx = id => L.findIndex(t=>t.id===id), i = R.ident || {};
   out.push({titulo:"Identificação", ir: idx("ident"), texto: rot.ident.map(c => `${c.label}: ${c.tipo==="date" ? dataBR(i[c.id]) : (i[c.id]||"")}`).join("\n")});
-  for (const t of rot.telas) {
+  for (const t of telasAtivas()) {
+    if (t.tipo === "perguntas") { const v = R[t.id] || {}; out.push({titulo: t.titulo, ir: idx(t.id), texto: t.itens.map(p => { const a = v[p.id] || {}; return `${p.rotulo}: ${a.r || "—"}${a.d && a.d.trim() ? " · " + a.d.trim() : ""}`; }).join("\n")}); }
     if (t.tipo === "voz") { let tx = (R[t.id]||"").trim();
       if (t.extra === "pesoAltura" && R.pa && (R.pa.peso || R.pa.alt)) tx += `${tx?"\n":""}Peso: ${R.pa.peso||"—"} kg · Altura: ${R.pa.alt||"—"} m`;
       out.push({titulo: t.titulo, ir: idx(t.id), texto: tx}); }
@@ -693,8 +734,9 @@ function resumoBlocos(){
 }
 function riscoSinal(){
   const rot = ROT[tipo], r = (R.rastreio||{})[rot.risco];
-  const tx = norm(rot.telas.filter(t => t.tipo === "voz").map(t => R[t.id] || "").join(" "));
-  return (r != null && r > 0) || /(suicid|me matar|se matar|tirar (a )?(minha|propria|sua) vida|nao quero mais viver|quer morrer|quero morrer|acabar com tudo|me ferir|me cortar|se cortar|se machuca)/.test(tx);
+  const tx = norm(telasAtivas().filter(t => t.tipo === "voz").map(t => R[t.id] || "").join(" "));
+  const estrut = telasAtivas().some(t => t.tipo === "perguntas" && t.itens.some(p => p.risco && ((R[t.id]||{})[p.id]||{}).r === p.risco));
+  return estrut || (r != null && r > 0) || /(suicid|me matar|se matar|tirar (a )?(minha|propria|sua) vida|nao quero mais viver|quer morrer|quero morrer|acabar com tudo|me ferir|me cortar|se cortar|se machuca)/.test(tx);
 }
 async function enviar(){
   const msg = document.getElementById("msgEnvio"), btn = document.getElementById("enviar");
